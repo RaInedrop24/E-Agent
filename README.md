@@ -89,7 +89,7 @@ estate-portal/
 
 3. **Start development server**
    ```bash
-   npm run dev
+   npm run dev:3001
    ```
 
 4. **Open your browser**
@@ -102,6 +102,7 @@ http://localhost:3001
 | Command | Description |
 |---------|-------------|
 | `npm run dev` | Start development server |
+| `npm run dev:3001` | Start development server on port 3001 |
 | `npm run build` | Build for production |
 | `npm run start` | Start production server |
 | `npm run lint` | Run ESLint |

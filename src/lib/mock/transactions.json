@@ -1,0 +1,27 @@
+[
+  {
+    "id": "tx-001",
+    "title": "Holiday Home in Tuscany",
+    "currentMilestone": 1,
+    "milestones": [
+      { "id": 1, "title": "Offer Accepted", "description": "The offer has been accepted by the seller.", "isCompleted": true, "completedAt": "2025-11-10T09:00:00.000Z", "order": 1 },
+      { "id": 2, "title": "Preliminary Contract", "description": "Compromesso draft under review.", "isCompleted": false, "order": 2 },
+      { "id": 3, "title": "Deposit Paid", "description": "Deposit to be transferred.", "isCompleted": false, "order": 3 },
+      { "id": 4, "title": "Survey", "description": "Surveyor engaged to inspect the property.", "isCompleted": false, "order": 4 },
+      { "id": 5, "title": "Final Deed (Rogito)", "description": "Notary appointment to sign the final deed.", "isCompleted": false, "order": 5 }
+    ]
+  },
+  {
+    "id": "tx-002",
+    "title": "City Apartment",
+    "currentMilestone": 0,
+    "milestones": [
+      { "id": 1, "title": "Offer Accepted", "description": "Offer under consideration.", "isCompleted": false, "order": 1 },
+      { "id": 2, "title": "Preliminary Contract", "description": "Pending acceptance.", "isCompleted": false, "order": 2 },
+      { "id": 3, "title": "Deposit Paid", "description": "Awaiting payment.", "isCompleted": false, "order": 3 },
+      { "id": 4, "title": "Survey", "description": "To be scheduled.", "isCompleted": false, "order": 4 },
+      { "id": 5, "title": "Final Deed (Rogito)", "description": "To be scheduled.", "isCompleted": false, "order": 5 }
+    ]
+  }
+]
+

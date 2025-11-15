@@ -28,6 +28,17 @@ npm run dev
 - `npm run lint` - Run ESLint
 - `npm run type-check` - Run TypeScript compiler
 
+### Local Ports
+- Default dev port: 3000
+- Project dev port: 3001 (use `npm run dev -- -p 3001` or set `PORT=3001`)
+
+### Convenience Script
+- `npm run dev:3001` — starts the dev server on port 3001
+
+### Production Start
+- Build: `npm run build`
+- Start on 3001: `PORT=3001 npm run start -- -p 3001`
+
 ## Code Standards
 
 ### TypeScript

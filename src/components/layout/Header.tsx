@@ -61,10 +61,10 @@ export const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
             ) : (
               <div className="flex items-center space-x-2">
                 <Button variant="outline" asChild>
-                  <a href="/login">Login</a>
+                  <a href="/(auth)/login">Login</a>
                 </Button>
                 <Button asChild>
-                  <a href="/register">Register</a>
+                  <a href="/(auth)/register">Register</a>
                 </Button>
               </div>
             )}
