@@ -169,6 +169,8 @@
 * Introduced mock transactions list and detail/comms routes
 * Added Supabase client and debug page; env example; `dev:3001` script
 * Updated README and DEVELOPMENT docs to reflect local port and scripts
+* Configured private repo access: SSH deploy key + SSH alias; remote updated to SSH
+* Clarified repository visibility best practice (private for monetization) and documented push methods (SSH, PAT, GitHub CLI) in `docs/DEVELOPMENT.md`
 
 # Project Verity: International Property Portal
 

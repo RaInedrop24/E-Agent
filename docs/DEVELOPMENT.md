@@ -39,6 +39,79 @@ npm run dev
 - Build: `npm run build`
 - Start on 3001: `PORT=3001 npm run start -- -p 3001`
 
+## Git: Private repo access (Deploy key + SSH alias)
+
+When the repository is private, you can use a deploy key and an SSH alias for automated pushes.
+
+1) Generate an ed25519 key (no passphrase recommended for automation)
+```bash
+ssh-keygen -t ed25519 -f ~/.ssh/agent_eagent_ed25519 -C "estate-agent-portal-deploy-key" -N ""
+```
+
+2) Add SSH alias in `~/.ssh/config`
+```
+Host github-agent-eagent
+    HostName github.com
+    User git
+    IdentityFile ~/.ssh/agent_eagent_ed25519
+    IdentitiesOnly yes
+```
+
+3) Add the public key (`~/.ssh/agent_eagent_ed25519.pub`) to GitHub
+- Repo → Settings → Deploy keys → Add deploy key
+- Title: estate-agent-portal-deploy-key
+- Paste the public key
+- Enable “Allow write access”
+
+4) Point the repo remote to the alias
+```bash
+git remote set-url origin git@github-agent-eagent:RaInedrop24/E-Agent.git
+```
+
+5) Test
+```bash
+ssh -T github-agent-eagent   # expect auth success banner
+git ls-remote origin         # expect refs output
+```
+
+## Pushing to a Private GitHub Repo
+
+### Option 1 — SSH keys (recommended)
+1. Generate key (Windows PowerShell):
+```powershell
+ssh-keygen -t ed25519 -C "you@example.com"
+```
+2. Copy public key and add to GitHub (Settings → SSH and GPG keys):
+```powershell
+Get-Content $env:USERPROFILE\.ssh\id_ed25519.pub
+```
+3. Use SSH remote:
+```powershell
+cd estate-portal
+git remote set-url origin git@github.com:RaInedrop24/E-Agent.git
+ssh -T git@github.com
+git push
+```
+
+### Option 2 — Personal Access Token (HTTPS)
+1. Create a PAT (repo scope).
+2. Set HTTPS remote:
+```powershell
+cd estate-portal
+git remote set-url origin https://github.com/RaInedrop24/E-Agent.git
+git push   # use PAT when prompted
+```
+
+### Option 3 — GitHub CLI
+```powershell
+gh auth login
+cd estate-portal
+git push
+```
+
+Notes:
+- Ensure `.env*` files are not committed.
+- Rotate any secrets that may have been exposed previously.
 ## Code Standards
 
 ### TypeScript

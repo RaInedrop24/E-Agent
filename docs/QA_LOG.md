@@ -99,3 +99,31 @@ Ruling: PROCEED
 - After one or two more approved commits, request `git push` to GitHub.
 
 
+---
+
+## 2025-11-15 (Private repo + deploy key)
+
+### Scope
+- Repo privacy changed to Private.
+- Created SSH deploy key locally and configured dedicated SSH alias.
+- Updated `origin` remote to use SSH via alias.
+
+### Actions
+- Key generated at: `C:\Users\micro\.ssh\agent_eagent_ed25519` (public `.pub` shared to GitHub)
+- SSH alias added in `C:\Users\micro\.ssh\config`:
+  - Host: `github-agent-eagent`
+  - HostName: `github.com`
+  - User: `git`
+  - IdentityFile: the deploy key above
+  - IdentitiesOnly: `yes`
+- Remote updated to: `git@github-agent-eagent:RaInedrop24/E-Agent.git`
+- Verified SSH: authentication succeeded (no shell access, as expected)
+- Verified Git remote: `git ls-remote origin` succeeded
+
+### Ruling
+- PROCEED — Secure push access confirmed for private repo.
+
+### Notes
+- Future pushes will use the SSH alias automatically.
+- If rotating keys, update GitHub Deploy Key and `~/.ssh/config` accordingly.
+
