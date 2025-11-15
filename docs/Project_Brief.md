@@ -39,8 +39,7 @@
     * [x] Comprehensive documentation (README, ARCHITECTURE, DEVELOPMENT)
     * [x] GitHub repository setup with proper ALM practices
     * [ ] Wireframes (Low-fidelity sketches of authenticated screens)
-    * [x] User Flow Diagrams (Authentication and transaction flows) — see `docs/FLOWS.md`
-    * [x] Dashboard layouts documented — see `docs/UI_GUIDE.md`
+    * [ ] User Flow Diagrams (Authentication and transaction flows)
     * [ ] High-Fidelity Mockups (Dashboard and transaction views)
 * **Phase 3: MVP Development**
     * [ ] Supabase setup (Database, Authentication, Real-time)
@@ -165,11 +164,13 @@
 
 ### 🚧 Next Steps (Immediate - Phase 2 Completion)
 * Create wireframes for authenticated user interfaces
-* Finalize user flow diagrams (review in `docs/FLOWS.md`)
-* Validate dashboard layouts (see `docs/UI_GUIDE.md`)
+* Design user flow diagrams for key user journeys
+* Plan dashboard layouts for Agent vs Buyer experiences
 
 ### ⏳ Planned (Phase 3)
 * Supabase database setup and schema design
 * Authentication pages (Login/Register)
 * Real-time transaction tracking functionality
 * DeepL API integration for translation
+
+

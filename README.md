@@ -94,7 +94,7 @@ estate-portal/
 
 4. **Open your browser**
    ```
-   http://localhost:3000
+http://localhost:3001
    ```
 
 ### Available Scripts
@@ -123,9 +123,8 @@ estate-portal/
 ---
 
 ## ✨ MVP Features
-
 ### 🔐 User Management
-- [x] Role-based authentication (Agent/Buyer)
+- [ ] Role-based authentication (Agent/Buyer)
 - [ ] Transaction creation and buyer invitation
 - [ ] User profile management
 
