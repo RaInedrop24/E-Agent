@@ -14,10 +14,10 @@
 
 ## 2. Current Status
 
-**Phase:** 2 - Design & Prototyping (Early Development)  
-**Last Update:** 2025-11-15  
-**Current Step:** MVP foundation completed with Next.js, initial components built, basic flows and UI guide documented; Supabase client scaffolded.  
-**GitHub Repository:** https://github.com/RaInedrop24/E-Agent.git  
+**Phase:** 2 - Design & Prototyping ✅ COMPLETE
+**Last Update:** 2025-11-16
+**Current Step:** Phase 2 complete with wireframes and high-fidelity mockups. Ready to begin Phase 3 (MVP Development) - Supabase setup and authentication implementation.
+**GitHub Repository:** https://github.com/RaInedrop24/E-Agent.git
 **Local Development:** Running at http://localhost:3001
 
 ---
@@ -30,7 +30,7 @@
     * [x] Define MVP Feature List
     * [x] Tech Stack Exploration
     * [ ] Explore Business Model (How will this make money?)
-* **Phase 2: Design & Prototyping (CURRENT)**
+* **Phase 2: Design & Prototyping ✅ COMPLETE**
     * [x] Project setup with Next.js + TypeScript + Tailwind CSS
     * [x] shadcn/ui component library integration
     * [x] Professional landing page with feature showcase
@@ -38,13 +38,13 @@
     * [x] Type-safe project structure with TypeScript definitions
     * [x] Comprehensive documentation (README, ARCHITECTURE, DEVELOPMENT)
     * [x] GitHub repository setup with proper ALM practices
-    * [ ] Wireframes (Low-fidelity sketches of authenticated screens)
+    * [x] Wireframes (Low-fidelity sketches of authenticated screens) — see `docs/WIREFRAMES.md`
     * [x] User Flow Diagrams (Authentication and transaction flows) — see `docs/FLOWS.md`
     * [x] Dashboard layouts documented — see `docs/UI_GUIDE.md`
-    * [ ] High-Fidelity Mockups (Dashboard and transaction views)
-* **Phase 3: MVP Development**
-    * [ ] Supabase setup (Database, Authentication, Real-time)
-    * [ ] User authentication system (Login/Register pages wired to Supabase)
+    * [x] High-Fidelity Mockups (Dashboard and transaction views) — see `docs/MOCKUPS.md`
+* **Phase 3: MVP Development (STARTED)**
+    * [ ] Supabase setup (Database, Authentication, Real-time) — in progress
+    * [x] User authentication UI wired to Supabase (login/register)
     * [ ] Dashboard layouts for Agent and Buyer roles
     * [ ] Transaction creation and management system
     * [ ] Build complete "Tracker" module with real-time updates
@@ -112,6 +112,10 @@
     3.  Automatic translation shown with "Show Original" toggle.
 * **Simple File Upload**
     1.  Ability to upload and share key documents (PDFs, JPEGs) within the Comms Hub.
+* **User Settings & Profile**
+    1.  User avatar (icon) shown in header for authenticated users
+    2.  Hover displays user name and role
+    3.  Settings page for profile updates (name, avatar upload later), change password
 
 ---
 
@@ -145,6 +149,8 @@
 * **Documentation**
     * `docs/FLOWS.md` (Mermaid auth and transaction flows)
     * `docs/UI_GUIDE.md` (Agent/Buyer dashboard layouts)
+    * `docs/WIREFRAMES.md` (Low-fidelity screen wireframes)
+    * `docs/MOCKUPS.md` (High-fidelity component specifications)
     * `docs/DEPLOYMENT_LINODE.md` (prepared, deployment deferred)
     * `docs/DEVELOPMENT.md` updated with `npm run dev:3001`
 * **Dev Convenience**
@@ -155,16 +161,19 @@
     * `src/lib/supabase.ts` client factory
     * `/debug/supabase` page to verify env
 
-### 🚧 Next Steps (Phase 2 wrap-up → Phase 3 start)
-* Wireframes for authenticated screens (low-fidelity)
-* Connect Supabase Auth to login/register
+### 🚧 Next Steps (Phase 3 - MVP Development)
+* Connect Supabase Auth to login/register — DONE (UI wired; verify with real keys)
 * Create `profiles` row on signup
 * Define RLS policies and initial schema migrations (per `docs/SUPABASE_SCHEMA.md`)
 * Replace mock transaction data with Supabase tables
+* Implement real-time transaction tracking
+* Integrate DeepL API for translation
 
 ---
 
 ## 8. Recent Iterations (Changelog)
+* **2025-11-16:** Phase 2 complete - Created WIREFRAMES.md and MOCKUPS.md with comprehensive UI specifications
+* **2025-11-15:** Added Playwright E2E tests and CI workflow (`.github/workflows/e2e.yml`); configured `playwright.config.ts` to auto-start Next on port 3001
 * Added Mermaid user flows and UI guide documentation
 * Introduced mock transactions list and detail/comms routes
 * Added Supabase client and debug page; env example; `dev:3001` script
@@ -188,9 +197,9 @@
 
 ## 2. Current Status
 
-**Phase:** 2 - Design & Prototyping (Early Development)
-**Last Update:** 2025-11-15
-**Current Step:** MVP foundation completed with Next.js, initial components built, and GitHub repository established.
+**Phase:** 2 - Design & Prototyping ✅ COMPLETE
+**Last Update:** 2025-11-16
+**Current Step:** Phase 2 complete with wireframes and high-fidelity mockups. Ready to begin Phase 3 (MVP Development) - Supabase setup and authentication implementation.
 **GitHub Repository:** https://github.com/RaInedrop24/E-Agent.git
 **Local Development:** Running at http://localhost:3001
 
@@ -204,7 +213,7 @@
     * [x] Define MVP Feature List
     * [x] Tech Stack Exploration
     * [ ] Explore Business Model (How will this make money?)
-* **Phase 2: Design & Prototyping (CURRENT)**
+* **Phase 2: Design & Prototyping ✅ COMPLETE**
     * [x] Project setup with Next.js 15 + TypeScript + Tailwind CSS
     * [x] shadcn/ui component library integration
     * [x] Professional landing page with feature showcase
@@ -212,9 +221,9 @@
     * [x] Type-safe project structure with TypeScript definitions
     * [x] Comprehensive documentation (README, ARCHITECTURE, DEVELOPMENT)
     * [x] GitHub repository setup with proper ALM practices
-    * [ ] Wireframes (Low-fidelity sketches of authenticated screens)
-    * [ ] User Flow Diagrams (Authentication and transaction flows)
-    * [ ] High-Fidelity Mockups (Dashboard and transaction views)
+    * [x] Wireframes (Low-fidelity sketches of authenticated screens) — see `docs/WIREFRAMES.md`
+    * [x] User Flow Diagrams (Authentication and transaction flows) — see `docs/FLOWS.md`
+    * [x] High-Fidelity Mockups (Dashboard and transaction views) — see `docs/MOCKUPS.md`
 * **Phase 3: MVP Development**
     * [ ] Supabase setup (Database, Authentication, Real-time)
     * [ ] User authentication system (Login/Register pages)
@@ -336,15 +345,19 @@
     * Builds and lint checks to be validated per iteration
     * Professional naming conventions and code organization
 
-### 🚧 Next Steps (Immediate - Phase 2 Completion)
-* Create wireframes for authenticated user interfaces
-* Design user flow diagrams for key user journeys
-* Plan dashboard layouts for Agent vs Buyer experiences
+### ✅ Phase 2 Complete
+* All wireframes created for authenticated user interfaces
+* User flow diagrams designed for key user journeys
+* Dashboard layouts planned for Agent vs Buyer experiences
+* High-fidelity mockups with detailed component specifications
+* Supabase client scaffolded (`@supabase/supabase-js` installed, `src/lib/supabase.ts` added) and `/debug/supabase` page available for env verification
+* User Settings (initial): header avatar + tooltip; `/settings` page with profile name and password change; avatar upload stub
 
-### ⏳ Planned (Phase 3)
+### 🚧 Next Steps (Phase 3 - MVP Development)
 * Supabase database setup and schema design
-* Authentication pages (Login/Register)
+* Authentication pages (Login/Register) connected to Supabase
 * Real-time transaction tracking functionality
 * DeepL API integration for translation
+* File upload and management system
 
 

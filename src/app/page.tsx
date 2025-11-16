@@ -1,4 +1,3 @@
-import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle, MessageSquare, Globe, Shield } from 'lucide-react';
@@ -6,8 +5,6 @@ import { CheckCircle, MessageSquare, Globe, Shield } from 'lucide-react';
 export default function Home() {
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
-      
       {/* Hero Section */}
       <section className="bg-white">
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">

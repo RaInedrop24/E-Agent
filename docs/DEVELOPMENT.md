@@ -112,6 +112,47 @@ git push
 Notes:
 - Ensure `.env*` files are not committed.
 - Rotate any secrets that may have been exposed previously.
+
+## MCP — Playwright Server (preview)
+We are preparing to use the Playwright MCP server for automated site reviews from within the editor.
+
+### Install Playwright browsers
+```bash
+npm run playwright:install
+```
+
+### MCP configuration
+The MCP server is referenced in `.cursor/mcp.json`. Once the official Playwright MCP package is available from npm, enable it by removing `"disabled": true` and ensure the command resolves:
+```json
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-playwright"],
+      "env": { "PLAYWRIGHT_BROWSERS_PATH": "0" }
+    }
+  }
+}
+```
+
+If a different package name or run command is provided, update the args accordingly. Until then, you can still run local Playwright tests using `playwright` directly.
+
+## Continuous Integration (CI)
+GitHub Actions run Playwright E2E tests on pushes and PRs to `main`.
+
+- Workflow: `.github/workflows/e2e.yml`
+- What it does:
+  - Checks out repo
+  - Uses Node 18
+  - `npm ci`
+  - `npx playwright install --with-deps`
+  - Copies `.env.local.example` → `.env.local` for non-secret defaults
+  - Runs `npm run test:e2e`
+
+Local run remains:
+```bash
+npm run test:e2e
+```
 ## Code Standards
 
 ### TypeScript

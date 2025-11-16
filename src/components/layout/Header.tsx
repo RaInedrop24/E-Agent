@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { User } from '@/types';
+import { User as UserIcon } from 'lucide-react';
 
 interface HeaderProps {
   user?: User | null;
@@ -44,11 +45,17 @@ export const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
             {user ? (
               <>
                 <div className="flex items-center space-x-3">
-                  <div className="flex flex-col text-sm">
-                    <span className="font-medium text-gray-900">
-                      {user.firstName} {user.lastName}
-                    </span>
-                    <span className="text-gray-500">{user.email}</span>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="h-9 w-9 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 cursor-default"
+                      title={`${user.firstName} ${user.lastName} • ${user.role === 'agent' ? 'Agent' : 'Buyer'}`}
+                    >
+                      <UserIcon className="h-5 w-5 text-gray-700" />
+                    </div>
+                    <div className="hidden sm:flex flex-col leading-tight">
+                      <span className="text-sm font-medium text-gray-900">{user.firstName} {user.lastName}</span>
+                      <span className="text-xs text-gray-500">{user.email}</span>
+                    </div>
                   </div>
                   <Badge variant={user.role === 'agent' ? 'default' : 'secondary'}>
                     {user.role === 'agent' ? 'Agent' : 'Buyer'}
@@ -57,14 +64,17 @@ export const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
                 <Button variant="outline" onClick={onLogout}>
                   Logout
                 </Button>
+                <Button asChild>
+                  <a href="/settings">Settings</a>
+                </Button>
               </>
             ) : (
               <div className="flex items-center space-x-2">
                 <Button variant="outline" asChild>
-                  <a href="/(auth)/login">Login</a>
+                  <a href="/login">Login</a>
                 </Button>
                 <Button asChild>
-                  <a href="/(auth)/register">Register</a>
+                  <a href="/register">Register</a>
                 </Button>
               </div>
             )}

@@ -27,6 +27,7 @@ erDiagram
     text full_name
     text preferred_language
     text role
+    text avatar_url
     timestamptz created_at
   }
 
@@ -97,6 +98,7 @@ create table if not exists public.profiles (
   full_name text,
   preferred_language text not null default 'en',
   role text not null check (role in ('agent','buyer')),
+  avatar_url text,
   created_at timestamptz not null default now()
 );
 ```
@@ -183,6 +185,12 @@ We will enable RLS on all tables and define policies such that:
 - files: participants can read; participants can upload (insert).
 
 Policies will be added in a subsequent iteration once roles and auth strategy are finalized.
+
+## Storage
+
+Bucket: `avatars`
+- Public read, authenticated write (upload/update own path: `${user.id}/*`)
+- Store user avatars and reference via `profiles.avatar_url`
 
 ## Seed Milestones (Example)
 

@@ -7,7 +7,10 @@
     "dev:3001": "next dev -p 3001",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "playwright:install": "playwright install",
+    "mcp:playwright": "node -e \"console.log('Playwright MCP server package pending. Configure .cursor/mcp.json when available.')\"",
+    "test:e2e": "playwright test --reporter=line"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",
@@ -24,6 +27,8 @@
     "tailwind-merge": "^3.4.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.47.2",
+    "playwright": "^1.47.2",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
