@@ -8,7 +8,16 @@
       "Bash(node supabase/apply-schema.js:*)",
       "Bash(npx shadcn:*)",
       "Bash(npm run build:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(taskkill:*)",
+      "Bash(node scripts/apply-sql-fix.js:*)",
+      "Bash(npx playwright:*)",
+      "Bash(move testsfix-auth.spec.js testse2efix-auth.spec.js)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []

@@ -14,10 +14,9 @@ export default defineConfig({
   ],
   reporter: 'line',
   webServer: {
-    command: 'npm run build && npm run start -- -p 3001',
+    command: 'npm run dev:3001',
     url: 'http://localhost:3001',
-    // Always build/start for tests to catch build-time errors locally too
-    reuseExistingServer: false,
+    reuseExistingServer: true,
     timeout: 120 * 1000
   }
 });

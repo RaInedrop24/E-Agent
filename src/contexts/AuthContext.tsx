@@ -45,6 +45,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(initialSession);
       setUser(initialSession?.user ?? null);
 
+      // Set cookie for middleware to access
+      if (initialSession && typeof document !== 'undefined') {
+        document.cookie = `sb-skvfgvlwccxetglmfhpm-auth-token=${JSON.stringify({
+          access_token: initialSession.access_token,
+          refresh_token: initialSession.refresh_token,
+        })}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
+        console.log('[AuthContext] Initial cookie set');
+      }
+
       if (initialSession?.user) {
         fetchProfile(initialSession.user.id);
       } else {
@@ -59,6 +68,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(currentSession);
       setUser(currentSession?.user ?? null);
 
+      // Set cookie for middleware to access
+      if (currentSession && typeof document !== 'undefined') {
+        document.cookie = `sb-skvfgvlwccxetglmfhpm-auth-token=${JSON.stringify({
+          access_token: currentSession.access_token,
+          refresh_token: currentSession.refresh_token,
+        })}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
+        console.log('[AuthContext] Cookie set for session');
+      } else if (typeof document !== 'undefined') {
+        // Clear cookie on logout
+        document.cookie = 'sb-skvfgvlwccxetglmfhpm-auth-token=; path=/; max-age=0';
+        console.log('[AuthContext] Cookie cleared');
+      }
+
       if (currentSession?.user) {
         fetchProfile(currentSession.user.id);
       } else {
@@ -72,6 +94,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchProfile = async (userId: string) => {
     try {
+      console.log('[AuthContext] Fetching profile for user:', userId);
+
+      // Check if we have a session
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log('[AuthContext] Current session exists:', !!session);
+
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -80,8 +108,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (error) {
         console.error('[AuthContext] Error fetching profile:', error);
+        console.error('[AuthContext] Error details:', JSON.stringify(error));
         setProfile(null);
       } else {
+        console.log('[AuthContext] Profile fetched successfully:', data);
         setProfile(data);
       }
     } catch (err) {

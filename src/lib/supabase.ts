@@ -12,7 +12,18 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase =
   supabaseUrl && supabaseAnonKey
-    ? createClient(supabaseUrl, supabaseAnonKey)
+    ? createClient(supabaseUrl, supabaseAnonKey, {
+        auth: {
+          // Store session in cookies instead of localStorage
+          // This allows middleware to access the session
+          storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+          storageKey: 'sb-skvfgvlwccxetglmfhpm-auth-token',
+          flowType: 'pkce',
+          detectSessionInUrl: true,
+          persistSession: true,
+          autoRefreshToken: true,
+        },
+      })
     : (undefined as any);
 
 

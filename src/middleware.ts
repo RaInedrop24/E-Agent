@@ -32,21 +32,39 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  // Get session from cookies
-  const accessToken = request.cookies.get('sb-access-token')?.value;
-  const refreshToken = request.cookies.get('sb-refresh-token')?.value;
+  // Get session from Supabase auth cookie
+  // Supabase uses project-specific cookie name: sb-<project-ref>-auth-token
+  const authCookie = request.cookies.get('sb-skvfgvlwccxetglmfhpm-auth-token')?.value;
+
+  console.log('[Middleware] Path:', pathname);
+  console.log('[Middleware] Auth cookie exists:', !!authCookie);
 
   let session = null;
 
-  if (accessToken && refreshToken) {
-    const { data: { session: sessionData } } = await supabase.auth.setSession({
-      access_token: accessToken,
-      refresh_token: refreshToken,
-    });
-    session = sessionData;
-  } else {
+  if (authCookie) {
+    try {
+      // Parse the auth cookie JSON
+      const authData = JSON.parse(authCookie);
+      console.log('[Middleware] Cookie has tokens:', !!authData.access_token, !!authData.refresh_token);
+
+      if (authData.access_token && authData.refresh_token) {
+        const { data: { session: sessionData } } = await supabase.auth.setSession({
+          access_token: authData.access_token,
+          refresh_token: authData.refresh_token,
+        });
+        session = sessionData;
+        console.log('[Middleware] Session established:', !!session);
+      }
+    } catch (e) {
+      console.error('[Middleware] Error parsing auth cookie:', e);
+    }
+  }
+
+  // Fallback to checking session
+  if (!session) {
     const { data: { session: sessionData } } = await supabase.auth.getSession();
     session = sessionData;
+    console.log('[Middleware] Fallback session:', !!session);
   }
 
   // If trying to access protected route without authentication
