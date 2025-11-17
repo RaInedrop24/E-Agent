@@ -15,6 +15,7 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<"agent" | "buyer">("buyer");
+  const [preferredLanguage, setPreferredLanguage] = useState<string>("en");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -37,6 +38,7 @@ export default function RegisterPage() {
           data: {
             full_name: fullName,
             role,
+            preferred_language: preferredLanguage,
           },
         },
       });
@@ -79,7 +81,27 @@ export default function RegisterPage() {
                 <SelectItem value="buyer">Buyer</SelectItem>
               </SelectContent>
             </Select>
-            <p className="text-xs text-muted-foreground">A verification email may be sent depending on your Supabase settings.</p>
+            <p className="text-xs text-muted-foreground">
+              Agents create and manage transactions. Buyers view transactions they&apos;re invited to.
+            </p>
+          </div>
+          <div className="space-y-2">
+            <Label>Preferred Language</Label>
+            <Select defaultValue="en" onValueChange={(v) => setPreferredLanguage(v)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select language" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="en">English</SelectItem>
+                <SelectItem value="it">Italiano (Italian)</SelectItem>
+                <SelectItem value="de">Deutsch (German)</SelectItem>
+                <SelectItem value="fr">Français (French)</SelectItem>
+                <SelectItem value="es">Español (Spanish)</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              This will be used for UI and message translations (coming soon).
+            </p>
           </div>
           {error && <p className="text-sm text-red-600">{error}</p>}
           <Button className="w-full" type="button" onClick={onSubmit} disabled={loading}>

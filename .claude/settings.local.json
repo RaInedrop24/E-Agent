@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(test -f:*)",
+      "Bash(npx playwright test:*)",
+      "Bash(npm run dev:3001:*)",
+      "WebFetch(domain:localhost)",
+      "Bash(node supabase/apply-schema.js:*)",
+      "Bash(npx shadcn:*)",
+      "Bash(npm run build:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
