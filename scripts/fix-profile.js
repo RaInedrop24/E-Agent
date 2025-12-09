@@ -42,8 +42,8 @@ async function fixProfile() {
 
   // Login as the test user
   const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-    email: 'Eagent_Admin@rainedrop.co.uk',
-    password: 'EA@l0u15e001',
+    email: process.env.TEST_AGENT_EMAIL || 'Eagent_Admin@rainedrop.co.uk',
+    password: process.env.TEST_AGENT_PASSWORD || 'CHANGE_ME',
   });
 
   if (authError) {

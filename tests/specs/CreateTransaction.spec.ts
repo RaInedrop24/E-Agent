@@ -8,9 +8,9 @@ test.describe('Transaction Creation Flow', () => {
   let createPage: CreateTransactionPage;
   let detailPage: TransactionDetailPage;
 
-  // Credentials provided in requirements
-  const AGENT_EMAIL = 'Eagent_Admin@rainedrop.co.uk';
-  const AGENT_PASS = 'EA@l0u15e001';
+  // Credentials from environment variables
+  const AGENT_EMAIL = process.env.TEST_AGENT_EMAIL || 'Eagent_Admin@rainedrop.co.uk';
+  const AGENT_PASS = process.env.TEST_AGENT_PASSWORD || 'CHANGE_ME';
 
   test.beforeEach(async ({ page }) => {
     loginPage = new LoginPage(page);

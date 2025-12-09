@@ -39,3 +39,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Sensitive logs and session files
+**/SESSION_*.md
+**/Autonomous_*.md
+**/UnAttended_*.md
+test-console.log
+playwright-report/
+test-results/

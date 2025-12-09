@@ -21,8 +21,8 @@ async function testLogin() {
   console.log('Testing login...');
   
   const { data, error } = await supabase.auth.signInWithPassword({
-    email: 'Eagent_Admin@rainedrop.co.uk',
-    password: 'EA@l0u15e001',
+    email: process.env.TEST_AGENT_EMAIL || 'Eagent_Admin@rainedrop.co.uk',
+    password: process.env.TEST_AGENT_PASSWORD || 'CHANGE_ME',
   });
   
   if (error) {
