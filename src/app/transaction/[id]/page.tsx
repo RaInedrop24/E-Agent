@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
@@ -54,10 +54,11 @@ interface Message {
 }
 
 interface PageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export default function TransactionDetailPage({ params }: PageProps) {
+  const { id: transactionId } = use(params);
   const router = useRouter();
   const { user, profile } = useAuth();
   const [transaction, setTransaction] = useState<Transaction | null>(null);
@@ -74,7 +75,7 @@ export default function TransactionDetailPage({ params }: PageProps) {
       return;
     }
     fetchTransaction();
-  }, [user, params.id]);
+  }, [user, transactionId]);
 
   const fetchTransaction = async () => {
     try {
@@ -85,21 +86,7 @@ export default function TransactionDetailPage({ params }: PageProps) {
         throw new Error('Supabase client not configured');
       }
 
-      // Check if user is a participant
-      const { data: participantCheck } = await supabase
-        .from('transaction_participants')
-        .select('id')
-        .eq('transaction_id', params.id)
-        .eq('profile_id', user!.id)
-        .single();
-
-      if (!participantCheck) {
-        setError('You do not have access to this transaction');
-        setLoading(false);
-        return;
-      }
-
-      // Fetch transaction details
+      // Fetch transaction details first to check if user is creator
       const { data: txData, error: txError } = await supabase
         .from('transactions')
         .select(`
@@ -113,10 +100,43 @@ export default function TransactionDetailPage({ params }: PageProps) {
             full_name
           )
         `)
-        .eq('id', params.id)
+        .eq('id', transactionId)
         .single();
 
-      if (txError) throw txError;
+      if (txError) {
+        if (txError.code === 'PGRST116') {
+          setError('Transaction not found');
+        } else {
+          throw txError;
+        }
+        setLoading(false);
+        return;
+      }
+
+      if (!txData) {
+        setError('Transaction not found');
+        setLoading(false);
+        return;
+      }
+
+      // Check access: user must be either creator OR a participant
+      const isCreator = txData.created_by === user!.id;
+      
+      if (!isCreator) {
+        // Check if user is a participant
+        const { data: participantCheck } = await supabase
+          .from('transaction_participants')
+          .select('id')
+          .eq('transaction_id', transactionId)
+          .eq('profile_id', user!.id)
+          .single();
+
+        if (!participantCheck) {
+          setError('You do not have access to this transaction');
+          setLoading(false);
+          return;
+        }
+      }
 
       setTransaction({
         ...txData,
@@ -127,7 +147,7 @@ export default function TransactionDetailPage({ params }: PageProps) {
       const { data: milestonesData, error: milestonesError } = await supabase
         .from('milestones')
         .select('*')
-        .eq('transaction_id', params.id)
+        .eq('transaction_id', transactionId)
         .order('order_index', { ascending: true });
 
       if (milestonesError) throw milestonesError;
@@ -146,7 +166,7 @@ export default function TransactionDetailPage({ params }: PageProps) {
             id
           )
         `)
-        .eq('transaction_id', params.id);
+        .eq('transaction_id', transactionId);
 
       if (participantsError) throw participantsError;
 
@@ -180,7 +200,7 @@ export default function TransactionDetailPage({ params }: PageProps) {
             full_name
           )
         `)
-        .eq('transaction_id', params.id)
+        .eq('transaction_id', transactionId)
         .order('created_at', { ascending: true });
 
       if (messagesError) throw messagesError;
