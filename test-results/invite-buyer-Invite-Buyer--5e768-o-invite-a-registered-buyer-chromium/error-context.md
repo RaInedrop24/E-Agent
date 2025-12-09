@@ -1,0 +1,79 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e4]:
+      - generic [ref=e5]:
+        - heading "Estate Portal" [level=1] [ref=e7]
+        - generic [ref=e9]:
+          - link "Dashboard" [ref=e10] [cursor=pointer]:
+            - /url: /dashboard
+          - link "Transactions" [ref=e11] [cursor=pointer]:
+            - /url: /transactions
+      - generic [ref=e12]:
+        - generic [ref=e13]:
+          - generic [ref=e14]:
+            - generic "Admin • Agent" [ref=e15]:
+              - img [ref=e16]
+            - generic [ref=e19]:
+              - generic [ref=e20]: Admin
+              - generic [ref=e21]: eagent_admin@rainedrop.co.uk
+          - generic [ref=e22]: Agent
+        - button "Logout" [ref=e23]
+        - link "Settings" [ref=e24] [cursor=pointer]:
+          - /url: /settings
+  - generic [ref=e25]:
+    - generic [ref=e26]:
+      - link [ref=e27] [cursor=pointer]:
+        - /url: /dashboard
+        - button [ref=e28]:
+          - img
+      - generic [ref=e29]:
+        - heading "Create New Transaction" [level=1] [ref=e30]
+        - paragraph [ref=e31]: Start tracking a new property transaction
+    - generic [ref=e32]:
+      - generic [ref=e33]:
+        - generic [ref=e34]: Transaction Details
+        - generic [ref=e35]: Enter the basic information for this property transaction. You can invite buyers and manage milestones after creating the transaction.
+      - generic [ref=e37]:
+        - generic [ref=e38]:
+          - generic [ref=e39]:
+            - text: Transaction Title
+            - generic [ref=e40]: "*"
+          - textbox "Transaction Title *" [ref=e41]:
+            - /placeholder: e.g., Villa in Tuscany Purchase
+            - text: Transaction 1763721920183
+          - paragraph [ref=e42]: A descriptive name for this transaction
+        - generic [ref=e43]:
+          - generic [ref=e44]: Property Address (Optional)
+          - textbox "Property Address (Optional)" [ref=e45]:
+            - /placeholder: e.g., Via Roma 123, 50100 Florence, Italy
+            - text: 123 Test St, Rome
+          - paragraph [ref=e46]: The address of the property being purchased
+        - generic [ref=e47]: new row violates row-level security policy for table "transactions"
+        - generic [ref=e48]:
+          - button "Create Transaction" [ref=e49]
+          - link "Cancel" [ref=e50] [cursor=pointer]:
+            - /url: /dashboard
+            - button "Cancel" [ref=e51]
+        - generic [ref=e52]:
+          - strong [ref=e53]: "What happens next:"
+          - list [ref=e54]:
+            - listitem [ref=e55]: Transaction will be created with default milestones
+            - listitem [ref=e56]: You will be automatically added as a participant
+            - listitem [ref=e57]: You can invite buyers from the transaction detail page
+            - listitem [ref=e58]: Milestones can be checked off as the purchase progresses
+  - generic [ref=e63] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e64]:
+      - img [ref=e65]
+    - generic [ref=e68]:
+      - button "Open issues overlay" [ref=e69]:
+        - generic [ref=e70]:
+          - generic [ref=e71]: "0"
+          - generic [ref=e72]: "1"
+        - generic [ref=e73]: Issue
+      - button "Collapse issues badge" [ref=e74]:
+        - img [ref=e75]
+  - alert [ref=e77]
+```

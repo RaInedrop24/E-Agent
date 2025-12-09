@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { User } from '@/types';
 import { User as UserIcon } from 'lucide-react';
+import Link from 'next/link';
 
 interface HeaderProps {
   user?: User | null;
@@ -64,9 +65,14 @@ export const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
                 <Button variant="outline" onClick={onLogout}>
                   Logout
                 </Button>
-                <Button asChild>
-                  <a href="/settings">Settings</a>
+                <Button asChild variant="ghost">
+                  <Link href="/settings">Settings</Link>
                 </Button>
+                {user.role === 'agent' && (
+                  <Button asChild variant="outline">
+                    <Link href="/admin">Site Admin</Link>
+                  </Button>
+                )}
               </>
             ) : (
               <div className="flex items-center space-x-2">

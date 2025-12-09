@@ -108,8 +108,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (error) {
         console.error('[AuthContext] Error fetching profile:', error);
-        console.error('[AuthContext] Error details:', JSON.stringify(error));
-        setProfile(null);
+        console.error('[AuthContext] Error message:', error.message || 'No error message');
+        console.error('[AuthContext] Error code:', error.code || 'No error code');
+
+        // If no profile exists (PGRST116), try to create one automatically
+        if (error.code === 'PGRST116') {
+          console.log('[AuthContext] No profile found, attempting to create one...');
+          try {
+            const { data: newProfile, error: createError } = await supabase.rpc('create_profile_for_current_user');
+            if (createError) {
+              console.error('[AuthContext] Error creating profile:', createError);
+              setProfile(null);
+            } else {
+              console.log('[AuthContext] Profile created successfully:', newProfile);
+              setProfile(newProfile);
+            }
+          } catch (createErr) {
+            console.error('[AuthContext] Exception creating profile:', createErr);
+            setProfile(null);
+          }
+        } else {
+          setProfile(null);
+        }
       } else {
         console.log('[AuthContext] Profile fetched successfully:', data);
         setProfile(data);

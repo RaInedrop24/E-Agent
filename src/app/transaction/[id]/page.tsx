@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowLeft, Check, Clock, Users, FileText, MessageCircle } from 'lucide-react';
 import { ProgressTracker } from '@/components/features/transaction/ProgressTracker';
+import { InviteBuyerModal } from '@/components/features/transaction/InviteBuyerModal';
 import type { Milestone } from '@/types';
 
 interface Transaction {
@@ -338,11 +339,10 @@ export default function TransactionDetailPage({ params }: PageProps) {
                     >
                       <div className="flex items-center gap-3">
                         <div
-                          className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                            milestone.completed
+                          className={`w-6 h-6 rounded-full flex items-center justify-center ${milestone.completed
                               ? 'bg-green-500 text-white'
                               : 'bg-gray-200 text-gray-500'
-                          }`}
+                            }`}
                         >
                           {milestone.completed && <Check className="h-4 w-4" />}
                         </div>
@@ -458,14 +458,8 @@ export default function TransactionDetailPage({ params }: PageProps) {
               </div>
 
               {isAgent && (
-                <div className="mt-6">
-                  <Button variant="outline" className="w-full">
-                    <Users className="mr-2 h-4 w-4" />
-                    Invite Buyer
-                  </Button>
-                  <p className="text-xs text-muted-foreground text-center mt-2">
-                    Invite functionality coming soon
-                  </p>
+                <div className="mt-6 flex justify-center">
+                  <InviteBuyerModal transactionId={transaction.id} />
                 </div>
               )}
             </CardContent>

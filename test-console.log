@@ -1,0 +1,38 @@
+PAGE LOG: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+PAGE LOG: [HMR] connected
+PAGE LOG: [AuthContext] Cookie cleared
+TEST: Waiting for button...
+TEST: Clicking button...
+PAGE LOG: RegisterPage: onSubmit called
+PAGE LOG: RegisterPage: Calling supabase.auth.signUp with {
+  "email": "buyer1763716807197@gmail.com",
+  "password": "password123",
+  "options": {
+    "emailRedirectTo": "http://localhost:3001/auth/callback",
+    "data": {
+      "full_name": "Test Buyer",
+      "role": "buyer",
+      "preferred_language": "en"
+    }
+  }
+}
+TEST: Waiting for URL change...
+PAGE LOG: Failed to load resource: the server responded with a status of 429 ()
+PAGE LOG: RegisterPage: signUp returned {signUpError: AuthApiError: email rate limit exceeded
+    at handleError (http://localhost:3001/_next/static/chun…, data: Object}
+PAGE LOG: RegisterPage: Error AuthApiError: email rate limit exceeded
+    at handleError (http://localhost:3001/_next/static/chunks/node_modules_bc562f93._.js:15243:11)
+    at async _handleRequest (http://localhost:3001/_next/static/chunks/node_modules_bc562f93._.js:15293:9)
+    at async _request (http://localhost:3001/_next/static/chunks/node_modules_bc562f93._.js:15273:18)
+    at async SupabaseAuthClient.signUp (http://localhost:3001/_next/static/chunks/node_modules_bc562f93._.js:17413:23)
+    at async onSubmit (http://localhost:3001/_next/static/chunks/src_14bf0f90._.js:506:50)
+TEST ERROR: Error: [2mexpect([22m[31mpage[39m[2m).[22mtoHaveURL[2m([22m[32mexpected[39m[2m)[22m failed
+
+Expected pattern: [32m/\/dashboard|\/login/[39m
+Received string:  [31m"http://localhost:3001/register"[39m
+Timeout: 5000ms
+
+Call log:
+[2m  - Expect "toHaveURL" with timeout 5000ms[22m
+[2m    9 × unexpected value "http://localhost:3001/register"[22m
+

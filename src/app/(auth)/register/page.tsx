@@ -20,17 +20,20 @@ export default function RegisterPage() {
   const [error, setError] = useState<string | null>(null);
 
   const onSubmit = async () => {
+    console.log("RegisterPage: onSubmit called");
     setError(null);
     setLoading(true);
     try {
       if (!supabase) {
+        console.error("RegisterPage: Supabase is undefined");
         throw new Error("Supabase is not configured. Check your .env.local.");
       }
       const redirectTo =
         typeof window !== "undefined"
           ? `${window.location.origin}/auth/callback`
           : undefined;
-      const { error: signUpError } = await supabase.auth.signUp({
+
+      const signUpOptions = {
         email,
         password,
         options: {
@@ -41,10 +44,16 @@ export default function RegisterPage() {
             preferred_language: preferredLanguage,
           },
         },
-      });
+      };
+      console.log("RegisterPage: Calling supabase.auth.signUp with", JSON.stringify(signUpOptions, null, 2));
+
+      const { error: signUpError, data } = await supabase.auth.signUp(signUpOptions);
+      console.log("RegisterPage: signUp returned", { signUpError, data });
       if (signUpError) throw signUpError;
+      console.log("RegisterPage: Redirecting to dashboard");
       router.push("/dashboard");
     } catch (e: any) {
+      console.error("RegisterPage: Error", e);
       setError(e?.message || "Registration failed");
     } finally {
       setLoading(false);
