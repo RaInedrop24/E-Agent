@@ -67,19 +67,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create the buyer user using admin API
-    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+    // Create and invite the buyer user using admin API
+    // Using inviteUserByEmail sends an invitation email automatically
+    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
       email,
-      email_confirm: true,
-      user_metadata: {
-        full_name: fullName,
-        preferred_language: preferredLanguage || 'en',
-        role: 'buyer',
-      },
-    });
+      {
+        data: {
+          full_name: fullName,
+          preferred_language: preferredLanguage || 'en',
+          role: 'buyer',
+        },
+        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3001'}/auth/update-password`,
+      }
+    );
 
     if (authError) {
-      console.error('Error creating buyer auth user:', authError);
+      console.error('Error inviting buyer:', authError);
       return NextResponse.json(
         { error: authError.message },
         { status: 400 }
@@ -88,7 +91,7 @@ export async function POST(request: NextRequest) {
 
     if (!authData.user) {
       return NextResponse.json(
-        { error: 'Failed to create user' },
+        { error: 'Failed to invite user' },
         { status: 500 }
       );
     }
@@ -109,17 +112,6 @@ export async function POST(request: NextRequest) {
         { error: 'Failed to associate buyer with agent' },
         { status: 500 }
       );
-    }
-
-    // Send password reset email
-    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3001'}/auth/callback?type=recovery`,
-    });
-
-    if (resetError) {
-      console.error('Error sending password reset email:', resetError);
-      // Don't fail the request - the buyer was created successfully
-      // The agent can resend the invite manually
     }
 
     return NextResponse.json({

@@ -230,26 +230,34 @@ export default function BuyersPage() {
 
   const handleResendInvite = async (buyer: Buyer) => {
     try {
-      if (!supabase) return;
+      if (!supabase || !user) return;
 
-      // Get buyer email from auth.users
-      const { data: userData } = await supabase.auth.admin.getUserById(buyer.id);
-      const email = userData?.user?.email;
+      // Get the current session token
+      const { data: { session } } = await supabase.auth.getSession();
 
-      if (!email) {
-        throw new Error('Could not find buyer email');
+      if (!session?.access_token) {
+        throw new Error('No active session');
       }
 
-      const { error } = await supabase.auth.resetPasswordForEmail(
-        email,
-        {
-          redirectTo: `${window.location.origin}/auth/callback?type=recovery`,
-        }
-      );
+      // Call our API route to resend the invitation
+      const response = await fetch('/api/buyers/resend-invite', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          buyerId: buyer.id,
+        }),
+      });
 
-      if (error) throw error;
+      const result = await response.json();
 
-      alert(`Invitation email sent to ${email}`);
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to resend invitation');
+      }
+
+      alert('Invitation email resent successfully!');
     } catch (err: any) {
       console.error('Error resending invite:', err);
       setError(err.message || 'Failed to resend invitation');
