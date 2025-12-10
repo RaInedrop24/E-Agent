@@ -40,62 +40,26 @@ export default function CreateTransactionPage() {
       setLoadingBuyers(true);
       if (!supabase) return;
 
+      // Simply fetch all buyer profiles - no need for emails since we're just selecting by name
       const { data, error } = await supabase
         .from('profiles')
-        .select(`
-          id,
-          full_name,
-          auth_users:id (email)
-        `)
+        .select('id, full_name')
         .eq('role', 'buyer')
         .order('full_name');
 
       if (error) throw error;
 
-      // Transform the data to get emails
-      const buyersWithEmails = await Promise.all(
-        (data || []).map(async (profile) => {
-          // Get email from auth.users via RPC or direct query
-          const { data: userData } = await supabase.auth.admin.getUserById(profile.id);
-          return {
-            id: profile.id,
-            full_name: profile.full_name || 'Unknown',
-            email: userData?.user?.email || 'No email',
-          };
-        })
-      ).catch(async () => {
-        // Fallback: get emails from profiles if they have email field
-        // or use a simpler query
-        const { data: profilesWithAuth } = await supabase
-          .from('profiles')
-          .select('id, full_name')
-          .eq('role', 'buyer');
-
-        // Get emails from auth metadata
-        return Promise.all(
-          (profilesWithAuth || []).map(async (p) => {
-            // Query auth.users to get email
-            const { data } = await supabase.rpc('get_user_email', { user_id: p.id }).catch(() => ({ data: null }));
-            return {
-              id: p.id,
-              full_name: p.full_name || 'Unknown',
-              email: data || 'No email',
-            };
-          })
-        );
-      });
-
-      // Simple fallback - just get profiles without emails
-      const simpleBuyers = (data || []).map(p => ({
+      const buyersList = (data || []).map(p => ({
         id: p.id,
-        full_name: p.full_name || 'Unknown',
-        email: p.id, // Use ID as placeholder
+        full_name: p.full_name || 'Unknown Buyer',
+        email: p.id, // Store ID as placeholder since we don't need email for selection
       }));
 
-      setBuyers(simpleBuyers);
+      setBuyers(buyersList);
       setLoadingBuyers(false);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error fetching buyers:', err);
+      setError('Failed to load buyers. Please try again.');
       setLoadingBuyers(false);
     }
   };
@@ -296,9 +260,6 @@ export default function CreateTransactionPage() {
                         />
                         <div className="flex-1 min-w-0">
                           <div className="font-medium text-sm">{buyer.full_name}</div>
-                          <div className="text-xs text-muted-foreground truncate">
-                            ID: {buyer.id.slice(0, 8)}...
-                          </div>
                         </div>
                       </label>
                     ))}
