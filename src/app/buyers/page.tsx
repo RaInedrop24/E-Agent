@@ -118,43 +118,31 @@ export default function BuyersPage() {
         throw new Error('Not authenticated');
       }
 
-      // Use Supabase Admin API to create user
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email: newBuyerEmail,
-        email_confirm: true,
-        user_metadata: {
-          full_name: newBuyerName,
-          preferred_language: newBuyerLanguage,
-          role: 'buyer',
+      // Get the current session token
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session?.access_token) {
+        throw new Error('No active session');
+      }
+
+      // Call our API route to create the buyer (server-side with service role)
+      const response = await fetch('/api/buyers/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
         },
+        body: JSON.stringify({
+          email: newBuyerEmail,
+          fullName: newBuyerName,
+          preferredLanguage: newBuyerLanguage,
+        }),
       });
 
-      if (authError) throw authError;
+      const result = await response.json();
 
-      // Wait a moment for the trigger to create the profile
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      // Create the buyer-agent association
-      const { error: assocError } = await supabase
-        .from('buyer_agent_associations')
-        .insert({
-          buyer_id: authData.user.id,
-          agent_id: user.id,
-        });
-
-      if (assocError) throw assocError;
-
-      // Send password reset email
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(
-        newBuyerEmail,
-        {
-          redirectTo: `${window.location.origin}/auth/callback?type=recovery`,
-        }
-      );
-
-      if (resetError) {
-        console.error('Error sending password reset email:', resetError);
-        // Don't throw - user is created, they can request reset later
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to create buyer');
       }
 
       // Reset form and close modal
