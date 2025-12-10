@@ -238,12 +238,20 @@ export default function DashboardPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Dashboard</h1>
         {profile?.role === 'agent' && (
-          <Link
-            href="/transactions/create"
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
-          >
-            Create Transaction
-          </Link>
+          <div className="flex gap-2">
+            <Link
+              href="/buyers"
+              className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors text-sm"
+            >
+              Manage Buyers
+            </Link>
+            <Link
+              href="/transactions/create"
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
+            >
+              Create Transaction
+            </Link>
+          </div>
         )}
       </div>
 

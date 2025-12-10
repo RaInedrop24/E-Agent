@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { ArrowLeft, X } from 'lucide-react';
 import Link from 'next/link';
+import { Combobox } from '@/components/ui/combobox';
 
 interface Buyer {
   id: string;
@@ -38,21 +39,26 @@ export default function CreateTransactionPage() {
   const fetchBuyers = async () => {
     try {
       setLoadingBuyers(true);
-      if (!supabase) return;
+      if (!supabase || !user) return;
 
-      // Simply fetch all buyer profiles - no need for emails since we're just selecting by name
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, full_name')
-        .eq('role', 'buyer')
-        .order('full_name');
+      // Fetch buyers associated with this agent
+      const { data: associations, error } = await supabase
+        .from('buyer_agent_associations')
+        .select(`
+          buyer_id,
+          profiles!buyer_agent_associations_buyer_id_fkey (
+            id,
+            full_name
+          )
+        `)
+        .eq('agent_id', user.id);
 
       if (error) throw error;
 
-      const buyersList = (data || []).map(p => ({
-        id: p.id,
-        full_name: p.full_name || 'Unknown Buyer',
-        email: p.id, // Store ID as placeholder since we don't need email for selection
+      const buyersList = (associations || []).map(a => ({
+        id: (a.profiles as any).id,
+        full_name: (a.profiles as any).full_name || 'Unknown Buyer',
+        email: (a.profiles as any).id, // Store ID as placeholder
       }));
 
       setBuyers(buyersList);
@@ -62,14 +68,6 @@ export default function CreateTransactionPage() {
       setError('Failed to load buyers. Please try again.');
       setLoadingBuyers(false);
     }
-  };
-
-  const toggleBuyer = (buyerId: string) => {
-    setSelectedBuyerIds(prev =>
-      prev.includes(buyerId)
-        ? prev.filter(id => id !== buyerId)
-        : [...prev, buyerId]
-    );
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -236,51 +234,54 @@ export default function CreateTransactionPage() {
               </p>
             </div>
 
-            {/* Buyer Selection */}
+            {/* Buyer Selection with Searchable Dropdown */}
             <div className="space-y-2">
               <Label>Invite Buyers (Optional)</Label>
               {loadingBuyers ? (
                 <div className="text-sm text-muted-foreground">Loading buyers...</div>
               ) : buyers.length === 0 ? (
-                <div className="text-sm text-muted-foreground">No registered buyers found</div>
+                <div className="text-sm text-muted-foreground">
+                  No registered buyers found.{' '}
+                  <Link href="/buyers" className="text-blue-600 hover:underline">
+                    Create your first buyer
+                  </Link>
+                </div>
               ) : (
-                <div className="space-y-2">
-                  <div className="border rounded-md p-3 max-h-48 overflow-y-auto space-y-2">
-                    {buyers.map(buyer => (
-                      <label
-                        key={buyer.id}
-                        className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded cursor-pointer"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={selectedBuyerIds.includes(buyer.id)}
-                          onChange={() => toggleBuyer(buyer.id)}
-                          disabled={loading}
-                          className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium text-sm">{buyer.full_name}</div>
-                        </div>
-                      </label>
-                    ))}
-                  </div>
+                <div className="space-y-3">
+                  <Combobox
+                    options={buyers.map(b => ({
+                      value: b.id,
+                      label: b.full_name
+                    }))}
+                    value=""
+                    onSelect={(buyerId) => {
+                      if (!selectedBuyerIds.includes(buyerId)) {
+                        setSelectedBuyerIds([...selectedBuyerIds, buyerId]);
+                      }
+                    }}
+                    placeholder="Search and select buyer..."
+                    emptyMessage="No buyers found"
+                    disabled={loading}
+                  />
+
+                  {/* Selected buyers as removable tags */}
                   {selectedBuyerIds.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-2">
+                    <div className="flex flex-wrap gap-2">
                       {selectedBuyerIds.map(id => {
                         const buyer = buyers.find(b => b.id === id);
                         return (
                           <span
                             key={id}
-                            className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-sm rounded"
+                            className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-100 text-blue-800 text-sm rounded-full"
                           >
                             {buyer?.full_name}
                             <button
                               type="button"
-                              onClick={() => toggleBuyer(id)}
-                              className="hover:bg-blue-200 rounded-full p-0.5"
+                              onClick={() => setSelectedBuyerIds(prev => prev.filter(bid => bid !== id))}
+                              className="hover:bg-blue-200 rounded-full p-0.5 transition-colors"
                               disabled={loading}
                             >
-                              <X className="w-3 h-3" />
+                              <X className="w-3.5 h-3.5" />
                             </button>
                           </span>
                         );
@@ -290,7 +291,7 @@ export default function CreateTransactionPage() {
                 </div>
               )}
               <p className="text-xs text-muted-foreground">
-                Select buyers to invite to this transaction. You can also invite buyers later.
+                Search for buyers by name and select them to invite to this transaction.
               </p>
             </div>
 
