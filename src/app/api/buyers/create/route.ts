@@ -43,14 +43,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify user is an agent
-    const { data: profile } = await supabase
+    // Verify user is an agent using admin client (bypasses RLS)
+    const { data: profile, error: profileError } = await supabaseAdmin
       .from('profiles')
       .select('role')
       .eq('id', user.id)
       .single();
 
-    if (profile?.role !== 'agent') {
+    if (profileError || profile?.role !== 'agent') {
       return NextResponse.json(
         { error: 'Only agents can create buyers' },
         { status: 403 }
@@ -93,8 +93,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create buyer-agent association
-    const { error: associationError } = await supabase
+    // Create buyer-agent association using admin client
+    const { error: associationError } = await supabaseAdmin
       .from('buyer_agent_associations')
       .insert({
         buyer_id: authData.user.id,
