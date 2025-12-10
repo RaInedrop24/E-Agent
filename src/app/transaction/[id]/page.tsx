@@ -9,9 +9,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Check, Clock, Users, FileText, MessageCircle } from 'lucide-react';
+import { ArrowLeft, Check, Clock, Users, FileText, MessageCircle, Trash2 } from 'lucide-react';
 import { ProgressTracker } from '@/components/features/transaction/ProgressTracker';
 import { InviteBuyerModal } from '@/components/features/transaction/InviteBuyerModal';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import type { Milestone } from '@/types';
 
 interface Transaction {
@@ -68,6 +69,8 @@ export default function TransactionDetailPage({ params }: PageProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('tracker');
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -243,6 +246,67 @@ export default function TransactionDetailPage({ params }: PageProps) {
     }
   };
 
+  const handleDeleteTransaction = async () => {
+    if (!supabase || profile?.role !== 'agent' || !transaction) return;
+
+    try {
+      setDeleting(true);
+
+      // Delete in order due to foreign key constraints:
+      // 1. Delete files from storage (if any exist)
+      const { data: files } = await supabase
+        .from('files')
+        .select('storage_path')
+        .eq('transaction_id', transaction.id);
+
+      if (files && files.length > 0) {
+        // Delete files from storage bucket
+        const filePaths = files.map(f => f.storage_path);
+        await supabase.storage.from('transaction-files').remove(filePaths);
+      }
+
+      // 2. Delete files records
+      await supabase
+        .from('files')
+        .delete()
+        .eq('transaction_id', transaction.id);
+
+      // 3. Delete messages
+      await supabase
+        .from('messages')
+        .delete()
+        .eq('transaction_id', transaction.id);
+
+      // 4. Delete milestones
+      await supabase
+        .from('milestones')
+        .delete()
+        .eq('transaction_id', transaction.id);
+
+      // 5. Delete participants
+      await supabase
+        .from('transaction_participants')
+        .delete()
+        .eq('transaction_id', transaction.id);
+
+      // 6. Finally, delete the transaction itself
+      const { error } = await supabase
+        .from('transactions')
+        .delete()
+        .eq('id', transaction.id);
+
+      if (error) throw error;
+
+      // Redirect to dashboard
+      router.push('/dashboard');
+    } catch (err: any) {
+      console.error('[TransactionDetail] Error deleting transaction:', err);
+      alert('Failed to delete transaction: ' + err.message);
+      setDeleting(false);
+      setShowDeleteDialog(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="max-w-6xl mx-auto p-4 space-y-6">
@@ -310,6 +374,55 @@ export default function TransactionDetailPage({ params }: PageProps) {
             {new Date(transaction.created_at).toLocaleDateString()}
           </p>
         </div>
+        {isAgent && transaction.created_by === user?.id && (
+          <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+            <DialogTrigger asChild>
+              <Button variant="destructive" size="sm">
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete Transaction
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Delete Transaction</DialogTitle>
+                <DialogDescription>
+                  Are you sure you want to delete this transaction? This action cannot be undone.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="py-4 space-y-3">
+                <div className="bg-red-50 border border-red-200 rounded-md p-4 text-sm">
+                  <p className="font-semibold text-red-900 mb-2">This will permanently delete:</p>
+                  <ul className="list-disc list-inside text-red-800 space-y-1">
+                    <li>All transaction details and history</li>
+                    <li>All milestones and progress tracking</li>
+                    <li>All messages and communications</li>
+                    <li>All uploaded documents and files</li>
+                    <li>All participant associations</li>
+                  </ul>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Transaction: <span className="font-semibold">{transaction.title}</span>
+                </p>
+              </div>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowDeleteDialog(false)}
+                  disabled={deleting}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={handleDeleteTransaction}
+                  disabled={deleting}
+                >
+                  {deleting ? 'Deleting...' : 'Delete Permanently'}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
 
       {/* Tabs */}
@@ -337,11 +450,22 @@ export default function TransactionDetailPage({ params }: PageProps) {
         <TabsContent value="tracker" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Progress Tracker</CardTitle>
-              <CardDescription>
-                Track the key milestones of this property purchase.
-                {isAgent && ' Click on a milestone to mark it as complete.'}
-              </CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Progress Tracker</CardTitle>
+                  <CardDescription>
+                    Track the key milestones of this property purchase.
+                    {isAgent && ' Click on a milestone to mark it as complete.'}
+                  </CardDescription>
+                </div>
+                {isAgent && transaction.created_by === user?.id && (
+                  <Link href={`/transaction/${transaction.id}/milestones`}>
+                    <Button variant="outline" size="sm">
+                      Manage Milestones
+                    </Button>
+                  </Link>
+                )}
+              </div>
             </CardHeader>
             <CardContent>
               <ProgressTracker
