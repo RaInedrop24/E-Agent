@@ -181,8 +181,8 @@ export default function MilestonePage({ params }: PageProps) {
 
       if (currentMilestones) {
         const toDelete = currentMilestones
-          .filter(m => !existingIds.includes(m.id))
-          .map(m => m.id);
+          .filter((m: any) => !existingIds.includes(m.id))
+          .map((m: any) => m.id);
 
         if (toDelete.length > 0) {
           await supabase

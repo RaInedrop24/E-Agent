@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,41 +12,99 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Combobox } from '@/components/ui/combobox';
 import { Loader2, UserPlus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-interface InviteBuyerModalProps {
-  transactionId: string;
+interface Buyer {
+  id: string;
+  full_name: string;
 }
 
-export function InviteBuyerModal({ transactionId }: InviteBuyerModalProps) {
+interface InviteBuyerModalProps {
+  transactionId: string;
+  onSuccess?: () => void;
+}
+
+export function InviteBuyerModal({ transactionId, onSuccess }: InviteBuyerModalProps) {
   const [open, setOpen] = useState(false);
-  const [email, setEmail] = useState('');
+  const [selectedBuyerId, setSelectedBuyerId] = useState('');
+  const [buyers, setBuyers] = useState<Buyer[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingBuyers, setLoadingBuyers] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const router = useRouter();
   const supabase = createClient();
 
+  useEffect(() => {
+    if (open) {
+      fetchBuyers();
+    }
+  }, [open]);
+
+  const fetchBuyers = async () => {
+    try {
+      setLoadingBuyers(true);
+      setError(null);
+
+      // Get current user to fetch their associated buyers
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setError('You must be logged in');
+        return;
+      }
+
+      // Fetch buyers associated with this agent
+      const { data: associations, error: fetchError } = await supabase
+        .from('buyer_agent_associations')
+        .select(`
+          buyer_id,
+          profiles!buyer_agent_associations_buyer_id_fkey (
+            id,
+            full_name
+          )
+        `)
+        .eq('agent_id', user.id);
+
+      if (fetchError) throw fetchError;
+
+      const buyersList = (associations || []).map((a: any) => ({
+        id: (a.profiles as any).id,
+        full_name: (a.profiles as any).full_name || 'Unknown Buyer',
+      }));
+
+      setBuyers(buyersList);
+    } catch (err: any) {
+      console.error('Error fetching buyers:', err);
+      setError('Failed to load buyers. Please try again.');
+    } finally {
+      setLoadingBuyers(false);
+    }
+  };
+
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!selectedBuyerId) {
+      setError('Please select a buyer');
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
     setSuccess(null);
 
     try {
-      const { data, error: rpcError } = await supabase.rpc('add_buyer_to_transaction', {
+      const { data, error: rpcError } = await supabase.rpc('add_buyer_to_transaction_by_id', {
         p_transaction_id: transactionId,
-        p_buyer_email: email,
+        p_buyer_id: selectedBuyerId,
       });
 
       if (rpcError) throw rpcError;
 
       // The RPC returns a JSON object with success/message
-      // We need to cast it or check the structure. 
-      // Based on our SQL: { success: boolean, message: string }
       const result = data as { success: boolean; message: string };
 
       if (!result.success) {
@@ -54,9 +112,13 @@ export function InviteBuyerModal({ transactionId }: InviteBuyerModalProps) {
       }
 
       setSuccess('Buyer added successfully!');
-      setEmail('');
-      router.refresh(); // Refresh to show the new participant
-      
+      setSelectedBuyerId('');
+
+      // Call the onSuccess callback to refresh parent component
+      if (onSuccess) {
+        onSuccess();
+      }
+
       // Close after a brief delay
       setTimeout(() => {
         setOpen(false);
@@ -82,34 +144,47 @@ export function InviteBuyerModal({ transactionId }: InviteBuyerModalProps) {
         <DialogHeader>
           <DialogTitle>Invite Buyer</DialogTitle>
           <DialogDescription>
-            Enter the email address of the buyer you want to add to this transaction. 
-            They must already have an account.
+            Select a buyer from your list to add them to this transaction.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleInvite}>
           <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="email" className="text-right">
-                Email
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="buyer@example.com"
-                className="col-span-3"
-                required
-              />
+            <div className="space-y-2">
+              <Label htmlFor="buyer">Select Buyer</Label>
+              {loadingBuyers ? (
+                <div className="text-sm text-muted-foreground flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Loading buyers...
+                </div>
+              ) : buyers.length === 0 ? (
+                <div className="text-sm text-muted-foreground p-3 bg-gray-50 rounded">
+                  No buyers available. Please create buyers first.
+                </div>
+              ) : (
+                <Combobox
+                  options={buyers.map(b => ({
+                    value: b.id,
+                    label: b.full_name
+                  }))}
+                  value={selectedBuyerId}
+                  onSelect={(buyerId) => {
+                    setSelectedBuyerId(buyerId);
+                    setError(null);
+                  }}
+                  placeholder="Search and select buyer..."
+                  emptyMessage="No buyers found"
+                  disabled={isLoading}
+                />
+              )}
             </div>
           </div>
-          
+
           {error && (
             <div className="mb-4 text-sm text-red-500 bg-red-50 p-2 rounded">
               {error}
             </div>
           )}
-          
+
           {success && (
             <div className="mb-4 text-sm text-green-500 bg-green-50 p-2 rounded">
               {success}
@@ -117,9 +192,9 @@ export function InviteBuyerModal({ transactionId }: InviteBuyerModalProps) {
           )}
 
           <DialogFooter>
-            <Button type="submit" disabled={isLoading}>
+            <Button type="submit" disabled={isLoading || !selectedBuyerId || loadingBuyers}>
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Invite
+              Add Buyer
             </Button>
           </DialogFooter>
         </form>

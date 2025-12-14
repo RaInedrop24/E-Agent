@@ -155,7 +155,7 @@ async function verifyConnection() {
 // Main execution
 (async () => {
   console.log('╔════════════════════════════════════════════════════════════╗');
-  console.log('║         Estate Portal - Schema Application Tool           ║');
+  console.log('║      The Property Gateway - Schema Application Tool       ║');
   console.log('╚════════════════════════════════════════════════════════════╝');
 
   await verifyConnection();

@@ -6,7 +6,7 @@
 ## Current Status
 **Date:** 2025-11-17
 **Phase:** 3 - MVP Development (IN PROGRESS - 75% Complete)
-**Working Directory:** `C:\Users\micro\Estate_Agent_Portal\estate-portal`
+**Working Directory:** `C:\Users\micro\Estate_Agent_Portal\the-property-gateway`
 **GitHub Repository:** https://github.com/RaInedrop24/E-Agent.git
 **Local Development:** http://localhost:3001
 **Authentication:** ✅ FULLY WORKING
@@ -17,7 +17,7 @@
 Estate_Agent_Portal/
 ├── ASSISTANT_MEMORY.md          # Assistant working memory and practices
 ├── git_agent.log                # Git operation logs
-└── estate-portal/               # Main application directory
+└── the-property-gateway/               # Main application directory
     ├── src/                     # Application source code
     ├── docs/                    # Project documentation (canonical)
     │   ├── Project_Brief.md     # Master project plan and status
@@ -99,7 +99,7 @@ Estate_Agent_Portal/
 ## Key Decisions Made
 - **Tech Stack:** Next.js 15 + TypeScript + Tailwind CSS + shadcn/ui + Supabase + DeepL
 - **Repository:** Private GitHub repo for monetization strategy
-- **Documentation:** Single source of truth maintained in estate-portal/docs/
+- **Documentation:** Single source of truth maintained in the-property-gateway/docs/
 - **Local Port:** Development runs on :3001 to avoid conflicts
 - **Authentication:** SSH keys for git operations (configured)
 - **Deployment:** Linode deployment documentation prepared (deferred)
@@ -131,7 +131,7 @@ Phase 2 is complete! Ready to begin Phase 3 tasks:
 
 ## Development Commands
 ```bash
-cd estate-portal
+cd the-property-gateway
 npm run dev          # Start dev server on :3000
 npm run dev:3001     # Start dev server on :3001 (recommended)
 npm run build        # Build for production

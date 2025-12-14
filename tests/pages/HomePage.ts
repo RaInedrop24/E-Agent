@@ -6,7 +6,7 @@ export class HomePage {
 
   constructor(page: Page) {
     this.page = page;
-    this.heading = page.getByRole('heading', { name: 'Estate Portal' });
+    this.heading = page.getByRole('heading', { name: 'The Property Gateway' });
   }
 
   async goto() {

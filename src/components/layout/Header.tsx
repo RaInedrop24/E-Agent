@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { User } from '@/types';
 import { User as UserIcon } from 'lucide-react';
 import Link from 'next/link';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface HeaderProps {
   user?: User | null;
@@ -12,6 +13,8 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
+  const { t } = useLanguage();
+  
   return (
     <header className="border-b border-gray-200 bg-white shadow-sm">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -20,7 +23,7 @@ export const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
           <div className="flex items-center">
             <div className="flex-shrink-0">
               <h1 className="text-xl font-bold text-gray-900">
-                Estate Portal
+                The Property Gateway
               </h1>
             </div>
             <div className="hidden md:block">
@@ -29,13 +32,13 @@ export const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
                   href="/dashboard"
                   className="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
                 >
-                  Dashboard
+                  {t('nav.dashboard')}
                 </a>
                 <a
                   href="/transactions"
                   className="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
                 >
-                  Transactions
+                  {t('nav.transactions')}
                 </a>
               </div>
             </div>
@@ -59,28 +62,28 @@ export const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
                     </div>
                   </div>
                   <Badge variant={user.role === 'agent' ? 'default' : 'secondary'}>
-                    {user.role === 'agent' ? 'Agent' : 'Buyer'}
+                    {user.role === 'agent' ? t('role.agent') : t('role.buyer')}
                   </Badge>
                 </div>
                 <Button variant="outline" onClick={onLogout}>
-                  Logout
+                  {t('nav.logout')}
                 </Button>
                 <Button asChild variant="ghost">
-                  <Link href="/settings">Settings</Link>
+                  <Link href="/settings">{t('nav.settings')}</Link>
                 </Button>
                 {user.role === 'agent' && (
                   <Button asChild variant="outline">
-                    <Link href="/admin">Site Admin</Link>
+                    <Link href="/admin">{t('nav.siteAdmin')}</Link>
                   </Button>
                 )}
               </>
             ) : (
               <div className="flex items-center space-x-2">
                 <Button variant="outline" asChild>
-                  <a href="/login">Login</a>
+                  <a href="/login">{t('nav.login')}</a>
                 </Button>
                 <Button asChild>
-                  <a href="/register">Register</a>
+                  <a href="/register">{t('nav.register')}</a>
                 </Button>
               </div>
             )}

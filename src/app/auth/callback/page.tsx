@@ -84,7 +84,7 @@ export default function AuthCallbackPage() {
     <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Welcome to Estate Portal</CardTitle>
+          <CardTitle>Welcome to The Property Gateway</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="text-sm">{status}</div>

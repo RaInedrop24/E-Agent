@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "E-Portal",
-  description: "Estate Agent Portal for Italian property transactions",
+  title: "The Property Gateway",
+  description: "The Property Gateway - Multilingual property transaction tracking platform",
 };
 
 export default function RootLayout({
@@ -30,8 +31,10 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <AuthProvider>
-          <AppHeader />
-          {children}
+          <LanguageProvider>
+            <AppHeader />
+            {children}
+          </LanguageProvider>
         </AuthProvider>
       </body>
     </html>

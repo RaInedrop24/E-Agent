@@ -55,7 +55,7 @@ export default function CreateTransactionPage() {
 
       if (error) throw error;
 
-      const buyersList = (associations || []).map(a => ({
+      const buyersList = (associations || []).map((a: any) => ({
         id: (a.profiles as any).id,
         full_name: (a.profiles as any).full_name || 'Unknown Buyer',
         email: (a.profiles as any).id, // Store ID as placeholder

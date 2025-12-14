@@ -1,11 +1,11 @@
-# Estate Portal 🏡
+# The Property Gateway 🏡
 
 > **International Property Transaction Portal**  
 > Bridging the language gap in international real estate transactions
 
 ## 🌟 Overview
 
-Estate Portal is a multilingual web platform designed to streamline international property purchases by providing transparency and seamless communication between property buyers and estate agents. Built with modern web technologies, it offers real-time progress tracking and automatic translation to eliminate language barriers.
+The Property Gateway is a multilingual web platform designed to streamline international property purchases by providing transparency and seamless communication between property buyers and estate agents. Built with modern web technologies, it offers real-time progress tracking and automatic translation to eliminate language barriers.
 
 ### 🎯 Core Problem Solved
 
@@ -33,13 +33,14 @@ A centralized portal providing:
 - **[Tailwind CSS](https://tailwindcss.com/)** - Utility-first styling
 - **[shadcn/ui](https://ui.shadcn.com/)** - Beautiful, reusable components
 
-### Backend (Planned)
-- **[Supabase](https://supabase.com/)** - PostgreSQL + Auth + Real-time subscriptions
-- **[DeepL API](https://www.deepl.com/pro-api)** - Premium translation service
+### Backend
+- **[Supabase](https://supabase.com/)** - PostgreSQL + Auth + Real-time subscriptions ✅ **Implemented**
+- **[DeepL API](https://www.deepl.com/pro-api)** - Premium translation service ✅ **Implemented**
 
 ### Development Tools
 - **ESLint** + **TypeScript** for code quality
 - **Git** for version control
+- **[Playwright](https://playwright.dev/)** - E2E testing framework ✅ **Configured**
 - **Vercel** for deployment (recommended)
 
 ---
@@ -47,20 +48,30 @@ A centralized portal providing:
 ## 🏗️ Project Structure
 
 ```
-estate-portal/
+the-property-gateway/
 ├── 📁 src/
 │   ├── 📁 app/                    # Next.js App Router pages
+│   │   ├── 📁 (auth)/            # Authentication routes
+│   │   ├── 📁 api/                # API routes
+│   │   ├── 📁 dashboard/          # Dashboard pages
+│   │   └── 📁 transaction/        # Transaction management
 │   ├── 📁 components/             # Reusable UI components
 │   │   ├── 📁 ui/                # shadcn/ui components
 │   │   ├── 📁 layout/            # Layout components (Header, Footer)
 │   │   └── 📁 features/          # Feature-specific components
 │   ├── 📁 lib/                   # Utilities and configurations
 │   │   ├── constants.ts          # App constants (languages, milestones)
+│   │   ├── supabase.ts           # Supabase client
 │   │   └── utils.ts              # Helper functions
 │   └── 📁 types/                 # TypeScript type definitions
+├── 📁 supabase/                  # Database migrations and scripts
+│   └── 📁 migrations/            # SQL migration files
+├── 📁 scripts/                   # Utility scripts
+├── 📁 tests/                     # E2E tests (Playwright)
 ├── 📁 docs/                      # Project documentation
 │   ├── ARCHITECTURE.md           # Technical architecture
-│   └── DEVELOPMENT.md            # Development guidelines
+│   ├── DEVELOPMENT.md            # Development guidelines
+│   └── Project_Brief.md          # Project plan and status
 ├── 📁 public/                    # Static assets
 └── 📦 Package files
 ```
@@ -87,25 +98,96 @@ estate-portal/
    npm install
    ```
 
-3. **Start development server**
+3. **Set up environment variables**
+   
+   Create a `.env.local` file in the root directory:
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
+   
+   See `.env.local.example` for reference.
+
+4. **Start development server**
    ```bash
    npm run dev:3001
    ```
 
-4. **Open your browser**
+5. **Open your browser**
    ```
-http://localhost:3001
+   http://localhost:3001
    ```
 
 ### Available Scripts
 
 | Command | Description |
 |---------|-------------|
-| `npm run dev` | Start development server |
+| `npm run dev` | Start development server (port 3000) |
 | `npm run dev:3001` | Start development server on port 3001 |
 | `npm run build` | Build for production |
 | `npm run start` | Start production server |
 | `npm run lint` | Run ESLint |
+| `npm run test:e2e` | Run Playwright E2E tests |
+| `npm run test:ui` | Run Playwright tests with UI |
+| `npm run test:report` | Show Playwright test report |
+
+---
+
+## 🌍 Multi-Language Support
+
+The Property Gateway features **comprehensive translation support** for English and Italian, with architecture for easy expansion to additional languages.
+
+### For Developers: Adding Translations
+
+**⚠️ CRITICAL: Every UI change MUST include translations!**
+
+When adding new features or UI elements:
+
+1. **Add translation keys** to `src/lib/ui-translations.ts` (both EN & IT)
+2. **Use the `useLanguage()` hook** in your components
+3. **Replace hardcoded strings** with `t('key')` or `tVar('key', {vars})`
+4. **Test in both languages** before committing
+
+**Quick Example:**
+```typescript
+import { useLanguage } from '@/contexts/LanguageContext';
+
+export default function MyComponent() {
+  const { t, tVar } = useLanguage();
+  
+  return (
+    <div>
+      <h1>{t('dashboard.title')}</h1>
+      <p>{tVar('message.welcome', { name: 'Mario' })}</p>
+    </div>
+  );
+}
+```
+
+**📖 Documentation:**
+- **Quick Reference:** `TRANSLATION_GUIDE.md` - Cheat sheet for developers
+- **Full Details:** `TRANSLATION_IMPLEMENTATION.md` - Complete implementation guide
+- **Translation File:** `src/lib/ui-translations.ts` - All UI text strings
+
+### Translation Features
+
+✅ **Site-wide UI Translation**
+- 170+ translation keys covering all pages
+- User-selected language preference (stored in profile)
+- Instant language switching
+
+✅ **Message Translation**
+- Auto-translates messages between users
+- Side-by-side original + translated display
+- Cached translations (no repeated API calls)
+- Powered by DeepL API
+
+✅ **Supported Languages**
+- 🇬🇧 English (default)
+- 🇮🇹 Italian (complete)
+- 🇩🇪 German (database ready)
+- 🇫🇷 French (database ready)
+- 🇪🇸 Spanish (database ready)
 
 ---
 
@@ -125,23 +207,23 @@ http://localhost:3001
 
 ## ✨ MVP Features
 ### 🔐 User Management
-- [ ] Role-based authentication (Agent/Buyer)
-- [ ] Transaction creation and buyer invitation
-- [ ] User profile management
+- [x] Role-based authentication (Agent/Buyer) ✅ **Complete**
+- [x] Transaction creation and buyer invitation ✅ **Complete**
+- [x] User profile management ✅ **Complete**
 
 ### 📊 Progress Tracker
-- [x] Pre-defined milestone checklist
-- [ ] Real-time status updates
-- [ ] Visual progress indicators
+- [x] Pre-defined milestone checklist ✅ **Complete**
+- [ ] Real-time status updates 🚧 **Planned** (Supabase subscriptions pending)
+- [x] Visual progress indicators ✅ **Complete**
 
 ### 💬 Translation Bridge
-- [ ] Auto-translation of messages
-- [ ] Language preference settings
-- [ ] "Show Original" functionality
+- [ ] Auto-translation of messages 🚧 **Planned** (DeepL integration pending)
+- [ ] Language preference settings 🚧 **Planned**
+- [ ] "Show Original" functionality 🚧 **Planned**
 
 ### 📎 File Management
-- [ ] Document upload/download
-- [ ] File organization by transaction
+- [ ] Document upload/download 🚧 **Planned**
+- [ ] File organization by transaction 🚧 **Planned**
 
 ---
 
@@ -162,10 +244,22 @@ http://localhost:3001
 | Phase | Status | Description |
 |-------|--------|-------------|
 | **Phase 1** | ✅ Complete | Ideation & Planning |
-| **Phase 2** | 🚧 In Progress | Design & Prototyping |
-| **Phase 3** | ⏳ Planned | MVP Development |
+| **Phase 2** | ✅ Complete | Design & Prototyping |
+| **Phase 3** | 🚧 In Progress (~75%) | MVP Development |
 | **Phase 4** | ⏳ Planned | Beta Testing |
 | **Phase 5** | ⏳ Planned | Launch & Iteration |
+
+### Phase 3 Progress
+- ✅ Supabase database setup with RLS policies
+- ✅ User authentication system (login, register, profiles)
+- ✅ Transaction creation and management
+- ✅ Buyer invitation system
+- ✅ Milestone tracking with visual indicators
+- ✅ Dashboard layouts for Agent and Buyer roles
+- ✅ Playwright E2E testing framework
+- 🚧 Message system (in progress)
+- 🚧 File upload functionality (planned)
+- 🚧 Translation Bridge with DeepL API (planned)
 
 ---
 
@@ -196,7 +290,7 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 ## 🙋‍♂️ Support
 
-For support, email [support@example.com](mailto:support@example.com) or open an issue on GitHub.
+For support, email [support@thepropertygateway.com](mailto:support@thepropertygateway.com) or visit [thepropertygateway.com](https://thepropertygateway.com).
 
 ---
 

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/lib/supabase';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,6 +20,7 @@ interface Transaction {
 
 export default function TransactionsListPage() {
   const { user, profile } = useAuth();
+  const { t, tVar } = useLanguage();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -65,10 +67,10 @@ export default function TransactionsListPage() {
       const txMap = new Map();
       
       // Add created transactions
-      createdTx?.forEach(tx => txMap.set(tx.id, tx));
-      
+      createdTx?.forEach((tx: any) => txMap.set(tx.id, tx));
+
       // Add participated transactions (if not already present)
-      participantTx.forEach(tx => {
+      participantTx.forEach((tx: any) => {
         if (!txMap.has(tx.id)) {
           txMap.set(tx.id, tx);
         }
@@ -76,7 +78,7 @@ export default function TransactionsListPage() {
 
       // Convert back to array and sort
       const allTx = Array.from(txMap.values()).sort(
-        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        (a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       );
 
       setTransactions(allTx);
@@ -102,12 +104,12 @@ export default function TransactionsListPage() {
   return (
     <div className="max-w-4xl mx-auto p-4 space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Transactions</h1>
+        <h1 className="text-2xl font-semibold">{t('transactions.title')}</h1>
         {isAgent && (
           <Link href="/transactions/create">
             <Button>
               <Plus className="mr-2 h-4 w-4" />
-              New Transaction
+              {t('transactions.new')}
             </Button>
           </Link>
         )}
@@ -115,9 +117,9 @@ export default function TransactionsListPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>My Transactions</CardTitle>
+          <CardTitle>{t('transactions.my')}</CardTitle>
           <CardDescription>
-            {transactions.length} transaction{transactions.length !== 1 ? 's' : ''} found
+            {tVar('transactions.found', { count: transactions.length })}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -129,31 +131,31 @@ export default function TransactionsListPage() {
             <div className="text-red-500 py-4">Error: {error}</div>
           ) : transactions.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              <p>No transactions found.</p>
+              <p>{t('transactions.noTransactions')}</p>
               {isAgent && (
                 <p className="mt-2 text-sm">
-                  Create a new transaction to get started.
+                  {t('dashboard.createFirst')}
                 </p>
               )}
             </div>
           ) : (
             <div className="space-y-3">
-              {transactions.map((t) => (
-                <div key={t.id} className="flex items-center justify-between rounded-lg border p-4 hover:bg-slate-50 transition-colors">
+              {transactions.map((transaction) => (
+                <div key={transaction.id} className="flex items-center justify-between rounded-lg border p-4 hover:bg-slate-50 transition-colors">
                   <div className="space-y-1">
                     <div className="font-medium flex items-center gap-2">
-                        {t.title}
-                        <Badge variant={t.status === 'active' ? 'default' : 'secondary'} className="text-xs">
-                            {t.status}
+                        {transaction.title}
+                        <Badge variant={transaction.status === 'active' ? 'default' : 'secondary'} className="text-xs">
+                            {transaction.status}
                         </Badge>
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      Created {new Date(t.created_at).toLocaleDateString()}
+                      Created {new Date(transaction.created_at).toLocaleDateString()}
                     </div>
                   </div>
-                  <Link href={`/transaction/${t.id}`}>
+                  <Link href={`/transaction/${transaction.id}`}>
                     <Button variant="outline" size="sm">
-                      View Details
+                      {t('transactions.viewDetails')}
                     </Button>
                   </Link>
                 </div>

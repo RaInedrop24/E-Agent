@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/lib/supabase';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -37,6 +38,7 @@ interface Buyer {
 
 export default function BuyersPage() {
   const { user, profile } = useAuth();
+  const { t, tVar } = useLanguage();
   const [buyers, setBuyers] = useState<Buyer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -91,7 +93,7 @@ export default function BuyersPage() {
       if (assocError) throw assocError;
 
       // Transform data
-      const buyersList = (associations || []).map(a => ({
+      const buyersList = (associations || []).map((a: any) => ({
         id: (a.profiles as any).id,
         full_name: (a.profiles as any).full_name,
         preferred_language: (a.profiles as any).preferred_language,
@@ -270,14 +272,14 @@ export default function BuyersPage() {
       <div className="max-w-4xl mx-auto p-4 space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>Access Denied</CardTitle>
-            <CardDescription>Only agents can access buyer management.</CardDescription>
+            <CardTitle>{t('buyers.accessDenied')}</CardTitle>
+            <CardDescription>{t('buyers.accessDeniedDesc')}</CardDescription>
           </CardHeader>
           <CardContent>
             <Link href="/dashboard">
               <Button>
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Dashboard
+                {t('transaction.backToDashboard')}
               </Button>
             </Link>
           </CardContent>
@@ -297,15 +299,15 @@ export default function BuyersPage() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold">Buyer Management</h1>
+            <h1 className="text-3xl font-bold">{t('buyers.title')}</h1>
             <p className="text-muted-foreground mt-1">
-              Manage your buyers and send invitations
+              {t('buyers.description')}
             </p>
           </div>
         </div>
         <Button onClick={() => setCreateModalOpen(true)}>
           <UserPlus className="mr-2 h-4 w-4" />
-          Create Buyer
+          {t('buyers.create')}
         </Button>
       </div>
 
@@ -326,24 +328,24 @@ export default function BuyersPage() {
       {/* Buyers List */}
       <Card>
         <CardHeader>
-          <CardTitle>Your Buyers ({buyers.length})</CardTitle>
+          <CardTitle>{tVar('buyers.count', { count: buyers.length })}</CardTitle>
           <CardDescription>
-            Buyers you've created can be invited to transactions
+            {t('buyers.listDescription')}
           </CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (
             <div className="text-center py-8 text-muted-foreground">
-              Loading buyers...
+              {t('buyers.loading')}
             </div>
           ) : buyers.length === 0 ? (
             <div className="text-center py-8">
               <p className="text-muted-foreground mb-4">
-                You haven't created any buyers yet.
+                {t('buyers.noBuyers')}
               </p>
               <Button onClick={() => setCreateModalOpen(true)}>
                 <UserPlus className="mr-2 h-4 w-4" />
-                Create Your First Buyer
+                {t('buyers.createFirst')}
               </Button>
             </div>
           ) : (
@@ -354,10 +356,10 @@ export default function BuyersPage() {
                   className="flex items-center justify-between p-4 border rounded-lg hover:border-blue-300 transition-colors"
                 >
                   <div className="flex-1">
-                    <div className="font-medium">{buyer.full_name || 'Unnamed Buyer'}</div>
+                    <div className="font-medium">{buyer.full_name || t('buyers.unnamedBuyer')}</div>
                     <div className="text-xs text-muted-foreground mt-1">
-                      Language: {buyer.preferred_language.toUpperCase()} •{' '}
-                      Created {new Date(buyer.created_at).toLocaleDateString()}
+                      {t('buyers.language')}: {buyer.preferred_language.toUpperCase()} •{' '}
+                      {t('buyers.created')} {new Date(buyer.created_at).toLocaleDateString()}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -365,7 +367,7 @@ export default function BuyersPage() {
                       variant="ghost"
                       size="sm"
                       onClick={() => handleResendInvite(buyer)}
-                      title="Resend invitation email"
+                      title={t('buyers.resendInvite')}
                     >
                       <Mail className="h-4 w-4" />
                     </Button>
@@ -399,16 +401,16 @@ export default function BuyersPage() {
       <Dialog open={createModalOpen} onOpenChange={setCreateModalOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Create New Buyer</DialogTitle>
+            <DialogTitle>{t('buyers.createNew')}</DialogTitle>
             <DialogDescription>
-              Create a buyer account and send them an invitation email.
+              {t('buyers.createDescription')}
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleCreateBuyer}>
             <div className="grid gap-4 py-4">
               <div className="space-y-2">
                 <Label htmlFor="email">
-                  Email <span className="text-red-500">*</span>
+                  {t('form.email')} <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="email"
@@ -422,7 +424,7 @@ export default function BuyersPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="name">
-                  Full Name <span className="text-red-500">*</span>
+                  {t('form.fullName')} <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="name"
@@ -461,15 +463,15 @@ export default function BuyersPage() {
                 onClick={() => setCreateModalOpen(false)}
                 disabled={creating}
               >
-                Cancel
+                {t('action.cancel')}
               </Button>
               <Button type="submit" disabled={creating}>
-                {creating ? 'Creating...' : 'Create & Send Invite'}
+                {creating ? t('buyers.creating') : t('buyers.createAndInvite')}
               </Button>
             </DialogFooter>
           </form>
           <div className="bg-blue-50 border border-blue-200 text-blue-800 px-3 py-2 rounded text-sm">
-            <strong>Note:</strong> The buyer will receive an email to set their password.
+            <strong>Note:</strong> {t('buyers.inviteNote')}
           </div>
         </DialogContent>
       </Dialog>
@@ -478,15 +480,15 @@ export default function BuyersPage() {
       <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit Buyer</DialogTitle>
+            <DialogTitle>{t('buyers.edit')}</DialogTitle>
             <DialogDescription>
-              Update buyer information.
+              {t('buyers.editDescription')}
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleUpdateBuyer}>
             <div className="grid gap-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="edit-name">Full Name</Label>
+                <Label htmlFor="edit-name">{t('form.fullName')}</Label>
                 <Input
                   id="edit-name"
                   type="text"
@@ -496,7 +498,7 @@ export default function BuyersPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Preferred Language</Label>
+                <Label>{t('form.language')}</Label>
                 <Select
                   value={editLanguage}
                   onValueChange={setEditLanguage}
@@ -522,10 +524,10 @@ export default function BuyersPage() {
                 onClick={() => setEditModalOpen(false)}
                 disabled={updating}
               >
-                Cancel
+                {t('action.cancel')}
               </Button>
               <Button type="submit" disabled={updating}>
-                {updating ? 'Updating...' : 'Update Buyer'}
+                {updating ? t('buyers.updating') : t('buyers.update')}
               </Button>
             </DialogFooter>
           </form>
@@ -536,10 +538,9 @@ export default function BuyersPage() {
       <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Buyer</DialogTitle>
+            <DialogTitle>{t('buyers.delete')}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to remove this buyer? This will remove them from your
-              list but will not delete their account.
+              {t('buyers.deleteConfirm')}
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
@@ -554,7 +555,7 @@ export default function BuyersPage() {
               onClick={() => setDeleteModalOpen(false)}
               disabled={deleting}
             >
-              Cancel
+              {t('action.cancel')}
             </Button>
             <Button
               type="button"
@@ -562,7 +563,7 @@ export default function BuyersPage() {
               onClick={handleDeleteBuyer}
               disabled={deleting}
             >
-              {deleting ? 'Deleting...' : 'Delete Buyer'}
+              {deleting ? t('buyers.deleting') : t('buyers.delete')}
             </Button>
           </DialogFooter>
         </DialogContent>

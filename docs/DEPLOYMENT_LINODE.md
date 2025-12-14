@@ -30,10 +30,10 @@ pm2 -v
 ## 2) Clone repository
 ```bash
 cd /var/www
-sudo mkdir -p estate-portal && sudo chown $USER:$USER estate-portal
-cd estate-portal
+sudo mkdir -p the-property-gateway && sudo chown $USER:$USER the-property-gateway
+cd the-property-gateway
 git clone https://github.com/RaInedrop24/E-Agent.git
-cd E-Agent/estate-portal
+cd E-Agent/the-property-gateway
 ```
 
 ## 3) Environment variables
@@ -55,7 +55,7 @@ npm run build
 
 ## 5) Run with PM2 (port 3001)
 ```bash
-PORT=3001 pm2 start npm --name estate-portal -- start -- -p 3001
+PORT=3001 pm2 start npm --name the-property-gateway -- start -- -p 3001
 pm2 save
 pm2 status
 ```
@@ -69,7 +69,7 @@ pm2 save
 
 ## 6) Nginx reverse proxy
 ```bash
-sudo tee /etc/nginx/sites-available/estate-portal << 'EOF'
+sudo tee /etc/nginx/sites-available/the-property-gateway << 'EOF'
 server {
   listen 80;
   server_name your-domain.com;
@@ -88,7 +88,7 @@ EOF
 
 Enable site and reload Nginx:
 ```bash
-sudo ln -s /etc/nginx/sites-available/estate-portal /etc/nginx/sites-enabled/estate-portal
+sudo ln -s /etc/nginx/sites-available/the-property-gateway /etc/nginx/sites-enabled/the-property-gateway
 sudo nginx -t
 sudo systemctl reload nginx
 ```
@@ -103,11 +103,11 @@ sudo certbot --nginx -d your-domain.com
 
 ## 8) Update/deploy flow
 ```bash
-cd /var/www/estate-portal/E-Agent/estate-portal
+cd /var/www/the-property-gateway/E-Agent/the-property-gateway
 git pull
 npm ci || npm install
 npm run build
-pm2 restart estate-portal
+pm2 restart the-property-gateway
 ```
 
 ## Notes

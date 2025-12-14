@@ -1,4 +1,4 @@
--- Estate Portal - Initial Database Schema
+-- The Property Gateway - Initial Database Schema
 -- Created: 2025-11-17
 -- Description: Complete schema with tables, RLS policies, triggers, and storage setup
 
@@ -405,7 +405,7 @@ grant execute on all functions in schema public to anon, authenticated;
 -- Success message
 do $$
 begin
-  raise notice 'Estate Portal schema created successfully!';
+  raise notice 'The Property Gateway schema created successfully!';
   raise notice 'Tables: profiles, transactions, transaction_participants, milestones, messages, files';
   raise notice 'RLS policies: enabled and configured';
   raise notice 'Triggers: auto-create profile, auto-add transaction creator as participant';

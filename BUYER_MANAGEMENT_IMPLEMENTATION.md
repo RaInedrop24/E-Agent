@@ -89,7 +89,7 @@ You must run the new database migrations in Supabase:
 
 ```bash
 # Option A: Using Supabase CLI (if installed)
-cd estate-portal
+cd the-property-gateway
 supabase db push
 
 # Option B: Manual via Supabase Dashboard
@@ -102,8 +102,8 @@ supabase db push
 ```
 
 **Migration Files Location:**
-- `estate-portal/supabase/migrations/20251210_add_buyer_agent_associations.sql`
-- `estate-portal/supabase/migrations/20251210_add_buyer_management_functions.sql`
+- `the-property-gateway/supabase/migrations/20251210_add_buyer_agent_associations.sql`
+- `the-property-gateway/supabase/migrations/20251210_add_buyer_management_functions.sql`
 
 ### Step 2: Configure Email Templates (Optional but Recommended)
 
@@ -115,7 +115,7 @@ Configure the password reset email template in Supabase Dashboard:
 ```html
 <h2>Set Your Password</h2>
 <p>Hi {{ .Full_Name }},</p>
-<p>Your agent has created an account for you on Estate Portal.</p>
+<p>Your agent has created an account for you on The Property Gateway.</p>
 <p>Click the link below to set your password and access your property transactions:</p>
 <p><a href="{{ .ConfirmationURL }}">Set Password</a></p>
 <p>If you didn't expect this email, you can safely ignore it.</p>

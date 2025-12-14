@@ -113,7 +113,7 @@ shadow-lg: '0 10px 15px -3px rgb(0 0 0 / 0.1)'
     {/* Logo */}
     <div className="flex items-center gap-8">
       <Link href="/" className="text-xl font-bold text-slate-900">
-        Estate Portal
+        The Property Gateway
       </Link>
 
       {/* Navigation - Desktop only */}

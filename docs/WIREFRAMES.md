@@ -8,7 +8,7 @@ Low-fidelity wireframes for all authenticated screens and key user journeys.
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│                    Estate Portal                     │
+│                The Property Gateway                   │
 │                    [Logo/Brand]                      │
 └─────────────────────────────────────────────────────┘
 
@@ -52,7 +52,7 @@ Low-fidelity wireframes for all authenticated screens and key user journeys.
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│                    Estate Portal                     │
+│                The Property Gateway                   │
 │                    [Logo/Brand]                      │
 └─────────────────────────────────────────────────────┘
 
@@ -103,7 +103,7 @@ Low-fidelity wireframes for all authenticated screens and key user journeys.
 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
-│  Estate Portal    [Dashboard] [Transactions]    [👤 Alessandro] [⚙] │
+│  The Property Gateway    [Dashboard] [Transactions]    [👤 Alessandro] [⚙] │
 │                                                  Agent Badge          │
 └──────────────────────────────────────────────────────────────────────┘
 
@@ -162,7 +162,7 @@ Low-fidelity wireframes for all authenticated screens and key user journeys.
 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
-│  Estate Portal    [Dashboard] [Transactions]      [👤 Sarah] [⚙]     │
+│  The Property Gateway    [Dashboard] [Transactions]      [👤 Sarah] [⚙]     │
 │                                                    Buyer Badge        │
 └──────────────────────────────────────────────────────────────────────┘
 
@@ -231,7 +231,7 @@ Low-fidelity wireframes for all authenticated screens and key user journeys.
 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
-│  Estate Portal    [Dashboard] [Transactions]    [👤 Alessandro] [⚙] │
+│  The Property Gateway    [Dashboard] [Transactions]    [👤 Alessandro] [⚙] │
 └──────────────────────────────────────────────────────────────────────┘
 
 ┌──────────────────────────────────────────────────────────────────────┐
@@ -454,7 +454,7 @@ Low-fidelity wireframes for all authenticated screens and key user journeys.
 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
-│  Estate Portal    [Dashboard] [Transactions]      [👤 Sarah] [⚙]    │
+│  The Property Gateway    [Dashboard] [Transactions]      [👤 Sarah] [⚙]    │
 └──────────────────────────────────────────────────────────────────────┘
 
 ┌──────────────────────────────────────────────────────────────────────┐

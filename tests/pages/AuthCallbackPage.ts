@@ -7,7 +7,7 @@ export class AuthCallbackPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.welcomeText = page.getByText('Welcome to Estate Portal', { exact: false });
+    this.welcomeText = page.getByText('Welcome to The Property Gateway', { exact: false });
     this.dashboardLink = page.getByRole('link', { name: 'Go to dashboard' });
   }
 

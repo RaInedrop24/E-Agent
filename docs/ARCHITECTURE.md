@@ -1,7 +1,7 @@
-# Estate Portal - Technical Architecture
+# The Property Gateway - Technical Architecture
 
 ## Project Overview
-**Estate Portal** is a multilingual property transaction tracking platform that bridges communication between international property buyers and local estate agents.
+**The Property Gateway** is a multilingual property transaction tracking platform that bridges communication between international property buyers and local estate agents.
 
 ## Tech Stack
 
@@ -11,10 +11,10 @@
 - **Tailwind CSS** - Utility-first CSS framework
 - **shadcn/ui** - Reusable component library
 
-### Backend (Planned)
-- **Supabase** - PostgreSQL database + Auth + Real-time
-- **DeepL API** - Premium translation service
-- **Next.js API Routes** - Server-side logic
+### Backend
+- **Supabase** - PostgreSQL database + Auth + Real-time ✅ **Implemented**
+- **DeepL API** - Premium translation service 🚧 **Planned**
+- **Next.js API Routes** - Server-side logic ✅ **Implemented**
 
 ### Development Tools
 - **ESLint** - Code linting
@@ -24,24 +24,29 @@
 ## Project Structure
 
 ```
-estate-portal/
+the-property-gateway/
 ├── src/
 │   ├── app/                    # Next.js App Router
 │   │   ├── (auth)/            # Auth-related routes
+│   │   ├── api/               # API routes (buyers, fix-profile)
 │   │   ├── dashboard/         # Main app dashboard
-│   │   └── transaction/       # Transaction management
+│   │   ├── transaction/       # Transaction management
+│   │   └── transactions/      # Transaction list and creation
 │   ├── components/            # Reusable components
 │   │   ├── ui/               # shadcn/ui components
 │   │   ├── layout/           # Layout components
 │   │   └── features/         # Feature-specific components
 │   ├── lib/                  # Utilities and configurations
-│   │   ├── supabase.ts       # Database client
-│   │   ├── translation.ts    # DeepL integration
+│   │   ├── supabase.ts       # Database client ✅
+│   │   ├── translation.ts    # DeepL integration (planned)
 │   │   └── utils.ts          # Helper functions
 │   └── types/                # TypeScript type definitions
+├── supabase/                 # Database migrations and scripts
+│   └── migrations/           # SQL migration files
+├── scripts/                  # Utility scripts
 ├── public/                   # Static assets
 ├── docs/                     # Documentation
-└── tests/                    # Test files
+└── tests/                    # E2E tests (Playwright)
 ```
 
 ## Key Features (MVP)

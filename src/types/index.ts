@@ -1,4 +1,4 @@
-// Core type definitions for Estate Portal
+// Core type definitions for The Property Gateway
 
 export interface User {
   id: string;

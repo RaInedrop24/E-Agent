@@ -56,7 +56,7 @@ SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhY
 1. Stop your current dev server (Ctrl+C)
 2. Start it again:
 ```bash
-cd estate-portal
+cd the-property-gateway
 npm run dev
 ```
 

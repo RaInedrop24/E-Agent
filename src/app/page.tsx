@@ -101,7 +101,7 @@ export default function Home() {
               Ready to streamline your property purchase?
             </h2>
             <p className="mt-4 text-xl text-blue-100">
-              Join thousands of buyers and agents using Estate Portal
+              Join thousands of buyers and agents using The Property Gateway
             </p>
             <div className="mt-8">
               <Button size="lg" variant="secondary" asChild>

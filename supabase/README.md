@@ -1,6 +1,6 @@
 # Supabase Database Setup
 
-This directory contains the database schema and migration files for the Estate Portal.
+This directory contains the database schema and migration files for The Property Gateway.
 
 ## Quick Setup
 
@@ -32,7 +32,7 @@ supabase db push
 ### Option 3: Via Node.js Script
 
 ```bash
-# From estate-portal directory
+# From the-property-gateway directory
 node supabase/apply-schema.js
 ```
 

@@ -3,6 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { createClient } from "@/lib/supabase";
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -31,6 +32,7 @@ interface ActivityItem {
 
 export default function DashboardPage() {
   const { user, profile } = useAuth();
+  const { t, tVar } = useLanguage();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [recentActivity, setRecentActivity] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -53,7 +55,7 @@ export default function DashboardPage() {
 
       if (participantError) throw participantError;
 
-      const transactionIds = participantData?.map(p => p.transaction_id) || [];
+      const transactionIds = participantData?.map((p: any) => p.transaction_id) || [];
 
       if (transactionIds.length === 0) {
         setTransactions([]);
@@ -131,11 +133,11 @@ export default function DashboardPage() {
       const allActivity: ActivityItem[] = [];
 
       if (milestonesActivity) {
-        milestonesActivity.forEach(m => {
+        milestonesActivity.forEach((m: any) => {
           allActivity.push({
             id: m.id,
             type: 'milestone',
-            description: `Milestone completed: ${m.label_en}`,
+            description: `milestone:${m.label_en}`, // Will be translated in render
             transaction_title: (m.transactions as any)?.title || 'Unknown',
             transaction_id: m.transaction_id,
             created_at: m.completed_at || '',
@@ -144,12 +146,12 @@ export default function DashboardPage() {
       }
 
       if (messagesActivity) {
-        messagesActivity.forEach(m => {
+        messagesActivity.forEach((m: any) => {
           const authorName = (m.profiles as any)?.full_name || 'Someone';
           allActivity.push({
             id: m.id,
             type: 'message',
-            description: `New message from ${authorName}`,
+            description: `message:${authorName}`, // Will be translated in render
             transaction_title: (m.transactions as any)?.title || 'Unknown',
             transaction_id: m.transaction_id,
             created_at: m.created_at,
@@ -158,11 +160,11 @@ export default function DashboardPage() {
       }
 
       if (filesActivity) {
-        filesActivity.forEach(f => {
+        filesActivity.forEach((f: any) => {
           allActivity.push({
             id: f.id,
             type: 'file',
-            description: `File uploaded: ${f.file_name}`,
+            description: `file:${f.file_name}`, // Will be translated in render
             transaction_title: (f.transactions as any)?.title || 'Unknown',
             transaction_id: f.transaction_id,
             created_at: f.created_at,
@@ -227,7 +229,7 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="max-w-5xl mx-auto p-4 space-y-6">
-        <h1 className="text-2xl font-semibold">Dashboard</h1>
+        <h1 className="text-2xl font-semibold">{t('dashboard.title')}</h1>
         <div className="text-muted-foreground">Loading your transactions...</div>
       </div>
     );
@@ -236,20 +238,20 @@ export default function DashboardPage() {
   return (
     <div className="max-w-5xl mx-auto p-4 space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Dashboard</h1>
+        <h1 className="text-2xl font-semibold">{t('dashboard.title')}</h1>
         {profile?.role === 'agent' && (
           <div className="flex gap-2">
             <Link
               href="/buyers"
               className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors text-sm"
             >
-              Manage Buyers
+              {t('buyers.manage')}
             </Link>
             <Link
               href="/transactions/create"
               className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
             >
-              Create Transaction
+              {t('transactions.create')}
             </Link>
           </div>
         )}
@@ -258,13 +260,13 @@ export default function DashboardPage() {
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>My Transactions</CardTitle>
+            <CardTitle>{t('transactions.my')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {transactions.length === 0 ? (
               <div className="text-sm text-muted-foreground py-4 text-center">
                 {profile?.role === 'agent'
-                  ? "No transactions yet. Create your first transaction to get started."
+                  ? t('dashboard.createFirst')
                   : "You haven't been invited to any transactions yet."}
               </div>
             ) : (
@@ -279,13 +281,13 @@ export default function DashboardPage() {
                     <div className="flex items-center justify-between">
                       <span className="font-medium">{transaction.title}</span>
                       <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-800 capitalize">
-                        {transaction.status}
+                        {transaction.status === 'active' ? t('status.active') : transaction.status === 'completed' ? t('status.completed') : t('status.archived')}
                       </span>
                     </div>
                     <div className="mt-2 space-y-1">
                       <Progress value={progress} />
                       <div className="text-xs text-muted-foreground">
-                        {progress}% complete
+                        {progress}% {t('dashboard.complete')}
                       </div>
                     </div>
                   </Link>
@@ -297,34 +299,48 @@ export default function DashboardPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
+            <CardTitle>{t('dashboard.recentActivity')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {recentActivity.length === 0 ? (
               <div className="text-sm text-muted-foreground py-4 text-center">
-                No recent activity
+                {t('dashboard.noActivity')}
               </div>
             ) : (
-              recentActivity.map((activity) => (
-                <Link
-                  key={activity.id}
-                  href={`/transaction/${activity.transaction_id}`}
-                  className="flex items-start gap-3 text-sm hover:bg-gray-50 p-2 rounded-md transition-colors"
-                >
-                  <div className="mt-0.5">
-                    {getActivityIcon(activity.type)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-gray-900">{activity.description}</div>
-                    <div className="text-xs text-muted-foreground truncate">
-                      {activity.transaction_title}
+              recentActivity.map((activity) => {
+                // Parse description format: "type:value"
+                const [type, value] = activity.description.split(':');
+                let displayText = activity.description;
+                
+                if (type === 'milestone') {
+                  displayText = tVar('dashboard.milestoneCompleted', { milestone: value });
+                } else if (type === 'message') {
+                  displayText = tVar('dashboard.newMessageFrom', { author: value });
+                } else if (type === 'file') {
+                  displayText = tVar('dashboard.fileUploaded', { filename: value });
+                }
+                
+                return (
+                  <Link
+                    key={activity.id}
+                    href={`/transaction/${activity.transaction_id}`}
+                    className="flex items-start gap-3 text-sm hover:bg-gray-50 p-2 rounded-md transition-colors"
+                  >
+                    <div className="mt-0.5">
+                      {getActivityIcon(activity.type)}
                     </div>
-                  </div>
-                  <div className="text-xs text-muted-foreground whitespace-nowrap">
-                    {formatDate(activity.created_at)}
-                  </div>
-                </Link>
-              ))
+                    <div className="flex-1 min-w-0">
+                      <div className="text-gray-900">{displayText}</div>
+                      <div className="text-xs text-muted-foreground truncate">
+                        {activity.transaction_title}
+                      </div>
+                    </div>
+                    <div className="text-xs text-muted-foreground whitespace-nowrap">
+                      {formatDate(activity.created_at)}
+                    </div>
+                  </Link>
+                );
+              })
             )}
           </CardContent>
         </Card>

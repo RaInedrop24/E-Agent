@@ -1,4 +1,4 @@
-# Setup Summary - Estate Portal Phase 3
+# Setup Summary - The Property Gateway Phase 3
 
 ## ✅ What Has Been Completed
 
@@ -73,7 +73,7 @@ CREATE FUNCTION
 CREATE TRIGGER
 CREATE POLICY
 ...
-Estate Portal schema created successfully!
+The Property Gateway schema created successfully!
 ```
 
 ### Step 2: Create Storage Buckets
@@ -250,7 +250,7 @@ You'll know it's working when:
 
 ```bash
 # 1. Ensure you're in the right directory
-cd C:\Users\micro\Estate_Agent_Portal\estate-portal
+cd C:\Users\micro\Estate_Agent_Portal\the-property-gateway
 
 # 2. Apply database schema (via Supabase Dashboard SQL Editor)
 # Copy contents of: supabase/migrations/20251117_initial_schema.sql
