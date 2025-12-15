@@ -45,6 +45,7 @@ export interface Message {
   recipientLanguage?: string;
   createdAt: string;
   isTranslated: boolean;
+  translated_text?: Record<string, string>; // Cached translations by language code
 }
 
 export interface Document {

@@ -493,7 +493,7 @@ const translations = {
 export function t(key: TranslationKey, lang: SupportedLanguage = 'en'): string {
   // For languages not yet fully implemented, fall back to English
   const supportedTranslations: SupportedLanguage[] = ['en', 'it'];
-  const languageToUse = supportedTranslations.includes(lang) ? lang : 'en';
+  const languageToUse = (supportedTranslations.includes(lang) ? lang : 'en') as 'en' | 'it';
   
   return translations[languageToUse][key] || translations.en[key] || key;
 }

@@ -9,25 +9,25 @@ import { Badge } from '@/components/ui/badge';
 import { MessageCircle, Send, Languages, Globe } from 'lucide-react';
 import type { SupportedLanguage } from '@/lib/translation';
 
-interface Message {
+interface MessagingMessage {
   id: string;
   author_profile_id: string;
   author_name: string;
   content_original: string;
   original_language: string;
-  translated_text: Record<string, string> | null; // JSONB cache: {"it": "...", "en": "..."}
+  translated_text?: Record<string, string> | null; // JSONB cache: {"it": "...", "en": "..."}
   created_at: string;
 }
 
 interface MessagingPanelProps {
   transactionId: string;
-  messages: Message[];
+  messages: MessagingMessage[];
   onRefresh: () => void;
 }
 
 export function MessagingPanel({ transactionId, messages: initialMessages, onRefresh }: MessagingPanelProps) {
   const { user, profile } = useAuth();
-  const [messages, setMessages] = useState<Message[]>(initialMessages);
+  const [messages, setMessages] = useState<MessagingMessage[]>(initialMessages);
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
   const [showOriginal, setShowOriginal] = useState<Record<string, boolean>>({});
@@ -48,7 +48,7 @@ export function MessagingPanel({ transactionId, messages: initialMessages, onRef
   }, [messages]);
 
   // Auto-translate messages that need translation
-  const autoTranslateMessages = async (msgs: Message[]) => {
+  const autoTranslateMessages = async (msgs: MessagingMessage[]) => {
     if (!supabase || !user) return;
 
     for (const message of msgs) {
@@ -115,9 +115,9 @@ export function MessagingPanel({ transactionId, messages: initialMessages, onRef
 
       // Find languages of other participants (excluding current user)
       const otherLanguages = participants
-        ?.filter(p => p.profile_id !== user.id)
-        .map(p => (p.profiles as any)?.preferred_language as SupportedLanguage)
-        .filter((lang): lang is SupportedLanguage => lang !== null && lang !== userLanguage) || [];
+        ?.filter((p: any) => p.profile_id !== user.id)
+        .map((p: any) => (p.profiles as any)?.preferred_language as SupportedLanguage)
+        .filter((lang: any): lang is SupportedLanguage => lang !== null && lang !== userLanguage) || [];
 
       const uniqueTargetLangs = [...new Set(otherLanguages)];
 
@@ -175,7 +175,7 @@ export function MessagingPanel({ transactionId, messages: initialMessages, onRef
       if (error) throw error;
 
       // Add new message to local state
-      const newMsg: Message = {
+      const newMsg: MessagingMessage = {
         ...data,
         author_name: (data.profiles as any)?.full_name || 'Unknown',
       };
