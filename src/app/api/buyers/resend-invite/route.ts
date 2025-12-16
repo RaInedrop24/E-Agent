@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
       type: 'invite',
       email: buyerAuth.user.email,
       options: {
-        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://thepropertygateway.com'}/auth/update-password`,
+        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://thepropertygateway.com'}/auth/callback`,
       },
     });
 
@@ -112,7 +112,7 @@ export async function POST(request: NextRequest) {
     const { error: resetError } = await supabaseAdmin.auth.resetPasswordForEmail(
       buyerAuth.user.email,
       {
-        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://thepropertygateway.com'}/auth/update-password`,
+        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://thepropertygateway.com'}/auth/callback`,
       }
     );
 

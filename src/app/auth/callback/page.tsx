@@ -30,8 +30,28 @@ function AuthCallbackContent() {
         const tokenHash = searchParams?.get('token_hash');
 
         if (type === 'recovery' || type === 'invite') {
-          // Password recovery or invite flow - exchange token for session first
-          if (token) {
+          // Password recovery or invite flow
+          // When Supabase redirects after verification, the session should already be established
+          // But we may need to wait a moment for it to be available
+          
+          let session = null;
+          let attempts = 0;
+          const maxAttempts = 5;
+
+          // Try to get session, with retries (Supabase might need a moment to establish it)
+          while (!session && attempts < maxAttempts) {
+            const { data: { session: currentSession } } = await supabase.auth.getSession();
+            if (currentSession) {
+              session = currentSession;
+              break;
+            }
+            attempts++;
+            // Wait 200ms before retrying
+            await new Promise(resolve => setTimeout(resolve, 200));
+          }
+
+          // If still no session and we have a token, try to verify it
+          if (!session && token) {
             const { data: verifyData, error: exchangeError } = await supabase.auth.verifyOtp({
               token,
               type: type === 'invite' ? 'invite' : 'recovery',
@@ -43,13 +63,10 @@ function AuthCallbackContent() {
               return;
             }
 
-            // Verify session was created
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!session) {
-              setStatus('Session could not be created. Please try again.');
-              return;
-            }
-          } else if (tokenHash) {
+            // Get session after verification
+            const { data: { session: newSession } } = await supabase.auth.getSession();
+            session = newSession;
+          } else if (!session && tokenHash) {
             // Handle token_hash format (PKCE flow)
             const { data: verifyData, error: exchangeError } = await supabase.auth.verifyOtp({
               token_hash: tokenHash,
@@ -62,22 +79,17 @@ function AuthCallbackContent() {
               return;
             }
 
-            // Verify session was created
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!session) {
-              setStatus('Session could not be created. Please try again.');
-              return;
-            }
-          } else {
-            // No token in URL - check if we have a session from Supabase's redirect
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!session) {
-              setStatus('No valid session found. Please use the complete link from your email.');
-              return;
-            }
+            // Get session after verification
+            const { data: { session: newSession } } = await supabase.auth.getSession();
+            session = newSession;
           }
 
-          // After successful token exchange, redirect to password update page
+          if (!session) {
+            setStatus('Session could not be established. Please try clicking the link from your email again.');
+            return;
+          }
+
+          // After successful session establishment, redirect to password update page
           router.push('/auth/update-password');
           return;
         }
