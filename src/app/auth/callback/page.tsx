@@ -36,16 +36,19 @@ function AuthCallbackContent() {
         if (initialSession?.user) {
           const { data: { user } } = await supabase.auth.getUser();
           
+          if (!user) return;
+          
           // Check if this is an invite flow:
           // 1. type=invite in URL
-          // 2. User was just created (within last 5 minutes) - likely an invite
-          // 3. User doesn't have email_confirmed_at set yet
+          // 2. User was just created (within last 10 minutes) AND never signed in
           const isInviteType = type === 'invite';
-          const isRecentlyCreated = user?.created_at && 
-            (new Date().getTime() - new Date(user.created_at).getTime()) < 5 * 60 * 1000; // 5 minutes
-          const needsConfirmation = !user?.email_confirmed_at;
+          const userCreatedAt = user.created_at ? new Date(user.created_at).getTime() : 0;
+          const now = new Date().getTime();
+          const isRecentlyCreated = userCreatedAt > 0 && (now - userCreatedAt) < 10 * 60 * 1000; // 10 minutes
+          const neverSignedIn = !user.last_sign_in_at || 
+            (user.last_sign_in_at && new Date(user.last_sign_in_at).getTime() === userCreatedAt);
           
-          if (user && (isInviteType || (isRecentlyCreated && needsConfirmation))) {
+          if (isInviteType || (isRecentlyCreated && neverSignedIn)) {
             // This is likely an invite flow - redirect to password setup
             router.push('/auth/update-password');
             return;
@@ -147,13 +150,19 @@ function AuthCallbackContent() {
 
           if (data.user) {
             // Check if this is an invited user who needs to set password
-            // Invited users may not have email_confirmed_at set immediately
-            // or we can check if they were just invited
+            // For invited users, we check:
+            // 1. type=invite in URL
+            // 2. User was created very recently (within 10 minutes) - likely just invited
+            // 3. User has no last_sign_in_at (never logged in with password)
             const isInviteType = type === 'invite';
-            const isRecentlyCreated = data.user.created_at && 
-              (new Date().getTime() - new Date(data.user.created_at).getTime()) < 5 * 60 * 1000; // 5 minutes
-            const needsConfirmation = !data.user.email_confirmed_at;
-            const needsPassword = isInviteType || (isRecentlyCreated && needsConfirmation);
+            const userCreatedAt = data.user.created_at ? new Date(data.user.created_at).getTime() : 0;
+            const now = new Date().getTime();
+            const isRecentlyCreated = userCreatedAt > 0 && (now - userCreatedAt) < 10 * 60 * 1000; // 10 minutes
+            const neverSignedIn = !data.user.last_sign_in_at || 
+              data.user.last_sign_in_at === data.user.created_at;
+            
+            // If it's an invite type OR user was just created and never signed in, redirect to password setup
+            const needsPassword = isInviteType || (isRecentlyCreated && neverSignedIn);
             
             if (needsPassword) {
               // Redirect to password setup for invited users
