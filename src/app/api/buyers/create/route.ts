@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
           preferred_language: preferredLanguage || 'en',
           role: 'buyer',
         },
-        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3001'}/auth/update-password`,
+        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://thepropertygateway.com'}/auth/update-password`,
       }
     );
 
