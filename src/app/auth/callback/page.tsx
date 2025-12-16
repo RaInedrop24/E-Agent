@@ -40,15 +40,17 @@ function AuthCallbackContent() {
           
           // Check if this is an invite flow:
           // 1. type=invite in URL
-          // 2. User was just created (within last 10 minutes) AND never signed in
+          // 2. User was just created (within last 15 minutes) - strong indicator of invite
+          // 3. User is a buyer (buyers are typically invited, not self-registered)
           const isInviteType = type === 'invite';
           const userCreatedAt = user.created_at ? new Date(user.created_at).getTime() : 0;
           const now = new Date().getTime();
-          const isRecentlyCreated = userCreatedAt > 0 && (now - userCreatedAt) < 10 * 60 * 1000; // 10 minutes
-          const neverSignedIn = !user.last_sign_in_at || 
-            (user.last_sign_in_at && new Date(user.last_sign_in_at).getTime() === userCreatedAt);
+          const isRecentlyCreated = userCreatedAt > 0 && (now - userCreatedAt) < 15 * 60 * 1000; // 15 minutes
+          const isBuyer = user.user_metadata?.role === 'buyer';
           
-          if (isInviteType || (isRecentlyCreated && neverSignedIn)) {
+          // If it's an invite type OR (recently created AND is buyer), redirect to password setup
+          // Buyers are always invited, so if they were just created, they need to set password
+          if (isInviteType || (isRecentlyCreated && isBuyer)) {
             // This is likely an invite flow - redirect to password setup
             router.push('/auth/update-password');
             return;
