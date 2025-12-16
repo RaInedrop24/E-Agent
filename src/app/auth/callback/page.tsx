@@ -29,6 +29,29 @@ function AuthCallbackContent() {
         const token = searchParams?.get('token');
         const tokenHash = searchParams?.get('token_hash');
 
+        // First, check if we have a session (Supabase may have already verified)
+        const { data: { session: initialSession } } = await supabase.auth.getSession();
+        
+        // If we have a session, check if user needs to set password (invited users)
+        if (initialSession?.user) {
+          const { data: { user } } = await supabase.auth.getUser();
+          
+          // Check if this is an invite flow:
+          // 1. type=invite in URL
+          // 2. User was just created (within last 5 minutes) - likely an invite
+          // 3. User doesn't have email_confirmed_at set yet
+          const isInviteType = type === 'invite';
+          const isRecentlyCreated = user?.created_at && 
+            (new Date().getTime() - new Date(user.created_at).getTime()) < 5 * 60 * 1000; // 5 minutes
+          const needsConfirmation = !user?.email_confirmed_at;
+          
+          if (user && (isInviteType || (isRecentlyCreated && needsConfirmation))) {
+            // This is likely an invite flow - redirect to password setup
+            router.push('/auth/update-password');
+            return;
+          }
+        }
+
         if (type === 'recovery' || type === 'invite') {
           // Password recovery or invite flow
           // When Supabase redirects after verification, the session should already be established
@@ -118,11 +141,26 @@ function AuthCallbackContent() {
             }
           }
         } else {
-          // No code, just check if user is authenticated
+          // No code, check if user is authenticated
           const { data } = await supabase.auth.getUser();
           if (!mounted) return;
 
           if (data.user) {
+            // Check if this is an invited user who needs to set password
+            // Invited users may not have email_confirmed_at set immediately
+            // or we can check if they were just invited
+            const isInviteType = type === 'invite';
+            const isRecentlyCreated = data.user.created_at && 
+              (new Date().getTime() - new Date(data.user.created_at).getTime()) < 5 * 60 * 1000; // 5 minutes
+            const needsConfirmation = !data.user.email_confirmed_at;
+            const needsPassword = isInviteType || (isRecentlyCreated && needsConfirmation);
+            
+            if (needsPassword) {
+              // Redirect to password setup for invited users
+              router.push('/auth/update-password');
+              return;
+            }
+            
             setEmail(data.user.email ?? null);
             setStatus('Your email has been confirmed.');
           } else {
