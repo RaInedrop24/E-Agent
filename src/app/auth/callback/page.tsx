@@ -153,16 +153,26 @@ function AuthCallbackContent() {
             // For invited users, we check:
             // 1. type=invite in URL
             // 2. User was created very recently (within 10 minutes) - likely just invited
-            // 3. User has no last_sign_in_at (never logged in with password)
+            // 3. User has no last_sign_in_at or it equals created_at (never logged in with password)
+            // 4. User is a buyer (buyers are typically invited)
             const isInviteType = type === 'invite';
             const userCreatedAt = data.user.created_at ? new Date(data.user.created_at).getTime() : 0;
             const now = new Date().getTime();
             const isRecentlyCreated = userCreatedAt > 0 && (now - userCreatedAt) < 10 * 60 * 1000; // 10 minutes
-            const neverSignedIn = !data.user.last_sign_in_at || 
-              data.user.last_sign_in_at === data.user.created_at;
             
-            // If it's an invite type OR user was just created and never signed in, redirect to password setup
-            const needsPassword = isInviteType || (isRecentlyCreated && neverSignedIn);
+            // Check if user has never signed in (indicates they need to set password)
+            let neverSignedIn = true;
+            if (data.user.last_sign_in_at) {
+              const lastSignIn = new Date(data.user.last_sign_in_at).getTime();
+              // If last_sign_in is within 1 second of created_at, they haven't signed in with password yet
+              neverSignedIn = Math.abs(lastSignIn - userCreatedAt) < 1000;
+            }
+            
+            // Check if user is a buyer (buyers are typically invited, not self-registered)
+            const isBuyer = data.user.user_metadata?.role === 'buyer';
+            
+            // If it's an invite type OR (recently created AND never signed in AND is buyer), redirect to password setup
+            const needsPassword = isInviteType || (isRecentlyCreated && neverSignedIn && isBuyer);
             
             if (needsPassword) {
               // Redirect to password setup for invited users
