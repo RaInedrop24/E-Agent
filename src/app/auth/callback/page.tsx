@@ -42,15 +42,17 @@ function AuthCallbackContent() {
           // 1. type=invite in URL
           // 2. User was just created (within last 15 minutes) - strong indicator of invite
           // 3. User is a buyer (buyers are typically invited, not self-registered)
+          // 4. No code in URL (invites don't have codes, they go through Supabase verify first)
           const isInviteType = type === 'invite';
           const userCreatedAt = user.created_at ? new Date(user.created_at).getTime() : 0;
           const now = new Date().getTime();
           const isRecentlyCreated = userCreatedAt > 0 && (now - userCreatedAt) < 15 * 60 * 1000; // 15 minutes
           const isBuyer = user.user_metadata?.role === 'buyer';
+          const noCode = !searchParams?.get('code');
           
-          // If it's an invite type OR (recently created AND is buyer), redirect to password setup
-          // Buyers are always invited, so if they were just created, they need to set password
-          if (isInviteType || (isRecentlyCreated && isBuyer)) {
+          // If it's an invite type OR (recently created AND is buyer AND no code), redirect to password setup
+          // Buyers are always invited, so if they were just created and reached callback without code, they need to set password
+          if (isInviteType || (isRecentlyCreated && isBuyer && noCode)) {
             // This is likely an invite flow - redirect to password setup
             router.push('/auth/update-password');
             return;
