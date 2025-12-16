@@ -24,11 +24,36 @@ function AuthCallbackContent() {
           return;
         }
 
-        // Check if this is a password recovery flow
+        // Check if this is a password recovery or invite flow
         const type = searchParams?.get('type');
+        const token = searchParams?.get('token');
+        const tokenHash = searchParams?.get('token_hash');
 
-        if (type === 'recovery') {
-          // Password recovery flow - redirect to password update page
+        if (type === 'recovery' || type === 'invite') {
+          // Password recovery or invite flow - exchange token for session first
+          if (token) {
+            const { error: exchangeError } = await supabase.auth.verifyOtp({
+              token,
+              type: type === 'invite' ? 'invite' : 'recovery',
+            });
+
+            if (exchangeError) {
+              console.error('Error verifying token:', exchangeError);
+              setStatus('Invalid or expired link. Please request a new invitation.');
+              return;
+            }
+          } else if (tokenHash) {
+            // Handle token_hash format (PKCE flow)
+            const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(tokenHash);
+
+            if (exchangeError) {
+              console.error('Error exchanging code for session:', exchangeError);
+              setStatus('Invalid or expired link. Please request a new invitation.');
+              return;
+            }
+          }
+
+          // After successful token exchange, redirect to password update page
           router.push('/auth/update-password');
           return;
         }
