@@ -32,23 +32,47 @@ function AuthCallbackContent() {
         if (type === 'recovery' || type === 'invite') {
           // Password recovery or invite flow - exchange token for session first
           if (token) {
-            const { error: exchangeError } = await supabase.auth.verifyOtp({
+            const { data: verifyData, error: exchangeError } = await supabase.auth.verifyOtp({
               token,
               type: type === 'invite' ? 'invite' : 'recovery',
             });
 
             if (exchangeError) {
               console.error('Error verifying token:', exchangeError);
-              setStatus('Invalid or expired link. Please request a new invitation.');
+              setStatus(`Invalid or expired link: ${exchangeError.message}. Please request a new invitation.`);
+              return;
+            }
+
+            // Verify session was created
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+              setStatus('Session could not be created. Please try again.');
               return;
             }
           } else if (tokenHash) {
             // Handle token_hash format (PKCE flow)
-            const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(tokenHash);
+            const { data: verifyData, error: exchangeError } = await supabase.auth.verifyOtp({
+              token_hash: tokenHash,
+              type: type === 'invite' ? 'invite' : 'recovery',
+            });
 
             if (exchangeError) {
               console.error('Error exchanging code for session:', exchangeError);
-              setStatus('Invalid or expired link. Please request a new invitation.');
+              setStatus(`Invalid or expired link: ${exchangeError.message}. Please request a new invitation.`);
+              return;
+            }
+
+            // Verify session was created
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+              setStatus('Session could not be created. Please try again.');
+              return;
+            }
+          } else {
+            // No token in URL - check if we have a session from Supabase's redirect
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+              setStatus('No valid session found. Please use the complete link from your email.');
               return;
             }
           }

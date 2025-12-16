@@ -27,42 +27,65 @@ function UpdatePasswordContent() {
           return;
         }
 
-        // Check if we have a token in the URL (invite/recovery flow)
-        const token = searchParams?.get('token');
-        const tokenHash = searchParams?.get('token_hash');
-        const type = searchParams?.get('type');
+        // First, check if we already have a session (from Supabase's verify redirect)
+        let { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
-        if (token && (type === 'invite' || type === 'recovery')) {
-          // Exchange token for session
-          const { error: verifyError } = await supabase.auth.verifyOtp({
-            token,
-            type: type === 'invite' ? 'invite' : 'recovery',
-          });
+        // If no session, check for tokens in URL (invite/recovery flow)
+        if (!session) {
+          const token = searchParams?.get('token');
+          const tokenHash = searchParams?.get('token_hash');
+          const type = searchParams?.get('type');
 
-          if (verifyError) {
-            setError('Invalid or expired link. Please request a new invitation.');
-            setCheckingSession(false);
-            return;
-          }
-        } else if (tokenHash) {
-          // Handle token_hash format
-          const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(tokenHash);
-          if (exchangeError) {
-            setError('Invalid or expired link. Please request a new invitation.');
-            setCheckingSession(false);
-            return;
+          console.log('No session found, checking for tokens:', { token: !!token, tokenHash: !!tokenHash, type });
+
+          if (token && (type === 'invite' || type === 'recovery')) {
+            // Exchange token for session
+            console.log('Verifying OTP token...');
+            const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
+              token,
+              type: type === 'invite' ? 'invite' : 'recovery',
+            });
+
+            if (verifyError) {
+              console.error('Token verification error:', verifyError);
+              setError(`Invalid or expired link: ${verifyError.message}. Please request a new invitation.`);
+              setCheckingSession(false);
+              return;
+            }
+
+            // Get session after verification
+            const { data: { session: newSession } } = await supabase.auth.getSession();
+            session = newSession;
+          } else if (tokenHash) {
+            // Handle token_hash format (PKCE flow)
+            console.log('Exchanging token_hash for session...');
+            const { error: exchangeError } = await supabase.auth.verifyOtp({
+              token_hash: tokenHash,
+              type: type === 'invite' ? 'invite' : 'recovery',
+            });
+
+            if (exchangeError) {
+              console.error('Token hash exchange error:', exchangeError);
+              setError(`Invalid or expired link: ${exchangeError.message}. Please request a new invitation.`);
+              setCheckingSession(false);
+              return;
+            }
+
+            // Get session after exchange
+            const { data: { session: newSession } } = await supabase.auth.getSession();
+            session = newSession;
           }
         }
 
-        // Verify we have a session
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-
-        if (sessionError || !session) {
-          setError('Auth session missing! Please use the link from your invitation email.');
+        // Final check - verify we have a session
+        if (!session) {
+          console.error('No session available after token verification');
+          setError('Auth session missing! Please use the link from your invitation email. If you copied the link, make sure to use the complete URL from the email.');
           setCheckingSession(false);
           return;
         }
 
+        console.log('Session verified successfully');
         setCheckingSession(false);
       } catch (err: any) {
         console.error('Error checking session:', err);
