@@ -48,7 +48,7 @@ The "User not allowed" error when creating buyers has been resolved by moving th
 
 Example:
 ```env
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSI...
+SUPABASE_SERVICE_ROLE_KEY=[REDACTED - Get from Supabase Dashboard]
 ```
 
 ### Step 3: Restart the Development Server
