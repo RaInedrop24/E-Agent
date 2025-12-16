@@ -45,6 +45,7 @@ export default function SessionDebugPage() {
   const signOut = async () => {
     if (!supabase) return;
     await supabase.auth.signOut();
+    window.location.href = '/';
   };
 
   return (

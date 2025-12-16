@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { AppHeader } from "@/components/layout/AppHeader";
+import { ConditionalHeader } from "@/components/layout/ConditionalHeader";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 
@@ -32,7 +32,7 @@ export default function RootLayout({
       >
         <AuthProvider>
           <LanguageProvider>
-            <AppHeader />
+            <ConditionalHeader />
             {children}
           </LanguageProvider>
         </AuthProvider>

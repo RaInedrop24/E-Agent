@@ -13,6 +13,11 @@ import { Badge } from '@/components/ui/badge';
 interface Transaction {
   id: string;
   title: string;
+  title_en?: string | null;
+  title_it?: string | null;
+  title_de?: string | null;
+  title_fr?: string | null;
+  title_es?: string | null;
   status: string;
   created_at: string;
   created_by: string;
@@ -20,10 +25,29 @@ interface Transaction {
 
 export default function TransactionsListPage() {
   const { user, profile } = useAuth();
-  const { t, tVar } = useLanguage();
+  const { t, tVar, language } = useLanguage();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Get translated title based on user's language preference
+  const getTranslatedTitle = (transaction: Transaction) => {
+    const langKey = `title_${language}` as keyof Transaction;
+    const translatedTitle = transaction[langKey] as string | null | undefined;
+    
+    // If we have a translation for the user's language, use it
+    if (translatedTitle && translatedTitle.trim()) {
+      return translatedTitle;
+    }
+    
+    // Fallback: try English, then the main title field
+    if (transaction.title_en && transaction.title_en.trim()) {
+      return transaction.title_en;
+    }
+    
+    // Last resort: use the main title field
+    return transaction.title || '';
+  };
 
   useEffect(() => {
     if (user) {
@@ -144,13 +168,13 @@ export default function TransactionsListPage() {
                 <div key={transaction.id} className="flex items-center justify-between rounded-lg border p-4 hover:bg-slate-50 transition-colors">
                   <div className="space-y-1">
                     <div className="font-medium flex items-center gap-2">
-                        {transaction.title}
+                        {getTranslatedTitle(transaction)}
                         <Badge variant={transaction.status === 'active' ? 'default' : 'secondary'} className="text-xs">
                             {transaction.status}
                         </Badge>
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      Created {new Date(transaction.created_at).toLocaleDateString()}
+                      {t('transactions.createdOn')} {new Date(transaction.created_at).toLocaleDateString()}
                     </div>
                   </div>
                   <Link href={`/transaction/${transaction.id}`}>

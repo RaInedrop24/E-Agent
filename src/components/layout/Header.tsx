@@ -22,9 +22,11 @@ export const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
           {/* Logo */}
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <h1 className="text-xl font-bold text-gray-900">
-                The Property Gateway
-              </h1>
+              <Link href="/">
+                <h1 className="text-xl font-bold text-gray-900 hover:text-blue-600 transition-colors cursor-pointer">
+                  The Property Gateway
+                </h1>
+              </Link>
             </div>
             <div className="hidden md:block">
               <div className="ml-10 flex items-baseline space-x-4">

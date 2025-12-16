@@ -3,18 +3,25 @@
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { CheckCircle, Circle, Clock } from 'lucide-react';
 import { Milestone } from '@/types';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ProgressTrackerProps {
   milestones: Milestone[];
   currentMilestone: number;
+  isAgent?: boolean;
+  onMilestoneToggle?: (milestoneId: number, currentlyCompleted: boolean) => void;
 }
 
 export const ProgressTracker: React.FC<ProgressTrackerProps> = ({
   milestones,
   currentMilestone,
+  isAgent = false,
+  onMilestoneToggle,
 }) => {
+  const { t, tVar } = useLanguage();
   const completedCount = milestones.filter(m => m.isCompleted).length;
   const progressPercentage = (completedCount / milestones.length) * 100;
 
@@ -38,15 +45,15 @@ export const ProgressTracker: React.FC<ProgressTrackerProps> = ({
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
-          <span>Transaction Progress</span>
+          <span>{t('milestones.transactionProgress')}</span>
           <Badge variant="outline">
-            {completedCount} of {milestones.length} completed
+            {completedCount} {t('milestones.ofCompleted')} {milestones.length} {t('milestones.completed').toLowerCase()}
           </Badge>
         </CardTitle>
         <div className="space-y-2">
           <Progress value={progressPercentage} className="w-full" />
           <p className="text-sm text-gray-600">
-            {progressPercentage.toFixed(0)}% Complete
+            {tVar('milestones.percentComplete', { percent: progressPercentage.toFixed(0) })}
           </p>
         </div>
       </CardHeader>
@@ -70,34 +77,48 @@ export const ProgressTracker: React.FC<ProgressTrackerProps> = ({
                   {getMilestoneIcon(milestone, index)}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <h4
-                      className={`text-sm font-medium ${
-                        status === 'completed'
-                          ? 'text-green-900'
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <h4
+                        className={`text-sm font-medium ${
+                          status === 'completed'
+                            ? 'text-green-900'
+                            : status === 'current'
+                            ? 'text-blue-900'
+                            : 'text-gray-900'
+                        }`}
+                      >
+                        {milestone.title}
+                      </h4>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge
+                        variant={
+                          status === 'completed'
+                            ? 'default'
+                            : status === 'current'
+                            ? 'secondary'
+                            : 'outline'
+                        }
+                        className="ml-2"
+                      >
+                        {status === 'completed'
+                          ? t('milestones.done')
                           : status === 'current'
-                          ? 'text-blue-900'
-                          : 'text-gray-900'
-                      }`}
-                    >
-                      {milestone.title}
-                    </h4>
-                    <Badge
-                      variant={
-                        status === 'completed'
-                          ? 'default'
-                          : status === 'current'
-                          ? 'secondary'
-                          : 'outline'
-                      }
-                      className="ml-2"
-                    >
-                      {status === 'completed'
-                        ? 'Done'
-                        : status === 'current'
-                        ? 'Active'
-                        : 'Pending'}
-                    </Badge>
+                          ? t('milestones.active')
+                          : t('milestones.pending')}
+                      </Badge>
+                      {isAgent && onMilestoneToggle && (
+                        <Button
+                          size="sm"
+                          variant={milestone.isCompleted ? 'outline' : 'default'}
+                          onClick={() => onMilestoneToggle(milestone.id, milestone.isCompleted)}
+                          className="shrink-0"
+                        >
+                          {milestone.isCompleted ? t('milestones.markIncomplete') : t('milestones.markComplete')}
+                        </Button>
+                      )}
+                    </div>
                   </div>
                   <p
                     className={`mt-1 text-sm ${
@@ -112,7 +133,7 @@ export const ProgressTracker: React.FC<ProgressTrackerProps> = ({
                   </p>
                   {milestone.isCompleted && milestone.completedAt && (
                     <p className="mt-1 text-xs text-green-600">
-                      Completed on{' '}
+                      {t('milestones.completedOnLabel')}{' '}
                       {new Date(milestone.completedAt).toLocaleDateString()}
                     </p>
                   )}

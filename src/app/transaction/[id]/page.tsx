@@ -14,13 +14,20 @@ import { ArrowLeft, Check, Clock, Users, FileText, MessageCircle, Trash2 } from 
 import { ProgressTracker } from '@/components/features/transaction/ProgressTracker';
 import { InviteBuyerModal } from '@/components/features/transaction/InviteBuyerModal';
 import { MessagingPanel } from '@/components/features/transaction/MessagingPanel';
+import { EditTransactionTitleModal } from '@/components/features/transaction/EditTransactionTitleModal';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import type { Milestone } from '@/types';
 
 interface Transaction {
   id: string;
   title: string;
+  title_en?: string | null;
+  title_it?: string | null;
+  title_de?: string | null;
+  title_fr?: string | null;
+  title_es?: string | null;
   property_address: string | null;
+  property_url: string | null;
   status: string;
   created_at: string;
   created_by: string;
@@ -66,7 +73,7 @@ export default function TransactionDetailPage({ params }: PageProps) {
   const { id: transactionId } = use(params);
   const router = useRouter();
   const { user, profile } = useAuth();
-  const { t, tVar } = useLanguage();
+  const { t, tVar, language } = useLanguage();
   const [transaction, setTransaction] = useState<Transaction | null>(null);
   const [milestones, setMilestones] = useState<TransactionMilestone[]>([]);
   const [participants, setParticipants] = useState<Participant[]>([]);
@@ -76,6 +83,13 @@ export default function TransactionDetailPage({ params }: PageProps) {
   const [activeTab, setActiveTab] = useState('tracker');
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  // Get translated title based on user's language preference
+  const getTranslatedTitle = () => {
+    if (!transaction) return '';
+    const langKey = `title_${language}` as keyof Transaction;
+    return (transaction[langKey] as string) || transaction.title_en || transaction.title || '';
+  };
 
   useEffect(() => {
     if (!user) {
@@ -100,7 +114,13 @@ export default function TransactionDetailPage({ params }: PageProps) {
         .select(`
           id,
           title,
+          title_en,
+          title_it,
+          title_de,
+          title_fr,
+          title_es,
           property_address,
+          property_url,
           status,
           created_at,
           created_by,
@@ -269,56 +289,72 @@ export default function TransactionDetailPage({ params }: PageProps) {
     try {
       setDeleting(true);
 
-      // Delete in order due to foreign key constraints:
-      // 1. Delete files from storage (if any exist)
+      // First, get file paths before deletion (for storage cleanup)
       const { data: files } = await supabase
         .from('files')
         .select('storage_path')
         .eq('transaction_id', transaction.id);
 
+      // Delete files from storage bucket (if any exist)
+      // This must be done before database deletion
       if (files && files.length > 0) {
-        // Delete files from storage bucket
-        const filePaths = files.map((f: any) => f.storage_path);
-        await supabase.storage.from('transaction-files').remove(filePaths);
+        const filePaths = files.map((f: any) => f.storage_path).filter(Boolean);
+        if (filePaths.length > 0) {
+          const { error: storageError } = await supabase.storage
+            .from('transaction-files')
+            .remove(filePaths);
+          
+          if (storageError) {
+            console.warn('[TransactionDetail] Storage deletion warning:', storageError);
+            // Continue with database deletion even if storage deletion fails
+          }
+        }
       }
 
-      // 2. Delete files records
-      await supabase
-        .from('files')
-        .delete()
-        .eq('transaction_id', transaction.id);
+      // Use the database function to atomically delete all related data
+      // This ensures all deletions happen in a single transaction
+      const { error: deleteError } = await supabase.rpc('delete_transaction', {
+        p_transaction_id: transaction.id,
+      });
 
-      // 3. Delete messages
-      await supabase
-        .from('messages')
-        .delete()
-        .eq('transaction_id', transaction.id);
+      if (deleteError) {
+        // Check if transaction was already deleted (might have been cleaned up)
+        if (deleteError.code === 'PGRST116' || deleteError.message?.includes('not found')) {
+          console.log('[TransactionDetail] Transaction already deleted, redirecting...');
+          router.push('/dashboard');
+          return;
+        }
+        
+        // If function doesn't exist, fall back to manual deletion
+        if (deleteError.message?.includes('Could not find the function') || 
+            deleteError.message?.includes('function') && deleteError.message?.includes('not found')) {
+          console.warn('[TransactionDetail] Delete function not available, using fallback method');
+          
+          // Fallback: manual deletion (less atomic but works)
+          const deletePromises = [
+            supabase.from('files').delete().eq('transaction_id', transaction.id),
+            supabase.from('messages').delete().eq('transaction_id', transaction.id),
+            supabase.from('milestones').delete().eq('transaction_id', transaction.id),
+            supabase.from('transaction_participants').delete().eq('transaction_id', transaction.id),
+            supabase.from('transactions').delete().eq('id', transaction.id),
+          ];
+          
+          const results = await Promise.all(deletePromises);
+          const errors = results.filter(r => r.error).map(r => r.error);
+          
+          if (errors.length > 0) {
+            throw errors[0];
+          }
+        } else {
+          throw deleteError;
+        }
+      }
 
-      // 4. Delete milestones
-      await supabase
-        .from('milestones')
-        .delete()
-        .eq('transaction_id', transaction.id);
-
-      // 5. Delete participants
-      await supabase
-        .from('transaction_participants')
-        .delete()
-        .eq('transaction_id', transaction.id);
-
-      // 6. Finally, delete the transaction itself
-      const { error } = await supabase
-        .from('transactions')
-        .delete()
-        .eq('id', transaction.id);
-
-      if (error) throw error;
-
-      // Redirect to dashboard
+      // Success - redirect to dashboard
       router.push('/dashboard');
     } catch (err: any) {
       console.error('[TransactionDetail] Error deleting transaction:', err);
-      alert('Failed to delete transaction: ' + err.message);
+      alert(t('transaction.deleteFailed') + ': ' + (err.message || 'Unknown error'));
       setDeleting(false);
       setShowDeleteDialog(false);
     }
@@ -367,6 +403,16 @@ export default function TransactionDetailPage({ params }: PageProps) {
     order: m.order_index,
   }));
 
+  // Handler for milestone toggle from ProgressTracker
+  // milestoneIndex corresponds to the index in both arrays
+  const handleProgressTrackerToggle = (milestoneIndex: number, currentlyCompleted: boolean) => {
+    // Use the same index to find the actual milestone from the database
+    const milestone = milestones[milestoneIndex];
+    if (milestone) {
+      handleMilestoneToggle(milestone.id, currentlyCompleted);
+    }
+  };
+
   return (
     <div className="max-w-6xl mx-auto p-4 space-y-6">
       {/* Header */}
@@ -377,14 +423,30 @@ export default function TransactionDetailPage({ params }: PageProps) {
           </Button>
         </Link>
         <div className="flex-1">
-          <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-bold">{transaction.title}</h1>
+          <div className="flex items-center gap-3 flex-wrap">
+            <h1 className="text-3xl font-bold">{getTranslatedTitle()}</h1>
             <Badge variant={transaction.status === 'active' ? 'default' : 'secondary'}>
               {transaction.status}
             </Badge>
+            {isAgent && transaction.created_by === user?.id && (
+              <EditTransactionTitleModal transaction={transaction} onSuccess={fetchTransaction} />
+            )}
           </div>
           {transaction.property_address && (
             <p className="text-muted-foreground mt-1">{transaction.property_address}</p>
+          )}
+          {transaction.property_url && (
+            <p className="mt-2">
+              <a
+                href={transaction.property_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 hover:underline"
+              >
+                <FileText className="h-4 w-4" />
+                {t('transactions.viewProperty')}
+              </a>
+            </p>
           )}
           <p className="text-sm text-muted-foreground mt-2">
             {tVar('transaction.createdByOn', { 
@@ -490,45 +552,9 @@ export default function TransactionDetailPage({ params }: PageProps) {
               <ProgressTracker
                 milestones={progressTrackerMilestones}
                 currentMilestone={currentMilestone}
+                isAgent={isAgent && transaction.created_by === user?.id}
+                onMilestoneToggle={handleProgressTrackerToggle}
               />
-
-              {isAgent && (
-                <div className="mt-6 space-y-3">
-                  <h3 className="font-semibold">{t('milestones.manage')}</h3>
-                  {milestones.map((milestone) => (
-                    <div
-                      key={milestone.id}
-                      className="flex items-center justify-between p-3 border rounded-lg"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`w-6 h-6 rounded-full flex items-center justify-center ${milestone.completed
-                              ? 'bg-green-500 text-white'
-                              : 'bg-gray-200 text-gray-500'
-                            }`}
-                        >
-                          {milestone.completed && <Check className="h-4 w-4" />}
-                        </div>
-                        <div>
-                          <div className="font-medium">{milestone.label_en}</div>
-                          {milestone.completed_at && (
-                            <div className="text-xs text-muted-foreground">
-                              {t('milestones.completed')} {new Date(milestone.completed_at).toLocaleDateString()}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      <Button
-                        size="sm"
-                        variant={milestone.completed ? 'outline' : 'default'}
-                        onClick={() => handleMilestoneToggle(milestone.id, milestone.completed)}
-                      >
-                        {milestone.completed ? t('milestones.markIncomplete') : t('milestones.markComplete')}
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
             </CardContent>
           </Card>
         </TabsContent>

@@ -134,7 +134,7 @@ export default function AdminDashboardPage() {
   const signOut = async () => {
     if (!supabase) return;
     await supabase.auth.signOut();
-    refreshDebugState();
+    window.location.href = '/';
   };
 
   return (

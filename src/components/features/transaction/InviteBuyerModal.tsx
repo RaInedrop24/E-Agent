@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -28,6 +29,7 @@ interface InviteBuyerModalProps {
 }
 
 export function InviteBuyerModal({ transactionId, onSuccess }: InviteBuyerModalProps) {
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [selectedBuyerId, setSelectedBuyerId] = useState('');
   const [buyers, setBuyers] = useState<Buyer[]>([]);
@@ -137,28 +139,28 @@ export function InviteBuyerModal({ transactionId, onSuccess }: InviteBuyerModalP
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="gap-2">
           <UserPlus className="h-4 w-4" />
-          Invite Buyer
+          {t('buyers.inviteButton')}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Invite Buyer</DialogTitle>
+          <DialogTitle>{t('buyers.inviteTitle')}</DialogTitle>
           <DialogDescription>
-            Select a buyer from your list to add them to this transaction.
+            {t('buyers.inviteDescription')}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleInvite}>
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="buyer">Select Buyer</Label>
+              <Label htmlFor="buyer">{t('buyers.selectBuyer')}</Label>
               {loadingBuyers ? (
                 <div className="text-sm text-muted-foreground flex items-center gap-2">
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Loading buyers...
+                  {t('buyers.loading')}
                 </div>
               ) : buyers.length === 0 ? (
                 <div className="text-sm text-muted-foreground p-3 bg-gray-50 rounded">
-                  No buyers available. Please create buyers first.
+                  {t('buyers.noAvailable')}
                 </div>
               ) : (
                 <Combobox
@@ -171,8 +173,8 @@ export function InviteBuyerModal({ transactionId, onSuccess }: InviteBuyerModalP
                     setSelectedBuyerId(buyerId);
                     setError(null);
                   }}
-                  placeholder="Search and select buyer..."
-                  emptyMessage="No buyers found"
+                  placeholder={t('buyers.searchPlaceholder')}
+                  emptyMessage={t('buyers.noneFound')}
                   disabled={isLoading}
                 />
               )}
@@ -194,7 +196,7 @@ export function InviteBuyerModal({ transactionId, onSuccess }: InviteBuyerModalP
           <DialogFooter>
             <Button type="submit" disabled={isLoading || !selectedBuyerId || loadingBuyers}>
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Add Buyer
+              {t('buyers.addButton')}
             </Button>
           </DialogFooter>
         </form>

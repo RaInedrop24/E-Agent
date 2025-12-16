@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -27,6 +28,7 @@ interface MessagingPanelProps {
 
 export function MessagingPanel({ transactionId, messages: initialMessages, onRefresh }: MessagingPanelProps) {
   const { user, profile } = useAuth();
+  const { t, tVar } = useLanguage();
   const [messages, setMessages] = useState<MessagingMessage[]>(initialMessages);
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
@@ -369,7 +371,7 @@ export function MessagingPanel({ transactionId, messages: initialMessages, onRef
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
-            placeholder={`Type your message in ${userLanguage.toUpperCase()}...`}
+            placeholder={tVar('messages.typeMessageIn', { lang: userLanguage.toUpperCase() })}
             className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             disabled={sending}
           />
@@ -379,12 +381,12 @@ export function MessagingPanel({ transactionId, messages: initialMessages, onRef
             size="lg"
           >
             <Send className="h-4 w-4 mr-2" />
-            {sending ? 'Sending...' : 'Send'}
+            {sending ? t('action.sending') : t('action.send')}
           </Button>
         </div>
         <p className="text-xs text-muted-foreground mt-2">
           <Languages className="h-3 w-3 inline mr-1" />
-          Messages will be automatically translated for participants with different language preferences
+          {t('messages.autoTranslate')}
         </p>
       </div>
     </div>

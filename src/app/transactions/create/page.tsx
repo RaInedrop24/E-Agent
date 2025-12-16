@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/lib/supabase';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,8 +23,10 @@ interface Buyer {
 export default function CreateTransactionPage() {
   const router = useRouter();
   const { user, profile } = useAuth();
+  const { t } = useLanguage();
   const [title, setTitle] = useState('');
   const [propertyAddress, setPropertyAddress] = useState('');
+  const [propertyUrl, setPropertyUrl] = useState('');
   const [buyers, setBuyers] = useState<Buyer[]>([]);
   const [selectedBuyerIds, setSelectedBuyerIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -65,7 +68,7 @@ export default function CreateTransactionPage() {
       setLoadingBuyers(false);
     } catch (err: any) {
       console.error('Error fetching buyers:', err);
-      setError('Failed to load buyers. Please try again.');
+      setError(t('error.loadBuyersFailed'));
       setLoadingBuyers(false);
     }
   };
@@ -74,17 +77,17 @@ export default function CreateTransactionPage() {
     e.preventDefault();
 
     if (!user || !profile) {
-      setError('You must be logged in to create a transaction');
+      setError(t('error.mustBeLoggedIn'));
       return;
     }
 
     if (profile.role !== 'agent') {
-      setError('Only agents can create transactions');
+      setError(t('transactions.onlyAgentsCreate'));
       return;
     }
 
     if (!title.trim()) {
-      setError('Please enter a transaction title');
+      setError(t('error.enterTitle'));
       return;
     }
 
@@ -96,12 +99,73 @@ export default function CreateTransactionPage() {
         throw new Error('Supabase client not configured');
       }
 
-      // Create transaction
+      // Auto-translate the title to supported languages
+      const titleTranslations: Record<string, string> = {};
+      const trimmedTitle = title.trim();
+      const userLang = (profile?.preferred_language as string) || 'en';
+      
+      console.log('[CreateTransaction] User language:', userLang, 'Title:', trimmedTitle);
+      
+      // Set the original language version
+      titleTranslations[`title_${userLang}`] = trimmedTitle;
+
+      // Translate to other languages
+      try {
+        const languages = ['en', 'it', 'de', 'fr', 'es'].filter(lang => lang !== userLang);
+        
+        console.log('[CreateTransaction] Translating to languages:', languages);
+        
+        const translationPromises = languages.map(async (targetLang) => {
+          try {
+            const response = await fetch('/api/translate', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                text: trimmedTitle,
+                targetLang,
+                sourceLang: userLang,
+              }),
+            });
+            
+            if (response.ok) {
+              const data = await response.json();
+              console.log(`[CreateTransaction] Translated to ${targetLang}:`, data.translatedText);
+              return { lang: targetLang, text: data.translatedText };
+            } else {
+              console.error(`[CreateTransaction] Translation failed for ${targetLang}:`, await response.text());
+            }
+          } catch (err) {
+            console.error(`[CreateTransaction] Translation error for ${targetLang}:`, err);
+          }
+          return null;
+        });
+
+        const translations = await Promise.all(translationPromises);
+        translations.forEach(result => {
+          if (result) {
+            titleTranslations[`title_${result.lang}`] = result.text;
+          }
+        });
+        
+        console.log('[CreateTransaction] Final titleTranslations:', titleTranslations);
+      } catch (translationError) {
+        console.error('[CreateTransaction] Translation error:', translationError);
+        // Continue without translations - not critical
+      }
+
+      // Create transaction with translated titles
+      // Use the user's language as the main title (for backward compatibility)
+      const mainTitle = titleTranslations[`title_${userLang}`] || trimmedTitle;
+      
+      console.log('[CreateTransaction] Main title (user language):', mainTitle);
+      
       const { data: transaction, error: txError } = await supabase
         .from('transactions')
         .insert({
-          title: title.trim(),
+          title: mainTitle, // Main title in user's language for backward compatibility
+          ...titleTranslations,
           property_address: propertyAddress.trim() || null,
+          property_url: propertyUrl.trim() || null,
           created_by: user.id,
           status: 'active',
         })
@@ -146,7 +210,7 @@ export default function CreateTransactionPage() {
       router.push(`/transaction/${transaction.id}`);
     } catch (err: any) {
       console.error('[CreateTransaction] Error:', err);
-      setError(err.message || 'Failed to create transaction');
+      setError(err.message || t('error.createTransactionFailed'));
       setLoading(false);
     }
   };
@@ -157,14 +221,14 @@ export default function CreateTransactionPage() {
       <div className="max-w-2xl mx-auto p-4 space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>Access Denied</CardTitle>
-            <CardDescription>Only agents can create transactions.</CardDescription>
+            <CardTitle>{t('buyers.accessDenied')}</CardTitle>
+            <CardDescription>{t('transactions.onlyAgentsCreate')}</CardDescription>
           </CardHeader>
           <CardContent>
             <Link href="/dashboard">
               <Button>
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Dashboard
+                {t('transaction.backToDashboard')}
               </Button>
             </Link>
           </CardContent>
@@ -183,9 +247,9 @@ export default function CreateTransactionPage() {
           </Button>
         </Link>
         <div>
-          <h1 className="text-3xl font-bold">Create New Transaction</h1>
+          <h1 className="text-3xl font-bold">{t('transactions.createNew')}</h1>
           <p className="text-muted-foreground mt-1">
-            Start tracking a new property transaction
+            {t('transactions.startTracking')}
           </p>
         </div>
       </div>
@@ -193,57 +257,71 @@ export default function CreateTransactionPage() {
       {/* Form */}
       <Card>
         <CardHeader>
-          <CardTitle>Transaction Details</CardTitle>
+          <CardTitle>{t('transaction.details')}</CardTitle>
           <CardDescription>
-            Enter the basic information for this property transaction. You can invite buyers
-            and manage milestones after creating the transaction.
+            {t('transactions.createDescription')}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="title">
-                Transaction Title <span className="text-red-500">*</span>
+                {t('transactions.transactionTitle')} <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="title"
                 type="text"
-                placeholder="e.g., Villa in Tuscany Purchase"
+                placeholder={t('transactions.transactionTitlePlaceholder')}
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 required
                 disabled={loading}
               />
               <p className="text-xs text-muted-foreground">
-                A descriptive name for this transaction
+                {t('transactions.transactionTitleHelp')}
               </p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="propertyAddress">Property Address (Optional)</Label>
+              <Label htmlFor="propertyAddress">{t('transactions.propertyAddressOptional')}</Label>
               <Textarea
                 id="propertyAddress"
-                placeholder="e.g., Via Roma 123, 50100 Florence, Italy"
+                placeholder={t('transactions.propertyAddressPlaceholder')}
                 value={propertyAddress}
                 onChange={(e) => setPropertyAddress(e.target.value)}
                 disabled={loading}
                 rows={3}
               />
               <p className="text-xs text-muted-foreground">
-                The address of the property being purchased
+                {t('transactions.propertyAddressHelp')}
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="propertyUrl">{t('transactions.propertyUrl')}</Label>
+              <Input
+                id="propertyUrl"
+                type="url"
+                placeholder={t('transactions.propertyUrlPlaceholder')}
+                value={propertyUrl}
+                onChange={(e) => setPropertyUrl(e.target.value)}
+                disabled={loading}
+              />
+              <p className="text-xs text-muted-foreground">
+                {t('transactions.propertyUrlHelp')}
               </p>
             </div>
 
             {/* Buyer Selection with Searchable Dropdown */}
             <div className="space-y-2">
-              <Label>Invite Buyers (Optional)</Label>
+              <Label>{t('transactions.inviteBuyersOptional')}</Label>
               {loadingBuyers ? (
-                <div className="text-sm text-muted-foreground">Loading buyers...</div>
+                <div className="text-sm text-muted-foreground">{t('buyers.loading')}</div>
               ) : buyers.length === 0 ? (
                 <div className="text-sm text-muted-foreground">
-                  No registered buyers found.{' '}
+                  {t('transactions.noBuyersFound')}{' '}
                   <Link href="/buyers" className="text-blue-600 hover:underline">
-                    Create your first buyer
+                    {t('buyers.createFirst')}
                   </Link>
                 </div>
               ) : (
@@ -259,8 +337,8 @@ export default function CreateTransactionPage() {
                         setSelectedBuyerIds([...selectedBuyerIds, buyerId]);
                       }
                     }}
-                    placeholder="Search and select buyer..."
-                    emptyMessage="No buyers found"
+                    placeholder={t('buyers.searchPlaceholder')}
+                    emptyMessage={t('buyers.noneFound')}
                     disabled={loading}
                   />
 
@@ -291,7 +369,7 @@ export default function CreateTransactionPage() {
                 </div>
               )}
               <p className="text-xs text-muted-foreground">
-                Search for buyers by name and select them to invite to this transaction.
+                {t('transactions.searchBuyersHelp')}
               </p>
             </div>
 
@@ -303,22 +381,22 @@ export default function CreateTransactionPage() {
 
             <div className="flex items-center gap-3">
               <Button type="submit" disabled={loading || !title.trim()}>
-                {loading ? 'Creating...' : 'Create Transaction'}
+                {loading ? t('transactions.creating') : t('transactions.create')}
               </Button>
               <Link href="/dashboard">
                 <Button type="button" variant="outline" disabled={loading}>
-                  Cancel
+                  {t('action.cancel')}
                 </Button>
               </Link>
             </div>
 
             <div className="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded text-sm">
-              <strong>What happens next:</strong>
+              <strong>{t('transactions.whatHappensNext')}</strong>
               <ul className="list-disc list-inside mt-2 space-y-1">
-                <li>Transaction will be created with default milestones</li>
-                <li>You will be automatically added as a participant</li>
-                <li>Selected buyers will be invited to the transaction</li>
-                <li>Milestones can be checked off as the purchase progresses</li>
+                <li>{t('transactions.nextStep1')}</li>
+                <li>{t('transactions.nextStep2')}</li>
+                <li>{t('transactions.nextStep3')}</li>
+                <li>{t('transactions.nextStep4')}</li>
               </ul>
             </div>
           </form>

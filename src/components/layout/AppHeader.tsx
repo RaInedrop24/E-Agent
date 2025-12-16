@@ -1,9 +1,11 @@
 'use client';
+import { useRouter } from 'next/navigation';
 import { Header } from '@/components/layout/Header';
 import { useAuth } from '@/contexts/AuthContext';
 import type { User as AppUser } from '@/types';
 
 export function AppHeader() {
+  const router = useRouter();
   const { user: authUser, profile, signOut, loading } = useAuth();
 
   // Convert profile and auth user to AppUser format
@@ -22,6 +24,7 @@ export function AppHeader() {
 
   const onLogout = async () => {
     await signOut();
+    router.push('/');
   };
 
   if (loading) {
