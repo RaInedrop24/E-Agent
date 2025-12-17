@@ -27,6 +27,8 @@ function AuthCallbackContent() {
         // 0) Handle URL hash tokens/errors explicitly (Supabase may place tokens in fragment)
         if (typeof window !== 'undefined') {
           const hashParams = new URLSearchParams(window.location.hash.slice(1));
+
+          // If Supabase sent back an error in hash, show it clearly
           const hashError = hashParams.get('error');
           const hashErrorDesc = hashParams.get('error_description');
           if (hashError) {
@@ -34,10 +36,10 @@ function AuthCallbackContent() {
             return;
           }
 
+          // Happy path: hash contains tokens — consume them manually, then via helper
           const accessToken = hashParams.get('access_token');
           const refreshToken = hashParams.get('refresh_token');
           if (accessToken && refreshToken) {
-            // Manually set the session from hash tokens
             const { data: setData, error: setError } = await supabase.auth.setSession({
               access_token: accessToken,
               refresh_token: refreshToken,
@@ -53,17 +55,22 @@ function AuthCallbackContent() {
             }
           }
 
-          // Fallback: let Supabase try to consume the hash
+          // Fallback: let Supabase try to consume the hash (covers other flows)
           try {
             const { data: hashSession, error: hashSessionError } = await supabase.auth.getSessionFromUrl();
             if (hashSessionError) {
+              // If tokens were present but expired/invalid, surface a clearer message
+              if (hashSessionError.message?.toLowerCase().includes('expired')) {
+                setStatus('Invite link has expired. Please request a new invitation.');
+                return;
+              }
               console.warn('hash session error', hashSessionError);
             }
             if (hashSession?.session) {
               router.push('/auth/update-password');
               return;
             }
-          } catch (err) {
+          } catch (err: any) {
             console.warn('hash session exception', err);
           }
         }
