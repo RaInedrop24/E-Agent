@@ -52,12 +52,21 @@ export const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
               <>
                 <div className="flex items-center space-x-3">
                   <div className="flex items-center gap-2">
-                    <div
-                      className="h-9 w-9 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 cursor-default"
-                      title={`${user.firstName} ${user.lastName} • ${user.role === 'agent' ? 'Agent' : 'Buyer'}`}
-                    >
-                      <UserIcon className="h-5 w-5 text-gray-700" />
-                    </div>
+                    {user.avatarUrl ? (
+                      <img
+                        src={user.avatarUrl}
+                        alt="Avatar"
+                        className="h-9 w-9 rounded-full object-cover border border-gray-200"
+                        title={`${user.firstName} ${user.lastName} • ${user.role === 'agent' ? 'Agent' : 'Buyer'}`}
+                      />
+                    ) : (
+                      <div
+                        className="h-9 w-9 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 cursor-default"
+                        title={`${user.firstName} ${user.lastName} • ${user.role === 'agent' ? 'Agent' : 'Buyer'}`}
+                      >
+                        <UserIcon className="h-5 w-5 text-gray-700" />
+                      </div>
+                    )}
                     <div className="hidden sm:flex flex-col leading-tight">
                       <span className="text-sm font-medium text-gray-900">{user.firstName} {user.lastName}</span>
                       <span className="text-xs text-gray-500">{user.email}</span>

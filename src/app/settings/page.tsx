@@ -138,14 +138,15 @@ export default function SettingsPage() {
     try {
       if (!supabase) throw new Error("Supabase not configured");
       if (!avatarFile) throw new Error("No file selected");
+      // Resize avatar to square 128x128 webp to keep badge crisp and small
+      const resized = await resizeImage(avatarFile, 128);
       const { data: session } = await supabase.auth.getUser();
       const uid = session.user?.id;
       if (!uid) throw new Error("Not authenticated");
-      const ext = avatarFile.name.split('.').pop();
-      const path = `${uid}/${Date.now()}.${ext}`;
-      const { error: upErr } = await supabase.storage.from('avatars').upload(path, avatarFile, {
+      const path = `${uid}/${Date.now()}.webp`;
+      const { error: upErr } = await supabase.storage.from('avatars').upload(path, resized, {
         upsert: true,
-        contentType: avatarFile.type,
+        contentType: 'image/webp',
       });
       if (upErr) throw upErr;
       const { data: pub } = supabase.storage.from('avatars').getPublicUrl(path);
@@ -157,9 +158,40 @@ export default function SettingsPage() {
       }, { onConflict: 'id' });
       if (profErr) throw profErr;
       setStatus("Avatar uploaded");
+      setAvatarUrl(avatarUrl);
     } catch (e: any) {
       setError(e?.message || "Failed to upload avatar");
     }
+  };
+
+  // Resize helper: center-crop to square and scale to targetSize
+  const resizeImage = (file: File, targetSize = 128) => {
+    return new Promise<Blob>((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = targetSize;
+        canvas.height = targetSize;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('Canvas not supported'));
+          return;
+        }
+        const minDim = Math.min(img.width, img.height);
+        const sx = (img.width - minDim) / 2;
+        const sy = (img.height - minDim) / 2;
+        ctx.drawImage(img, sx, sy, minDim, minDim, 0, 0, targetSize, targetSize);
+        canvas.toBlob((blob) => {
+          if (!blob) {
+            reject(new Error('Failed to create image blob'));
+            return;
+          }
+          resolve(blob);
+        }, 'image/webp', 0.9);
+      };
+      img.onerror = (err) => reject(err);
+      img.src = URL.createObjectURL(file);
+    });
   };
 
   return (

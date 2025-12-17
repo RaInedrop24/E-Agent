@@ -9,6 +9,7 @@ export interface User {
   lastName: string;
   createdAt: string;
   updatedAt: string;
+  avatarUrl?: string | null;
 }
 
 export interface Transaction {

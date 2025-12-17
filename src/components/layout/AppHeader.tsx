@@ -19,6 +19,7 @@ export function AppHeader() {
         lastName: profile.full_name?.split(' ')?.slice(1).join(' ') || '',
         createdAt: profile.created_at,
         updatedAt: profile.updated_at,
+        avatarUrl: profile.avatar_url || null,
       }
     : null;
 
