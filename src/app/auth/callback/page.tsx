@@ -24,19 +24,19 @@ function AuthCallbackContent() {
           return;
         }
 
-        // If Supabase placed the session in the URL hash (access_token / refresh_token),
-        // grab it before anything else.
-        if (typeof window !== 'undefined' && window.location.hash.includes('access_token')) {
-          const { data: urlSession, error: urlSessionError } = await supabase.auth.getSessionFromUrl();
-          if (urlSessionError) {
-            console.error('Error getting session from URL hash:', urlSessionError);
-            setStatus(`Invalid or expired link: ${urlSessionError.message}. Please request a new invitation.`);
-            return;
-          }
-          if (urlSession?.session) {
-            // Session established from URL hash; proceed to password setup for invite flows.
-            router.push('/auth/update-password');
-            return;
+        // 0) Always try to extract a session from URL hash if present (Supabase may drop params)
+        if (typeof window !== 'undefined') {
+          try {
+            const { data: hashSession, error: hashError } = await supabase.auth.getSessionFromUrl();
+            if (hashError) {
+              console.warn('hash session error', hashError);
+            }
+            if (hashSession?.session) {
+              router.push('/auth/update-password');
+              return;
+            }
+          } catch (err) {
+            console.warn('hash session exception', err);
           }
         }
 
@@ -49,7 +49,7 @@ function AuthCallbackContent() {
         // First, check if we have a session (Supabase may have already verified)
         const { data: { session: initialSession } } = await supabase.auth.getSession();
         
-        // If we have a session, force invite flows straight to password setup
+        // If we have a session, force password setup immediately (covers invites and stripped params)
         if (initialSession?.user) {
           const { data: { user } } = await supabase.auth.getUser();
           
