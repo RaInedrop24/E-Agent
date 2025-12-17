@@ -204,9 +204,8 @@ const translations = {
     'settings.saveProfile': 'Save profile',
     'settings.saving': 'Saving...',
     'settings.makeChanges': 'Make changes above to enable save',
-    'settings.avatar': 'Avatar (coming soon)',
+    'settings.avatar': 'Avatar',
     'settings.uploadAvatar': 'Upload avatar',
-    'settings.avatarNote': 'Requires Supabase Storage bucket \'avatars\' with public read policy.',
     
     // Languages
     'lang.english': 'English',
@@ -519,9 +518,8 @@ const translations = {
     'settings.saveProfile': 'Salva profilo',
     'settings.saving': 'Salvataggio...',
     'settings.makeChanges': 'Apporta modifiche sopra per abilitare il salvataggio',
-    'settings.avatar': 'Avatar (prossimamente)',
+    'settings.avatar': 'Avatar',
     'settings.uploadAvatar': 'Carica avatar',
-    'settings.avatarNote': 'Richiede bucket Supabase Storage \'avatars\' con policy di lettura pubblica.',
     
     // Languages
     'lang.english': 'Inglese',

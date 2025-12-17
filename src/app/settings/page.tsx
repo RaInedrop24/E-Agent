@@ -20,6 +20,7 @@ export default function SettingsPage() {
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [email, setEmail] = useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [originalAvatarUrl, setOriginalAvatarUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   
   // Track original values to detect changes
@@ -45,9 +46,11 @@ export default function SettingsPage() {
         if (profile) {
           const name = profile.full_name || "";
           const lang = (profile.preferred_language as SupportedLanguage) || "en";
+          const avatar = profile.avatar_url || null;
           setFullName(name);
           setOriginalFullName(name);
-          setAvatarUrl(profile.avatar_url || null);
+          setAvatarUrl(avatar);
+          setOriginalAvatarUrl(avatar);
           setPreferredLanguage(lang);
           setOriginalLanguage(lang);
         } else if (u.user_metadata?.full_name) {
@@ -174,6 +177,8 @@ export default function SettingsPage() {
 
       setStatus("Avatar uploaded");
       setAvatarUrl(avatarUrl);
+      // Refresh to propagate avatar to header badge immediately
+      setTimeout(() => window.location.reload(), 400);
     } catch (e: any) {
       setError(e?.message || "Failed to upload avatar");
     }
@@ -247,14 +252,13 @@ export default function SettingsPage() {
               {translate('settings.languageDescription')}
             </p>
           </div>
-            <div className="space-y-2">
-              <Label htmlFor="avatar">{translate('settings.avatar')}</Label>
-              <Input id="avatar" type="file" accept="image/*" onChange={onAvatarChange} />
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={onUploadAvatar} disabled={!avatarFile}>{translate('settings.uploadAvatar')}</Button>
-              </div>
-              <p className="text-xs text-muted-foreground">{translate('settings.avatarNote')}</p>
+          <div className="space-y-2">
+            <Label htmlFor="avatar">{translate('settings.avatar')}</Label>
+            <Input id="avatar" type="file" accept="image/*" onChange={onAvatarChange} />
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={onUploadAvatar} disabled={!avatarFile}>{translate('settings.uploadAvatar')}</Button>
             </div>
+          </div>
             <Button 
             onClick={onSaveProfile} 
             disabled={!hasProfileChanges || saving}
