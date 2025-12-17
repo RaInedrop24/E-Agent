@@ -151,12 +151,27 @@ export default function SettingsPage() {
       if (upErr) throw upErr;
       const { data: pub } = supabase.storage.from('avatars').getPublicUrl(path);
       const avatarUrl = pub.publicUrl;
-      const { error: profErr } = await supabase.from('profiles').upsert({
-        id: uid,
-        avatar_url: avatarUrl,
-        full_name: fullName || undefined,
-      }, { onConflict: 'id' });
-      if (profErr) throw profErr;
+      // Update profile avatar; avoid inserting without role
+      const { error: updateErr, data: updateData, status: updateStatus } = await supabase
+        .from('profiles')
+        .update({ avatar_url: avatarUrl })
+        .eq('id', uid)
+        .select()
+        .maybeSingle();
+
+      if (updateErr && updateErr.code !== 'PGRST116') throw updateErr;
+
+      // If no profile row, create via RPC then update
+      if (!updateData && updateStatus === 406 || (updateErr && updateErr.code === 'PGRST116')) {
+        const { error: createErr } = await supabase.rpc('create_profile_for_current_user');
+        if (createErr) throw createErr;
+        const { error: finalErr } = await supabase
+          .from('profiles')
+          .update({ avatar_url: avatarUrl })
+          .eq('id', uid);
+        if (finalErr) throw finalErr;
+      }
+
       setStatus("Avatar uploaded");
       setAvatarUrl(avatarUrl);
     } catch (e: any) {
