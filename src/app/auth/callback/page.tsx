@@ -33,13 +33,13 @@ function AuthCallbackContent() {
         // First, check if we have a session (Supabase may have already verified)
         const { data: { session: initialSession } } = await supabase.auth.getSession();
         
-        // If we have a session, check if user needs to set password (invited users)
+        // If we have a session, force invite flows straight to password setup
         if (initialSession?.user) {
           const { data: { user } } = await supabase.auth.getUser();
           
           if (!user) return;
 
-          // Resolve role from metadata, falling back to profiles table if missing
+          // Resolve role from metadata, fallback to profiles table
           let role = user.user_metadata?.role as string | undefined;
           if (!role) {
             const { data: profileData } = await supabase
@@ -50,10 +50,7 @@ function AuthCallbackContent() {
             role = profileData?.role as string | undefined;
           }
           
-          // Treat as invite if:
-          // 1. flow=invite in URL (explicit)
-          // 2. type=invite in URL
-          // 3. Role is buyer (buyers are always invited)
+          // Minimal invite detection: any of these flags triggers password setup
           const isBuyer = role === 'buyer';
           const isInviteType = type === 'invite';
           const isInviteFlow = flow === 'invite' || isInviteType || isBuyer;
@@ -158,7 +155,7 @@ function AuthCallbackContent() {
           if (!mounted) return;
 
           if (data.user) {
-            // Resolve role from metadata, falling back to profiles table if missing
+            // Resolve role from metadata, fallback to profiles table
             let role = data.user.user_metadata?.role as string | undefined;
             if (!role) {
               const { data: profileData } = await supabase
