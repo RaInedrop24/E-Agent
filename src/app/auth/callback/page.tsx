@@ -65,6 +65,31 @@ function AuthCallbackContent() {
           }
         }
 
+        // If no session yet but tokens are present, attempt to verify explicitly (handles cases where Supabase strips type)
+        if (!initialSession?.user && (token || tokenHash)) {
+          const inferredType = type || (flow === 'invite' ? 'invite' : 'recovery');
+          const otpType = inferredType === 'recovery' ? 'recovery' : 'invite';
+
+          const verifyResult = await supabase.auth.verifyOtp(
+            token
+              ? { token, type: otpType as 'recovery' | 'invite' }
+              : { token_hash: tokenHash || '', type: otpType as 'recovery' | 'invite' }
+          );
+
+          if (verifyResult.error) {
+            console.error('Error verifying token (fallback):', verifyResult.error);
+            setStatus(`Invalid or expired link: ${verifyResult.error.message}. Please request a new invitation.`);
+            return;
+          }
+
+          // Retry to get session after explicit verification
+          const { data: { session: verifiedSession } } = await supabase.auth.getSession();
+          if (verifiedSession) {
+            router.push('/auth/update-password');
+            return;
+          }
+        }
+
         if (type === 'recovery' || type === 'invite') {
           // Password recovery or invite flow
           // When Supabase redirects after verification, the session should already be established
