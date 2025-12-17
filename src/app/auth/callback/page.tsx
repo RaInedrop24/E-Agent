@@ -28,6 +28,7 @@ function AuthCallbackContent() {
         const type = searchParams?.get('type');
         const token = searchParams?.get('token');
         const tokenHash = searchParams?.get('token_hash');
+        const flow = searchParams?.get('flow');
 
         // First, check if we have a session (Supabase may have already verified)
         const { data: { session: initialSession } } = await supabase.auth.getSession();
@@ -37,23 +38,27 @@ function AuthCallbackContent() {
           const { data: { user } } = await supabase.auth.getUser();
           
           if (!user) return;
+
+          // Resolve role from metadata, falling back to profiles table if missing
+          let role = user.user_metadata?.role as string | undefined;
+          if (!role) {
+            const { data: profileData } = await supabase
+              .from('profiles')
+              .select('role')
+              .eq('id', user.id)
+              .single();
+            role = profileData?.role as string | undefined;
+          }
           
-          // Check if this is an invite flow:
-          // 1. type=invite in URL
-          // 2. User was just created (within last 15 minutes) - strong indicator of invite
-          // 3. User is a buyer (buyers are typically invited, not self-registered)
-          // 4. No code in URL (invites don't have codes, they go through Supabase verify first)
+          // Treat as invite if:
+          // 1. flow=invite in URL (explicit)
+          // 2. type=invite in URL
+          // 3. Role is buyer (buyers are always invited)
+          const isBuyer = role === 'buyer';
           const isInviteType = type === 'invite';
-          const userCreatedAt = user.created_at ? new Date(user.created_at).getTime() : 0;
-          const now = new Date().getTime();
-          const isRecentlyCreated = userCreatedAt > 0 && (now - userCreatedAt) < 15 * 60 * 1000; // 15 minutes
-          const isBuyer = user.user_metadata?.role === 'buyer';
-          const noCode = !searchParams?.get('code');
+          const isInviteFlow = flow === 'invite' || isInviteType || isBuyer;
           
-          // If it's an invite type OR (recently created AND is buyer AND no code), redirect to password setup
-          // Buyers are always invited, so if they were just created and reached callback without code, they need to set password
-          if (isInviteType || (isRecentlyCreated && isBuyer && noCode)) {
-            // This is likely an invite flow - redirect to password setup
+          if (isInviteFlow) {
             router.push('/auth/update-password');
             return;
           }
@@ -153,33 +158,22 @@ function AuthCallbackContent() {
           if (!mounted) return;
 
           if (data.user) {
-            // Check if this is an invited user who needs to set password
-            // For invited users, we check:
-            // 1. type=invite in URL
-            // 2. User was created very recently (within 10 minutes) - likely just invited
-            // 3. User has no last_sign_in_at or it equals created_at (never logged in with password)
-            // 4. User is a buyer (buyers are typically invited)
-            const isInviteType = type === 'invite';
-            const userCreatedAt = data.user.created_at ? new Date(data.user.created_at).getTime() : 0;
-            const now = new Date().getTime();
-            const isRecentlyCreated = userCreatedAt > 0 && (now - userCreatedAt) < 10 * 60 * 1000; // 10 minutes
-            
-            // Check if user has never signed in (indicates they need to set password)
-            let neverSignedIn = true;
-            if (data.user.last_sign_in_at) {
-              const lastSignIn = new Date(data.user.last_sign_in_at).getTime();
-              // If last_sign_in is within 1 second of created_at, they haven't signed in with password yet
-              neverSignedIn = Math.abs(lastSignIn - userCreatedAt) < 1000;
+            // Resolve role from metadata, falling back to profiles table if missing
+            let role = data.user.user_metadata?.role as string | undefined;
+            if (!role) {
+              const { data: profileData } = await supabase
+                .from('profiles')
+                .select('role')
+                .eq('id', data.user.id)
+                .single();
+              role = profileData?.role as string | undefined;
             }
-            
-            // Check if user is a buyer (buyers are typically invited, not self-registered)
-            const isBuyer = data.user.user_metadata?.role === 'buyer';
-            
-            // If it's an invite type OR (recently created AND never signed in AND is buyer), redirect to password setup
-            const needsPassword = isInviteType || (isRecentlyCreated && neverSignedIn && isBuyer);
-            
-            if (needsPassword) {
-              // Redirect to password setup for invited users
+
+            const isBuyer = role === 'buyer';
+            const isInviteType = type === 'invite';
+            const isInviteFlow = flow === 'invite' || isInviteType || isBuyer;
+
+            if (isInviteFlow) {
               router.push('/auth/update-password');
               return;
             }
