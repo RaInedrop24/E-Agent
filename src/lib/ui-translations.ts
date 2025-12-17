@@ -217,6 +217,7 @@ const translations = {
     
     // Files
     'files.upload': 'Upload File',
+    'files.uploading': 'Uploading...',
     'files.download': 'Download',
     'files.delete': 'Delete',
     'files.noFiles': 'No files uploaded yet',
@@ -224,6 +225,15 @@ const translations = {
     'files.description': 'Documents and files related to this transaction',
     'files.comingSoon': 'File upload feature coming soon',
     'files.uploadContracts': 'Upload contracts, surveys, and other documents',
+    'files.selectMilestone': 'Associate to milestone (optional)',
+    'files.unassigned': 'Unassigned',
+    'files.limitNote': 'Max size 20MB. Participants can access files attached here.',
+    'files.selectFileFirst': 'Please select a file to upload.',
+    'files.tooLarge': 'File is too large. Please keep under 20MB.',
+    'files.loading': 'Loading files...',
+    'files.uploadedBy': 'Uploaded by',
+    'files.forMilestone': 'Milestone',
+    'files.downloadFailed': 'Failed to generate download link. Please try again.',
     
     // Participants
     'participants.add': 'Add Participant',
@@ -522,6 +532,7 @@ const translations = {
     
     // Files
     'files.upload': 'Carica File',
+    'files.uploading': 'Caricamento...',
     'files.download': 'Scarica',
     'files.delete': 'Elimina',
     'files.noFiles': 'Nessun file caricato ancora',
@@ -529,6 +540,15 @@ const translations = {
     'files.description': 'Documenti e file relativi a questa transazione',
     'files.comingSoon': 'Funzione di caricamento file in arrivo presto',
     'files.uploadContracts': 'Carica contratti, perizie e altri documenti',
+    'files.selectMilestone': 'Associa a un traguardo (opzionale)',
+    'files.unassigned': 'Non assegnato',
+    'files.limitNote': 'Dimensione massima 20MB. I partecipanti possono accedere ai file qui allegati.',
+    'files.selectFileFirst': 'Seleziona un file da caricare.',
+    'files.tooLarge': 'Il file è troppo grande. Mantieni sotto i 20MB.',
+    'files.loading': 'Caricamento file...',
+    'files.uploadedBy': 'Caricato da',
+    'files.forMilestone': 'Traguardo',
+    'files.downloadFailed': 'Impossibile generare il link di download. Riprova.',
     
     // Participants
     'participants.add': 'Aggiungi Partecipante',

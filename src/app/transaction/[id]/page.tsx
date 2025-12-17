@@ -15,6 +15,7 @@ import { ProgressTracker } from '@/components/features/transaction/ProgressTrack
 import { InviteBuyerModal } from '@/components/features/transaction/InviteBuyerModal';
 import { MessagingPanel } from '@/components/features/transaction/MessagingPanel';
 import { EditTransactionTitleModal } from '@/components/features/transaction/EditTransactionTitleModal';
+import { TransactionFilesPanel } from '@/components/features/transaction/TransactionFilesPanel';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import type { Milestone } from '@/types';
 
@@ -413,6 +414,12 @@ export default function TransactionDetailPage({ params }: PageProps) {
     }
   };
 
+  const fileMilestoneOptions = milestones.map((m) => ({
+    id: m.id,
+    label: language === 'it' ? m.label_it || m.label_en : m.label_en,
+  }));
+  const canUploadFiles = !!user; // access already enforced above
+
   return (
     <div className="max-w-6xl mx-auto p-4 space-y-6">
       {/* Header */}
@@ -588,11 +595,11 @@ export default function TransactionDetailPage({ params }: PageProps) {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                <FileText className="mx-auto h-12 w-12 text-muted-foreground/50" />
-                <p className="mt-4">{t('files.comingSoon')}</p>
-                <p className="text-sm">{t('files.uploadContracts')}</p>
-              </div>
+              <TransactionFilesPanel
+                transactionId={transactionId}
+                milestones={fileMilestoneOptions}
+                canUpload={canUploadFiles}
+              />
             </CardContent>
           </Card>
         </TabsContent>
