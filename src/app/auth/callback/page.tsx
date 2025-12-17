@@ -24,12 +24,40 @@ function AuthCallbackContent() {
           return;
         }
 
-        // 0) Always try to extract a session from URL hash if present (Supabase may drop params)
+        // 0) Handle URL hash tokens/errors explicitly (Supabase may place tokens in fragment)
         if (typeof window !== 'undefined') {
+          const hashParams = new URLSearchParams(window.location.hash.slice(1));
+          const hashError = hashParams.get('error');
+          const hashErrorDesc = hashParams.get('error_description');
+          if (hashError) {
+            setStatus(`Invite link error: ${hashErrorDesc || hashError}. Please request a new invitation.`);
+            return;
+          }
+
+          const accessToken = hashParams.get('access_token');
+          const refreshToken = hashParams.get('refresh_token');
+          if (accessToken && refreshToken) {
+            // Manually set the session from hash tokens
+            const { data: setData, error: setError } = await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken,
+            });
+            if (setError) {
+              console.error('Error setting session from hash tokens:', setError);
+              setStatus(`Invalid or expired link: ${setError.message}. Please request a new invitation.`);
+              return;
+            }
+            if (setData.session) {
+              router.push('/auth/update-password');
+              return;
+            }
+          }
+
+          // Fallback: let Supabase try to consume the hash
           try {
-            const { data: hashSession, error: hashError } = await supabase.auth.getSessionFromUrl();
-            if (hashError) {
-              console.warn('hash session error', hashError);
+            const { data: hashSession, error: hashSessionError } = await supabase.auth.getSessionFromUrl();
+            if (hashSessionError) {
+              console.warn('hash session error', hashSessionError);
             }
             if (hashSession?.session) {
               router.push('/auth/update-password');
