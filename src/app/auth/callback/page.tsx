@@ -55,7 +55,11 @@ function AuthCallbackContent() {
           const isInviteType = type === 'invite';
           const isInviteFlow = flow === 'invite' || isInviteType || isBuyer;
           
-          if (isInviteFlow) {
+          // Last-resort: if we came here without a code but already have a session,
+          // treat it as invite and send to password setup (Supabase stripped params).
+          const noCode = !searchParams?.get('code');
+
+          if (isInviteFlow || noCode) {
             router.push('/auth/update-password');
             return;
           }
@@ -170,7 +174,10 @@ function AuthCallbackContent() {
             const isInviteType = type === 'invite';
             const isInviteFlow = flow === 'invite' || isInviteType || isBuyer;
 
-            if (isInviteFlow) {
+            // Last-resort: if we arrived without code but have a session, treat as invite
+            const noCode = !searchParams?.get('code');
+
+            if (isInviteFlow || noCode) {
               router.push('/auth/update-password');
               return;
             }
