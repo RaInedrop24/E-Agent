@@ -302,7 +302,7 @@ export default function TransactionDetailPage({ params }: PageProps) {
         const filePaths = files.map((f: any) => f.storage_path).filter(Boolean);
         if (filePaths.length > 0) {
           const { error: storageError } = await supabase.storage
-            .from('transaction-files')
+            .from('transaction_files')
             .remove(filePaths);
           
           if (storageError) {

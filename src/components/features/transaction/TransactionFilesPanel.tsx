@@ -130,7 +130,7 @@ export function TransactionFilesPanel({
 
     try {
       const { error: uploadError } = await supabase.storage
-        .from('transaction-files')
+        .from('transaction_files')
         .upload(path, selectedFile, {
           upsert: false,
           contentType: selectedFile.type,
@@ -174,8 +174,8 @@ export function TransactionFilesPanel({
   };
 
   const fetchSignedUrl = async (storagePath: string) => {
-    const { data, error: urlError } = await supabase.storage
-      .from('transaction-files')
+      const { data, error: urlError } = await supabase.storage
+      .from('transaction_files')
       .createSignedUrl(storagePath, 60 * 15); // 15 minutes
     if (urlError) {
       throw urlError;
