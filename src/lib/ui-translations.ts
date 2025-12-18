@@ -30,6 +30,9 @@ const translations = {
     // Navigation
     'nav.dashboard': 'Dashboard',
     'nav.transactions': 'Transactions',
+    'nav.viewTransactions': 'View Transactions',
+    'nav.createNew': 'Create New',
+    'nav.manageBuyers': 'Manage Buyers',
     'nav.settings': 'Settings',
     'nav.logout': 'Logout',
     'nav.login': 'Login',
@@ -344,6 +347,9 @@ const translations = {
     // Navigation
     'nav.dashboard': 'Cruscotto',
     'nav.transactions': 'Transazioni',
+    'nav.viewTransactions': 'Visualizza Transazioni',
+    'nav.createNew': 'Crea Nuova',
+    'nav.manageBuyers': 'Gestisci Acquirenti',
     'nav.settings': 'Impostazioni',
     'nav.logout': 'Esci',
     'nav.login': 'Accedi',
