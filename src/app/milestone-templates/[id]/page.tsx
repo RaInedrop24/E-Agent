@@ -10,13 +10,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { ArrowLeft, GripVertical, Trash2, Plus, Save, Languages, Loader2 } from 'lucide-react';
-import { SaveMilestoneTemplateModal } from '@/components/features/transaction/SaveMilestoneTemplateModal';
-import { ApplyMilestoneTemplateModal } from '@/components/features/transaction/ApplyMilestoneTemplateModal';
 
-interface Milestone {
+interface TemplateItem {
   id: string;
-  transaction_id: string;
   order_index: number;
   code: string;
   label_en: string;
@@ -24,20 +22,25 @@ interface Milestone {
   label_de: string | null;
   label_fr: string | null;
   label_es: string | null;
-  completed: boolean;
+}
+
+interface Template {
+  id: string;
+  template_name: string;
+  description: string | null;
 }
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
-export default function MilestonePage({ params }: PageProps) {
-  const { id: transactionId } = use(params);
+export default function EditTemplatePage({ params }: PageProps) {
+  const { id: templateId } = use(params);
   const router = useRouter();
   const { user, profile } = useAuth();
   const { language } = useLanguage();
-  const [milestones, setMilestones] = useState<Milestone[]>([]);
-  const [transactionTitle, setTransactionTitle] = useState('');
+  const [template, setTemplate] = useState<Template | null>(null);
+  const [items, setItems] = useState<TemplateItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -51,108 +54,87 @@ export default function MilestonePage({ params }: PageProps) {
       return;
     }
     if (profile?.role !== 'agent') {
-      router.push(`/transaction/${transactionId}`);
+      router.push('/dashboard');
       return;
     }
-    fetchMilestones();
-  }, [user, profile, transactionId]);
+    fetchTemplate();
+  }, [user, profile, templateId]);
 
-  const fetchMilestones = async () => {
+  const fetchTemplate = async () => {
     try {
       setLoading(true);
       if (!supabase) return;
 
-      // Fetch transaction
-      const { data: txData, error: txError } = await supabase
-        .from('transactions')
-        .select('id, title, created_by')
-        .eq('id', transactionId)
+      // Fetch template metadata
+      const { data: templateData, error: templateError } = await supabase
+        .from('milestone_templates')
+        .select('id, template_name, description')
+        .eq('id', templateId)
         .single();
 
-      if (txError) throw txError;
-      if (!txData) throw new Error('Transaction not found');
+      if (templateError) throw templateError;
+      if (!templateData) throw new Error('Template not found');
 
-      // Check if user is creator or participant
-      const isCreator = txData.created_by === user?.id;
-      if (!isCreator) {
-        const { data: participantCheck } = await supabase
-          .from('transaction_participants')
-          .select('id')
-          .eq('transaction_id', transactionId)
-          .eq('profile_id', user?.id)
-          .eq('participant_role', 'agent')
-          .single();
+      setTemplate(templateData);
 
-        if (!participantCheck) {
-          setError('Access denied');
-          setLoading(false);
-          return;
-        }
-      }
+      // Fetch template items using RPC function
+      const { data: itemsData, error: itemsError } = await supabase.rpc(
+        'get_milestone_template_items',
+        { p_template_id: templateId }
+      );
 
-      setTransactionTitle(txData.title);
+      if (itemsError) throw itemsError;
 
-      // Fetch milestones
-      const { data: milestonesData, error: milestonesError } = await supabase
-        .from('milestones')
-        .select('*')
-        .eq('transaction_id', transactionId)
-        .order('order_index', { ascending: true });
-
-      if (milestonesError) throw milestonesError;
-
-      setMilestones(milestonesData || []);
+      setItems(itemsData || []);
       setLoading(false);
     } catch (err: any) {
-      console.error('Error fetching milestones:', err);
+      console.error('Error fetching template:', err);
       setError(err.message);
       setLoading(false);
     }
   };
 
-  const handleAddMilestone = () => {
-    const newMilestone: Milestone = {
+  const handleAddItem = () => {
+    const newItem: TemplateItem = {
       id: `new-${Date.now()}`,
-      transaction_id: transactionId,
-      order_index: milestones.length,
+      order_index: items.length,
       code: `CUSTOM_${Date.now()}`,
       label_en: 'New Milestone',
       label_it: null,
       label_de: null,
       label_fr: null,
       label_es: null,
-      completed: false,
     };
-    setMilestones([...milestones, newMilestone]);
+    setItems([...items, newItem]);
   };
 
-  const handleUpdateMilestone = (index: number, field: string, value: string) => {
-    const updated = [...milestones];
+  const handleUpdateItem = (index: number, field: string, value: string) => {
+    const updated = [...items];
     updated[index] = { ...updated[index], [field]: value };
-    setMilestones(updated);
+    setItems(updated);
   };
 
-  const handleDeleteMilestone = (index: number) => {
+  const handleDeleteItem = (index: number) => {
     if (confirm('Are you sure you want to delete this milestone?')) {
-      const updated = milestones.filter((_, i) => i !== index);
+      const updated = items.filter((_, i) => i !== index);
       // Reorder indices
-      updated.forEach((m, i) => {
-        m.order_index = i;
+      updated.forEach((item, i) => {
+        item.order_index = i;
       });
-      setMilestones(updated);
+      setItems(updated);
     }
   };
 
-  const handleTranslateMilestone = async (index: number) => {
+  const handleTranslateItem = async (index: number) => {
     try {
       setTranslatingIndex(index);
       setTranslationError(null);
 
-      const milestone = milestones[index];
+      const item = items[index];
 
       // Get the source label based on user's preferred language
-      const sourceLabelField = `label_${language}` as keyof Milestone;
-      const sourceText = milestone[sourceLabelField];
+      const sourceLabelField = `label_${language}` as keyof TemplateItem;
+      const sourceText = item[sourceLabelField];
 
       // Validate source text exists
       if (!sourceText || (typeof sourceText === 'string' && sourceText.trim() === '')) {
@@ -186,16 +168,16 @@ export default function MilestonePage({ params }: PageProps) {
 
       const results = await Promise.all(translationPromises);
 
-      // Update milestone with translations
-      const updated = [...milestones];
+      // Update item with translations
+      const updated = [...items];
       results.forEach(({ lang, text }) => {
-        const field = `label_${lang}` as keyof Milestone;
+        const field = `label_${lang}` as keyof TemplateItem;
         updated[index] = {
           ...updated[index],
           [field]: text
         };
       });
-      setMilestones(updated);
+      setItems(updated);
 
     } catch (err: any) {
       console.error('Translation error:', err);
@@ -213,17 +195,17 @@ export default function MilestonePage({ params }: PageProps) {
     e.preventDefault();
     if (draggedIndex === null || draggedIndex === index) return;
 
-    const updated = [...milestones];
+    const updated = [...items];
     const draggedItem = updated[draggedIndex];
     updated.splice(draggedIndex, 1);
     updated.splice(index, 0, draggedItem);
 
     // Update order indices
-    updated.forEach((m, i) => {
-      m.order_index = i;
+    updated.forEach((item, i) => {
+      item.order_index = i;
     });
 
-    setMilestones(updated);
+    setItems(updated);
     setDraggedIndex(index);
   };
 
@@ -234,74 +216,86 @@ export default function MilestonePage({ params }: PageProps) {
   const handleSave = async () => {
     try {
       setSaving(true);
-      if (!supabase) return;
+      if (!supabase || !template) return;
 
-      // Delete removed milestones
-      const existingIds = milestones
-        .filter(m => !m.id.startsWith('new-'))
-        .map(m => m.id);
+      // Update template metadata
+      const { error: updateError } = await supabase
+        .from('milestone_templates')
+        .update({
+          template_name: template.template_name,
+          description: template.description,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', templateId);
 
-      // Get all current milestone IDs from database
-      const { data: currentMilestones } = await supabase
-        .from('milestones')
+      if (updateError) throw updateError;
+
+      // Delete removed items
+      const existingIds = items
+        .filter(item => !item.id.startsWith('new-'))
+        .map(item => item.id);
+
+      // Get all current item IDs from database
+      const { data: currentItems } = await supabase
+        .from('milestone_template_items')
         .select('id')
-        .eq('transaction_id', transactionId);
+        .eq('template_id', templateId);
 
-      if (currentMilestones) {
-        const toDelete = currentMilestones
-          .filter((m: any) => !existingIds.includes(m.id))
-          .map((m: any) => m.id);
+      if (currentItems) {
+        const toDelete = currentItems
+          .filter((item: any) => !existingIds.includes(item.id))
+          .map((item: any) => item.id);
 
         if (toDelete.length > 0) {
           await supabase
-            .from('milestones')
+            .from('milestone_template_items')
             .delete()
             .in('id', toDelete);
         }
       }
 
-      // Update or insert milestones
-      for (const milestone of milestones) {
-        if (milestone.id.startsWith('new-')) {
-          // Insert new milestone
+      // Update or insert items
+      for (const item of items) {
+        if (item.id.startsWith('new-')) {
+          // Insert new item
           const { error } = await supabase
-            .from('milestones')
+            .from('milestone_template_items')
             .insert({
-              transaction_id: transactionId,
-              order_index: milestone.order_index,
-              code: milestone.code,
-              label_en: milestone.label_en,
-              label_it: milestone.label_it,
-              label_de: milestone.label_de,
-              label_fr: milestone.label_fr,
-              label_es: milestone.label_es,
-              completed: false,
+              template_id: templateId,
+              order_index: item.order_index,
+              code: item.code,
+              label_en: item.label_en,
+              label_it: item.label_it,
+              label_de: item.label_de,
+              label_fr: item.label_fr,
+              label_es: item.label_es,
             });
 
           if (error) throw error;
         } else {
-          // Update existing milestone
+          // Update existing item
           const { error } = await supabase
-            .from('milestones')
+            .from('milestone_template_items')
             .update({
-              order_index: milestone.order_index,
-              label_en: milestone.label_en,
-              label_it: milestone.label_it,
-              label_de: milestone.label_de,
-              label_fr: milestone.label_fr,
-              label_es: milestone.label_es,
+              order_index: item.order_index,
+              label_en: item.label_en,
+              label_it: item.label_it,
+              label_de: item.label_de,
+              label_fr: item.label_fr,
+              label_es: item.label_es,
+              code: item.code,
             })
-            .eq('id', milestone.id);
+            .eq('id', item.id);
 
           if (error) throw error;
         }
       }
 
-      // Redirect back to transaction
-      router.push(`/transaction/${transactionId}`);
+      // Redirect back to templates list
+      router.push('/milestone-templates');
     } catch (err: any) {
-      console.error('Error saving milestones:', err);
-      alert('Failed to save milestones: ' + err.message);
+      console.error('Error saving template:', err);
+      alert('Failed to save template: ' + err.message);
       setSaving(false);
     }
   };
@@ -309,24 +303,24 @@ export default function MilestonePage({ params }: PageProps) {
   if (loading) {
     return (
       <div className="max-w-4xl mx-auto p-4 space-y-6">
-        <div className="text-muted-foreground">Loading milestones...</div>
+        <div className="text-muted-foreground">Loading template...</div>
       </div>
     );
   }
 
-  if (error) {
+  if (error || !template) {
     return (
       <div className="max-w-4xl mx-auto p-4 space-y-6">
         <Card>
           <CardHeader>
             <CardTitle>Error</CardTitle>
-            <CardDescription>{error}</CardDescription>
+            <CardDescription>{error || 'Template not found'}</CardDescription>
           </CardHeader>
           <CardContent>
-            <Link href={`/transaction/${transactionId}`}>
+            <Link href="/milestone-templates">
               <Button>
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Transaction
+                Back to Templates
               </Button>
             </Link>
           </CardContent>
@@ -339,40 +333,52 @@ export default function MilestonePage({ params }: PageProps) {
     <div className="max-w-4xl mx-auto p-4 space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Link href={`/transaction/${transactionId}`}>
+        <Link href="/milestone-templates">
           <Button variant="ghost" size="icon">
             <ArrowLeft className="h-5 w-5" />
           </Button>
         </Link>
         <div className="flex-1">
-          <h1 className="text-3xl font-bold">Manage Milestones</h1>
-          <p className="text-muted-foreground mt-1">{transactionTitle}</p>
+          <h1 className="text-3xl font-bold">Edit Template</h1>
         </div>
-        <ApplyMilestoneTemplateModal
-          transactionId={transactionId}
-          onSuccess={() => {
-            alert('Template applied successfully! The page will reload.');
-            fetchMilestones();
-          }}
-        />
-        <SaveMilestoneTemplateModal
-          milestones={milestones.map(m => ({
-            code: m.code,
-            label_en: m.label_en,
-            label_it: m.label_it,
-            label_de: m.label_de,
-            label_fr: m.label_fr,
-            label_es: m.label_es,
-          }))}
-          onSuccess={() => {
-            alert('Template saved successfully! You can find it in the Milestone Templates menu.');
-          }}
-        />
         <Button onClick={handleSave} disabled={saving}>
           <Save className="mr-2 h-4 w-4" />
           {saving ? 'Saving...' : 'Save Changes'}
         </Button>
       </div>
+
+      {/* Template Info */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Template Information</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="template_name">
+              Template Name <span className="text-red-500">*</span>
+            </Label>
+            <Input
+              id="template_name"
+              value={template.template_name}
+              onChange={(e) => setTemplate({ ...template, template_name: e.target.value })}
+              disabled={saving}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="description">
+              Description <span className="text-muted-foreground text-xs">(Optional)</span>
+            </Label>
+            <Textarea
+              id="description"
+              value={template.description || ''}
+              onChange={(e) => setTemplate({ ...template, description: e.target.value })}
+              disabled={saving}
+              rows={2}
+            />
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Instructions */}
       <Card>
@@ -412,20 +418,20 @@ export default function MilestonePage({ params }: PageProps) {
       {/* Milestones List */}
       <Card>
         <CardHeader>
-          <CardTitle>Milestones ({milestones.length})</CardTitle>
+          <CardTitle>Milestones ({items.length})</CardTitle>
           <CardDescription>
-            Customize the steps for this property transaction
+            Define the steps included in this template
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {milestones.length === 0 ? (
+          {items.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               No milestones yet. Add your first milestone to get started.
             </div>
           ) : (
-            milestones.map((milestone, index) => (
+            items.map((item, index) => (
               <div
-                key={milestone.id}
+                key={item.id}
                 draggable
                 onDragStart={() => handleDragStart(index)}
                 onDragOver={(e) => handleDragOver(e, index)}
@@ -440,16 +446,11 @@ export default function MilestonePage({ params }: PageProps) {
                   </div>
                   <div className="flex-1 font-semibold">
                     Step {index + 1}
-                    {milestone.completed && (
-                      <span className="ml-2 text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
-                        Completed
-                      </span>
-                    )}
                   </div>
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleTranslateMilestone(index)}
+                    onClick={() => handleTranslateItem(index)}
                     disabled={saving || translatingIndex !== null}
                   >
                     {translatingIndex === index ? (
@@ -467,7 +468,7 @@ export default function MilestonePage({ params }: PageProps) {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => handleDeleteMilestone(index)}
+                    onClick={() => handleDeleteItem(index)}
                     disabled={saving}
                   >
                     <Trash2 className="h-4 w-4 text-red-600" />
@@ -479,8 +480,8 @@ export default function MilestonePage({ params }: PageProps) {
                     <Label htmlFor={`label_en_${index}`}>English Label *</Label>
                     <Input
                       id={`label_en_${index}`}
-                      value={milestone.label_en}
-                      onChange={(e) => handleUpdateMilestone(index, 'label_en', e.target.value)}
+                      value={item.label_en}
+                      onChange={(e) => handleUpdateItem(index, 'label_en', e.target.value)}
                       placeholder="e.g., Offer Accepted"
                       disabled={saving}
                     />
@@ -490,8 +491,8 @@ export default function MilestonePage({ params }: PageProps) {
                     <Label htmlFor={`label_it_${index}`}>Italian Label</Label>
                     <Input
                       id={`label_it_${index}`}
-                      value={milestone.label_it || ''}
-                      onChange={(e) => handleUpdateMilestone(index, 'label_it', e.target.value)}
+                      value={item.label_it || ''}
+                      onChange={(e) => handleUpdateItem(index, 'label_it', e.target.value)}
                       placeholder="e.g., Offerta Accettata"
                       disabled={saving}
                     />
@@ -501,8 +502,8 @@ export default function MilestonePage({ params }: PageProps) {
                     <Label htmlFor={`label_de_${index}`}>German Label</Label>
                     <Input
                       id={`label_de_${index}`}
-                      value={milestone.label_de || ''}
-                      onChange={(e) => handleUpdateMilestone(index, 'label_de', e.target.value)}
+                      value={item.label_de || ''}
+                      onChange={(e) => handleUpdateItem(index, 'label_de', e.target.value)}
                       placeholder="e.g., Angebot Angenommen"
                       disabled={saving}
                     />
@@ -512,8 +513,8 @@ export default function MilestonePage({ params }: PageProps) {
                     <Label htmlFor={`label_fr_${index}`}>French Label</Label>
                     <Input
                       id={`label_fr_${index}`}
-                      value={milestone.label_fr || ''}
-                      onChange={(e) => handleUpdateMilestone(index, 'label_fr', e.target.value)}
+                      value={item.label_fr || ''}
+                      onChange={(e) => handleUpdateItem(index, 'label_fr', e.target.value)}
                       placeholder="e.g., Offre Acceptée"
                       disabled={saving}
                     />
@@ -523,8 +524,8 @@ export default function MilestonePage({ params }: PageProps) {
                     <Label htmlFor={`label_es_${index}`}>Spanish Label</Label>
                     <Input
                       id={`label_es_${index}`}
-                      value={milestone.label_es || ''}
-                      onChange={(e) => handleUpdateMilestone(index, 'label_es', e.target.value)}
+                      value={item.label_es || ''}
+                      onChange={(e) => handleUpdateItem(index, 'label_es', e.target.value)}
                       placeholder="e.g., Oferta Aceptada"
                       disabled={saving}
                     />
@@ -534,8 +535,8 @@ export default function MilestonePage({ params }: PageProps) {
                     <Label htmlFor={`code_${index}`}>Code</Label>
                     <Input
                       id={`code_${index}`}
-                      value={milestone.code}
-                      onChange={(e) => handleUpdateMilestone(index, 'code', e.target.value)}
+                      value={item.code}
+                      onChange={(e) => handleUpdateItem(index, 'code', e.target.value)}
                       placeholder="e.g., OFFER_ACCEPTED"
                       disabled={saving}
                     />
@@ -545,7 +546,7 @@ export default function MilestonePage({ params }: PageProps) {
             ))
           )}
 
-          <Button onClick={handleAddMilestone} variant="outline" className="w-full" disabled={saving}>
+          <Button onClick={handleAddItem} variant="outline" className="w-full" disabled={saving}>
             <Plus className="mr-2 h-4 w-4" />
             Add Milestone
           </Button>
@@ -554,7 +555,7 @@ export default function MilestonePage({ params }: PageProps) {
 
       {/* Save Button at Bottom */}
       <div className="flex justify-end gap-3">
-        <Link href={`/transaction/${transactionId}`}>
+        <Link href="/milestone-templates">
           <Button variant="outline" disabled={saving}>
             Cancel
           </Button>

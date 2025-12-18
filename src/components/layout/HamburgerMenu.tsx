@@ -1,6 +1,6 @@
 'use client';
 
-import { Menu, LayoutDashboard, Receipt, Plus, Users } from 'lucide-react';
+import { Menu, LayoutDashboard, Receipt, Plus, Users, BookOpen } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { User } from '@/types';
 import {
@@ -80,6 +80,12 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({ user }) => {
               <Link href="/buyers" className="flex items-center cursor-pointer">
                 <Users className="mr-2 h-4 w-4" />
                 <span>{t('nav.manageBuyers')}</span>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/milestone-templates" className="flex items-center cursor-pointer">
+                <BookOpen className="mr-2 h-4 w-4" />
+                <span>{t('nav.milestoneTemplates')}</span>
               </Link>
             </DropdownMenuItem>
           </>

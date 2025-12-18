@@ -20,6 +20,13 @@ interface Buyer {
   email: string;
 }
 
+interface MilestoneTemplate {
+  id: string;
+  template_name: string;
+  description: string | null;
+  milestone_count: number;
+}
+
 export default function CreateTransactionPage() {
   const router = useRouter();
   const { user, profile } = useAuth();
@@ -29,15 +36,38 @@ export default function CreateTransactionPage() {
   const [propertyUrl, setPropertyUrl] = useState('');
   const [buyers, setBuyers] = useState<Buyer[]>([]);
   const [selectedBuyerIds, setSelectedBuyerIds] = useState<string[]>([]);
+  const [templates, setTemplates] = useState<MilestoneTemplate[]>([]);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('default');
   const [loading, setLoading] = useState(false);
   const [loadingBuyers, setLoadingBuyers] = useState(true);
+  const [loadingTemplates, setLoadingTemplates] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (profile?.role === 'agent') {
       fetchBuyers();
+      fetchTemplates();
     }
   }, [profile]);
+
+  const fetchTemplates = async () => {
+    try {
+      setLoadingTemplates(true);
+      if (!supabase || !user) return;
+
+      // Fetch templates using RPC function
+      const { data, error } = await supabase.rpc('get_milestone_templates');
+
+      if (error) throw error;
+
+      setTemplates(data || []);
+      setLoadingTemplates(false);
+    } catch (err: any) {
+      console.error('Error fetching templates:', err);
+      // Don't show error to user - templates are optional
+      setLoadingTemplates(false);
+    }
+  };
 
   const fetchBuyers = async () => {
     try {
@@ -178,14 +208,43 @@ export default function CreateTransactionPage() {
         throw new Error('Transaction created but no data returned');
       }
 
-      // Create default milestones using the helper function
-      const { error: milestonesError } = await supabase.rpc('create_default_milestones', {
-        p_transaction_id: transaction.id,
-      });
+      // Create milestones - either from default or selected template
+      if (selectedTemplateId === 'default') {
+        // Use default milestones
+        const { error: milestonesError } = await supabase.rpc('create_default_milestones', {
+          p_transaction_id: transaction.id,
+        });
 
-      if (milestonesError) {
-        console.error('[CreateTransaction] Error creating milestones:', milestonesError);
-        // Don't throw - transaction is already created, we can add milestones manually later
+        if (milestonesError) {
+          console.error('[CreateTransaction] Error creating default milestones:', milestonesError);
+          // Don't throw - transaction is already created, we can add milestones manually later
+        }
+      } else {
+        // Apply selected template
+        const { data: applyResult, error: applyError } = await supabase.rpc('apply_milestone_template', {
+          p_transaction_id: transaction.id,
+          p_template_id: selectedTemplateId,
+        });
+
+        if (applyError) {
+          console.error('[CreateTransaction] Error applying template:', applyError);
+          // Fall back to default milestones
+          const { error: milestonesError } = await supabase.rpc('create_default_milestones', {
+            p_transaction_id: transaction.id,
+          });
+          if (milestonesError) {
+            console.error('[CreateTransaction] Error creating fallback milestones:', milestonesError);
+          }
+        } else if (applyResult && !applyResult.success) {
+          console.error('[CreateTransaction] Template application failed:', applyResult.error);
+          // Fall back to default milestones
+          const { error: milestonesError } = await supabase.rpc('create_default_milestones', {
+            p_transaction_id: transaction.id,
+          });
+          if (milestonesError) {
+            console.error('[CreateTransaction] Error creating fallback milestones:', milestonesError);
+          }
+        }
       }
 
       // Add selected buyers to transaction
@@ -310,6 +369,43 @@ export default function CreateTransactionPage() {
               <p className="text-xs text-muted-foreground">
                 {t('transactions.propertyUrlHelp')}
               </p>
+            </div>
+
+            {/* Milestone Template Selection */}
+            <div className="space-y-2">
+              <Label htmlFor="template">Milestone Template</Label>
+              {loadingTemplates ? (
+                <div className="text-sm text-muted-foreground">Loading templates...</div>
+              ) : (
+                <>
+                  <select
+                    id="template"
+                    value={selectedTemplateId}
+                    onChange={(e) => setSelectedTemplateId(e.target.value)}
+                    disabled={loading}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="default">
+                      Default Italian Property Purchase (5 milestones)
+                    </option>
+                    {templates.map((template) => (
+                      <option key={template.id} value={template.id}>
+                        {template.template_name} ({template.milestone_count} milestone{template.milestone_count !== 1 ? 's' : ''})
+                      </option>
+                    ))}
+                  </select>
+                  {selectedTemplateId !== 'default' && (
+                    <div className="text-xs text-muted-foreground">
+                      {templates.find(t => t.id === selectedTemplateId)?.description || 'Custom milestone template'}
+                    </div>
+                  )}
+                  {selectedTemplateId === 'default' && (
+                    <p className="text-xs text-muted-foreground">
+                      The standard 5-step milestone process for Italian property purchases
+                    </p>
+                  )}
+                </>
+              )}
             </div>
 
             {/* Buyer Selection with Searchable Dropdown */}
