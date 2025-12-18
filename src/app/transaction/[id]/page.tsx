@@ -79,6 +79,7 @@ export default function TransactionDetailPage({ params }: PageProps) {
   const [milestones, setMilestones] = useState<TransactionMilestone[]>([]);
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [fileCount, setFileCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('tracker');
@@ -252,6 +253,18 @@ export default function TransactionDetailPage({ params }: PageProps) {
           author_name: m.profiles?.full_name || 'Unknown',
         }))
       );
+
+      // Fetch file count
+      const { count: filesCount, error: filesCountError } = await supabase
+        .from('files')
+        .select('*', { count: 'exact', head: true })
+        .eq('transaction_id', transactionId);
+
+      if (filesCountError) {
+        console.warn('[TransactionDetail] Error fetching file count:', filesCountError);
+      } else {
+        setFileCount(filesCount || 0);
+      }
 
       setLoading(false);
     } catch (err: any) {
@@ -526,7 +539,7 @@ export default function TransactionDetailPage({ params }: PageProps) {
           </TabsTrigger>
           <TabsTrigger value="files" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
-            {t('transaction.files')}
+            {t('transaction.files')} ({fileCount})
           </TabsTrigger>
           <TabsTrigger value="participants" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
