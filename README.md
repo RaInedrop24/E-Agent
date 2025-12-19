@@ -135,44 +135,12 @@ the-property-gateway/
 
 ## 🌍 Multi-Language Support
 
-The Property Gateway features **comprehensive translation support** for English and Italian, with architecture for easy expansion to additional languages.
+The Property Gateway features **comprehensive translation support** across 6 languages, with easy-to-use tools for adding more.
 
-### For Developers: Adding Translations
-
-**⚠️ CRITICAL: Every UI change MUST include translations!**
-
-When adding new features or UI elements:
-
-1. **Add translation keys** to `src/lib/ui-translations.ts` (both EN & IT)
-2. **Use the `useLanguage()` hook** in your components
-3. **Replace hardcoded strings** with `t('key')` or `tVar('key', {vars})`
-4. **Test in both languages** before committing
-
-**Quick Example:**
-```typescript
-import { useLanguage } from '@/contexts/LanguageContext';
-
-export default function MyComponent() {
-  const { t, tVar } = useLanguage();
-  
-  return (
-    <div>
-      <h1>{t('dashboard.title')}</h1>
-      <p>{tVar('message.welcome', { name: 'Mario' })}</p>
-    </div>
-  );
-}
-```
-
-**📖 Documentation:**
-- **Quick Reference:** `TRANSLATION_GUIDE.md` - Cheat sheet for developers
-- **Full Details:** `TRANSLATION_IMPLEMENTATION.md` - Complete implementation guide
-- **Translation File:** `src/lib/ui-translations.ts` - All UI text strings
-
-### Translation Features
+### For Users
 
 ✅ **Site-wide UI Translation**
-- 170+ translation keys covering all pages
+- 311+ translation keys covering all pages
 - User-selected language preference (stored in profile)
 - Instant language switching
 
@@ -182,12 +150,69 @@ export default function MyComponent() {
 - Cached translations (no repeated API calls)
 - Powered by DeepL API
 
-✅ **Supported Languages**
-- 🇬🇧 English (default)
-- 🇮🇹 Italian (complete)
-- 🇩🇪 German (database ready)
-- 🇫🇷 French (database ready)
-- 🇪🇸 Spanish (database ready)
+✅ **Milestone Localization**
+- Custom milestone labels in all supported languages
+- Auto-translate feature for quick translation
+- Template system with multilingual defaults
+
+### For Developers: Adding New Languages
+
+**Adding a new language takes ~20 minutes using our automated tools:**
+
+```bash
+# 1. Generate database migration
+node scripts/generate-migration.mjs pt Portuguese
+
+# 2. Generate UI translations (requires DeepL API key)
+export DEEPL_API_KEY="your-key"
+node scripts/generate-translations.mjs pt
+
+# 3. Follow the quick start guide
+```
+
+**📖 Documentation:**
+- **Quick Start:** `docs/LANGUAGE_QUICK_START.md` - 20-minute guide
+- **Full Guide:** `docs/ADDING_NEW_LANGUAGES.md` - Complete reference
+- **Scripts:** `scripts/README.md` - Automation tools
+
+### For Developers: Using Translations
+
+**⚠️ CRITICAL: Every UI change MUST include translations!**
+
+When adding new features or UI elements:
+
+1. **Add translation keys** to `src/lib/ui-translations.ts` (EN, IT, PL minimum)
+2. **Use the `useLanguage()` hook** in your components
+3. **Replace hardcoded strings** with `t('key')` or `tVar('key', {vars})`
+4. **Test in multiple languages** before committing
+
+**Quick Example:**
+```typescript
+import { useLanguage } from '@/contexts/LanguageContext';
+
+export default function MyComponent() {
+  const { t, tVar } = useLanguage();
+
+  return (
+    <div>
+      <h1>{t('dashboard.title')}</h1>
+      <p>{tVar('message.welcome', { name: 'Mario' })}</p>
+    </div>
+  );
+}
+```
+
+**📖 Translation Documentation:**
+- **Quick Reference:** `TRANSLATION_GUIDE.md` - Cheat sheet for developers
+- **Full Details:** `TRANSLATION_IMPLEMENTATION.md` - Complete implementation guide
+- **Translation File:** `src/lib/ui-translations.ts` - All UI text strings
+
+### Automated Translation Tools
+
+- `scripts/generate-migration.mjs` - Creates database schema for new language
+- `scripts/generate-translations.mjs` - Auto-translates UI with DeepL API
+- Supports 30+ languages including European, Asian, and Middle Eastern languages
+- Free DeepL tier: 500K characters/month (enough for ~5 languages)
 
 ---
 
@@ -229,13 +254,21 @@ export default function MyComponent() {
 
 ## 🌍 Supported Languages
 
-| Language | Code | Status |
-|----------|------|--------|
-| 🇬🇧 English | `en` | ✅ Primary |
-| 🇮🇹 Italiano | `it` | 🚧 Planned |
-| 🇪🇸 Español | `es` | 🚧 Planned |
-| 🇫🇷 Français | `fr` | 🚧 Planned |
-| 🇩🇪 Deutsch | `de` | 🚧 Planned |
+| Language | Code | Status | UI | Milestones | Database |
+|----------|------|--------|----|-----------| ---------|
+| 🇬🇧 English | `en` | ✅ Complete | ✅ | ✅ | ✅ |
+| 🇮🇹 Italiano | `it` | ✅ Complete | ✅ | ✅ | ✅ |
+| 🇵🇱 Polski | `pl` | ✅ Complete | ✅ | ✅ | ✅ |
+| 🇪🇸 Español | `es` | 🔧 Partial | ❌ | ✅ | ✅ |
+| 🇫🇷 Français | `fr` | 🔧 Partial | ❌ | ✅ | ✅ |
+| 🇩🇪 Deutsch | `de` | 🔧 Partial | ❌ | ✅ | ✅ |
+
+**Legend:**
+- ✅ Complete: Full support with translations
+- 🔧 Partial: Database ready, needs UI translations (~20 min to add)
+- ❌ Not yet: UI translations not yet added
+
+**Want to add a language?** See `docs/LANGUAGE_QUICK_START.md` for 20-minute setup guide.
 
 ---
 
