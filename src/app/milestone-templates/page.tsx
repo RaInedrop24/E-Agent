@@ -9,6 +9,7 @@ import { supabase } from '@/lib/supabase';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2, BookOpen, Edit, Trash2, FileText } from 'lucide-react';
+import { CreateMilestoneTemplateModal } from '@/components/features/transaction/CreateMilestoneTemplateModal';
 
 interface MilestoneTemplate {
   id: string;
@@ -106,6 +107,7 @@ export default function MilestoneTemplatesPage() {
             Reusable milestone configurations for your transactions
           </p>
         </div>
+        <CreateMilestoneTemplateModal onSuccess={fetchTemplates} />
       </div>
 
       <Card>
@@ -113,7 +115,7 @@ export default function MilestoneTemplatesPage() {
           <CardTitle>Your Templates</CardTitle>
           <CardDescription>
             {templates.length === 0
-              ? 'No templates yet. Create your first template from the milestones page.'
+              ? 'No templates yet. Click "Create New Template" above to get started.'
               : `You have ${templates.length} saved template${templates.length !== 1 ? 's' : ''}`}
           </CardDescription>
         </CardHeader>
@@ -134,8 +136,8 @@ export default function MilestoneTemplatesPage() {
               <div className="space-y-2">
                 <p className="text-lg font-medium">No templates yet</p>
                 <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                  Create milestone templates by going to any transaction's milestones page
-                  and clicking "Save as Template"
+                  Create your first template by clicking "Create New Template" above,
+                  or save milestones from any transaction's milestones page.
                 </p>
               </div>
             </div>
