@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate language code
-    const validLanguages: SupportedLanguage[] = ['en', 'it', 'es', 'fr', 'de'];
+    const validLanguages: SupportedLanguage[] = ['en', 'it', 'es', 'fr', 'de', 'pl'];
     if (!validLanguages.includes(targetLang)) {
       return NextResponse.json(
         { error: `Invalid target language. Must be one of: ${validLanguages.join(', ')}` },

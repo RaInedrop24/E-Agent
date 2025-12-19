@@ -6,6 +6,7 @@ export const SUPPORTED_LANGUAGES: LanguageOption[] = [
   { code: 'es', name: 'Español', flag: '🇪🇸' },
   { code: 'fr', name: 'Français', flag: '🇫🇷' },
   { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
+  { code: 'pl', name: 'Polski', flag: '🇵🇱' },
 ];
 
 export const DEFAULT_MILESTONES: Omit<Milestone, 'id' | 'isCompleted' | 'completedAt'>[] = [

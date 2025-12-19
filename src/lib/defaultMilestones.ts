@@ -5,6 +5,7 @@ export interface MilestoneDefinition {
   label_de: string;
   label_fr: string;
   label_es: string;
+  label_pl: string;
 }
 
 export const DEFAULT_MILESTONES: MilestoneDefinition[] = [
@@ -14,7 +15,8 @@ export const DEFAULT_MILESTONES: MilestoneDefinition[] = [
     label_it: 'Offerta Accettata',
     label_de: 'Angebot Angenommen',
     label_fr: 'Offre Acceptée',
-    label_es: 'Oferta Aceptada'
+    label_es: 'Oferta Aceptada',
+    label_pl: 'Oferta Zaakceptowana'
   },
   {
     code: 'PRELIM_CONTRACT',
@@ -22,7 +24,8 @@ export const DEFAULT_MILESTONES: MilestoneDefinition[] = [
     label_it: 'Compromesso Firmato',
     label_de: 'Vorvertrag Unterzeichnet',
     label_fr: 'Contrat Préliminaire Signé',
-    label_es: 'Contrato Preliminar Firmado'
+    label_es: 'Contrato Preliminar Firmado',
+    label_pl: 'Umowa Przedwstępna Podpisana'
   },
   {
     code: 'DEPOSIT_PAID',
@@ -30,7 +33,8 @@ export const DEFAULT_MILESTONES: MilestoneDefinition[] = [
     label_it: 'Caparra Versata',
     label_de: 'Anzahlung Geleistet',
     label_fr: 'Dépôt Payé',
-    label_es: 'Depósito Pagado'
+    label_es: 'Depósito Pagado',
+    label_pl: 'Depozyt Wpłacony'
   },
   {
     code: 'SURVEY_COMPLETE',
@@ -38,7 +42,8 @@ export const DEFAULT_MILESTONES: MilestoneDefinition[] = [
     label_it: 'Perizia Completata',
     label_de: 'Gutachten Abgeschlossen',
     label_fr: 'Expertise Complétée',
-    label_es: 'Inspección Completa'
+    label_es: 'Inspección Completa',
+    label_pl: 'Przegląd Zakończony'
   },
   {
     code: 'FINAL_DEED',
@@ -46,6 +51,7 @@ export const DEFAULT_MILESTONES: MilestoneDefinition[] = [
     label_it: 'Rogito Finale',
     label_de: 'Notarielle Beurkundung',
     label_fr: 'Acte Définitif (Rogito)',
-    label_es: 'Escritura Final (Rogito)'
+    label_es: 'Escritura Final (Rogito)',
+    label_pl: 'Akt Końcowy (Rogito)'
   }
 ];

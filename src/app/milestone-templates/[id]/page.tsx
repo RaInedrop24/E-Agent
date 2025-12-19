@@ -22,6 +22,7 @@ interface TemplateItem {
   label_de: string | null;
   label_fr: string | null;
   label_es: string | null;
+  label_pl: string | null;
 }
 
 interface Template {
@@ -104,6 +105,7 @@ export default function EditTemplatePage({ params }: PageProps) {
       label_de: null,
       label_fr: null,
       label_es: null,
+      label_pl: null,
     };
     setItems([...items, newItem]);
   };
@@ -142,7 +144,7 @@ export default function EditTemplatePage({ params }: PageProps) {
       }
 
       // Get all target languages (all languages except the source)
-      const allLanguages: Array<'en' | 'it' | 'de' | 'fr' | 'es'> = ['en', 'it', 'de', 'fr', 'es'];
+      const allLanguages: Array<'en' | 'it' | 'de' | 'fr' | 'es' | 'pl'> = ['en', 'it', 'de', 'fr', 'es', 'pl'];
       const targetLangs = allLanguages.filter(lang => lang !== language);
 
       // Translate to all target languages in parallel
@@ -532,12 +534,12 @@ export default function EditTemplatePage({ params }: PageProps) {
                   </div>
 
                   <div className="space-y-1">
-                    <Label htmlFor={`code_${index}`}>Code</Label>
+                    <Label htmlFor={`label_pl_${index}`}>Polish Label</Label>
                     <Input
-                      id={`code_${index}`}
-                      value={item.code}
-                      onChange={(e) => handleUpdateItem(index, 'code', e.target.value)}
-                      placeholder="e.g., OFFER_ACCEPTED"
+                      id={`label_pl_${index}`}
+                      value={item.label_pl || ''}
+                      onChange={(e) => handleUpdateItem(index, 'label_pl', e.target.value)}
+                      placeholder="e.g., Oferta Zaakceptowana"
                       disabled={saving}
                     />
                   </div>

@@ -24,6 +24,7 @@ interface Milestone {
   label_de: string | null;
   label_fr: string | null;
   label_es: string | null;
+  label_pl: string | null;
   completed: boolean;
 }
 
@@ -121,6 +122,7 @@ export default function MilestonePage({ params }: PageProps) {
       label_de: null,
       label_fr: null,
       label_es: null,
+      label_pl: null,
       completed: false,
     };
     setMilestones([...milestones, newMilestone]);
@@ -160,7 +162,7 @@ export default function MilestonePage({ params }: PageProps) {
       }
 
       // Get all target languages (all languages except the source)
-      const allLanguages: Array<'en' | 'it' | 'de' | 'fr' | 'es'> = ['en', 'it', 'de', 'fr', 'es'];
+      const allLanguages: Array<'en' | 'it' | 'de' | 'fr' | 'es' | 'pl'> = ['en', 'it', 'de', 'fr', 'es', 'pl'];
       const targetLangs = allLanguages.filter(lang => lang !== language);
 
       // Translate to all target languages in parallel
@@ -531,12 +533,12 @@ export default function MilestonePage({ params }: PageProps) {
                   </div>
 
                   <div className="space-y-1">
-                    <Label htmlFor={`code_${index}`}>Code</Label>
+                    <Label htmlFor={`label_pl_${index}`}>Polish Label</Label>
                     <Input
-                      id={`code_${index}`}
-                      value={milestone.code}
-                      onChange={(e) => handleUpdateMilestone(index, 'code', e.target.value)}
-                      placeholder="e.g., OFFER_ACCEPTED"
+                      id={`label_pl_${index}`}
+                      value={milestone.label_pl || ''}
+                      onChange={(e) => handleUpdateMilestone(index, 'label_pl', e.target.value)}
+                      placeholder="e.g., Oferta Zaakceptowana"
                       disabled={saving}
                     />
                   </div>

@@ -3,7 +3,7 @@
  * Handles all translation operations using DeepL API
  */
 
-export type SupportedLanguage = 'en' | 'it' | 'es' | 'fr' | 'de';
+export type SupportedLanguage = 'en' | 'it' | 'es' | 'fr' | 'de' | 'pl';
 
 export interface TranslationResult {
   originalText: string;
@@ -29,6 +29,7 @@ function mapToDeepLLanguage(lang: SupportedLanguage): string {
     es: 'ES',
     fr: 'FR',
     de: 'DE',
+    pl: 'PL',
   };
   return mapping[lang] || 'EN';
 }
