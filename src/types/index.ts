@@ -66,12 +66,13 @@ export type TransactionStatus =
   | 'completed' 
   | 'cancelled';
 
-export type Language = 
-  | 'en' 
-  | 'it' 
-  | 'es' 
-  | 'fr' 
-  | 'de';
+export type Language =
+  | 'en'
+  | 'it'
+  | 'es'
+  | 'fr'
+  | 'de'
+  | 'pl';
 
 export interface LanguageOption {
   code: Language;
