@@ -96,7 +96,7 @@ export async function POST(
       })
     );
 
-    const validAttachments = attachments.filter((a): a is { filename: string; content: Buffer } => a !== null);
+    const validAttachments = attachments.filter(a => a !== null) as Array<{ filename: string; content: Buffer }>;
 
     // Prepare email data
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://thepropertygateway.com';
