@@ -139,6 +139,7 @@ const translations = {
     'transaction.noAccess': 'You do not have access to this transaction',
     'transaction.editTitle': 'Edit Transaction Title',
     'transaction.editTitleDescription': 'Update the transaction title in multiple languages. Translations are displayed based on user language preference.',
+    'transaction.emailProgress': 'Email Progress',
     
     // Messages
     'messages.title': 'Messages',
@@ -495,6 +496,7 @@ const translations = {
     'transaction.noAccess': 'Non hai accesso a questa transazione',
     'transaction.editTitle': 'Modifica Titolo Transazione',
     'transaction.editTitleDescription': 'Aggiorna il titolo della transazione in più lingue. Le traduzioni vengono visualizzate in base alla preferenza linguistica dell\'utente.',
+    'transaction.emailProgress': 'Invia progressi via email',
     
     // Messages
     'messages.title': 'Messaggi',
@@ -842,6 +844,7 @@ const translations = {
     'transaction.noAccess': 'Nie masz dostępu do tej transakcji',
     'transaction.editTitle': 'Edytuj tytuł transakcji',
     'transaction.editTitleDescription': 'Aktualizacja tytułu transakcji w wielu językach. Tłumaczenia są wyświetlane na podstawie preferencji językowych użytkownika.',
+    'transaction.emailProgress': 'Wyślij postęp e-mailem',
     'messages.title': 'Wiadomości',
     'messages.send': 'Wyślij wiadomość',
     'messages.typeMessage': 'Wpisz wiadomość...',

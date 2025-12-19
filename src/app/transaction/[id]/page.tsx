@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Check, Clock, Users, FileText, MessageCircle, Trash2 } from 'lucide-react';
+import { ArrowLeft, Check, Clock, Users, FileText, MessageCircle, Trash2, Mail } from 'lucide-react';
 import { ProgressTracker } from '@/components/features/transaction/ProgressTracker';
 import { InviteBuyerModal } from '@/components/features/transaction/InviteBuyerModal';
 import { MessagingPanel } from '@/components/features/transaction/MessagingPanel';
@@ -85,6 +85,7 @@ export default function TransactionDetailPage({ params }: PageProps) {
   const [activeTab, setActiveTab] = useState('tracker');
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [emailing, setEmailing] = useState(false);
 
   // Get translated title based on user's language preference
   const getTranslatedTitle = () => {
@@ -297,6 +298,39 @@ export default function TransactionDetailPage({ params }: PageProps) {
     }
   };
 
+  const handleEmailProgress = async () => {
+    if (!supabase || !user) return;
+
+    try {
+      setEmailing(true);
+      
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('Not authenticated');
+      }
+
+      const response = await fetch(`/api/transaction/${transactionId}/email-progress`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to send email');
+      }
+
+      alert('Transaction progress email sent successfully to ' + user.email);
+    } catch (err: any) {
+      console.error('[TransactionDetail] Error emailing progress:', err);
+      alert('Failed to send email: ' + err.message);
+    } finally {
+      setEmailing(false);
+    }
+  };
+
   const handleDeleteTransaction = async () => {
     if (!supabase || profile?.role !== 'agent' || !transaction) return;
 
@@ -475,7 +509,18 @@ export default function TransactionDetailPage({ params }: PageProps) {
             })}
           </p>
         </div>
-        {isAgent && transaction.created_by === user?.id && (
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleEmailProgress} 
+            disabled={emailing}
+          >
+            <Mail className="h-4 w-4 mr-2" />
+            {emailing ? t('action.sending') || 'Sending...' : t('transaction.emailProgress') || 'Email Progress'}
+          </Button>
+
+          {isAgent && transaction.created_by === user?.id && (
           <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
             <DialogTrigger asChild>
               <Button variant="destructive" size="sm">
@@ -524,6 +569,7 @@ export default function TransactionDetailPage({ params }: PageProps) {
             </DialogContent>
           </Dialog>
         )}
+        </div>
       </div>
 
       {/* Tabs */}
