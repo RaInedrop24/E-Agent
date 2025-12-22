@@ -19,6 +19,7 @@ import { TransactionFilesPanel } from '@/components/features/transaction/Transac
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import type { Milestone } from '@/types';
 import { useBranding } from '@/contexts/BrandingContext';
+import { toggleMilestone } from '@/app/actions/transaction';
 
 interface Transaction {
   id: string;
@@ -306,19 +307,16 @@ export default function TransactionDetailPage({ params }: PageProps) {
   };
 
   const handleMilestoneToggle = async (milestoneId: string, currentlyCompleted: boolean) => {
-    if (!supabase || profile?.role !== 'agent') return;
+    if (!profile?.role === 'agent') return; // Only agents can toggle (frontend check)
 
     try {
-      const { error } = await supabase
-        .from('milestones')
-        .update({
-          completed: !currentlyCompleted,
-          completed_at: !currentlyCompleted ? new Date().toISOString() : null,
-          completed_by: !currentlyCompleted ? user!.id : null,
-        })
-        .eq('id', milestoneId);
+      const result = await toggleMilestone(transactionId, milestoneId, currentlyCompleted);
+      
+      if (result.error) {
+         throw new Error(result.error);
+      }
 
-      if (error) throw error;
+      // Refresh milestones
       await fetchTransaction();
     } catch (err: any) {
       console.error('[TransactionDetail] Error updating milestone:', err);

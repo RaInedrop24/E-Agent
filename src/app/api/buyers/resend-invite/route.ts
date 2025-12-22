@@ -89,23 +89,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Resend invitation using admin generateLink
-    const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
-      type: 'invite',
-      email: buyerAuth.user.email,
-      options: {
-        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://thepropertygateway.com'}/auth/callback?flow=invite&type=invite`,
-      },
-    });
-
-    if (linkError) {
-      console.error('Error generating invite link:', linkError);
-      return NextResponse.json(
-        { error: 'Failed to generate invitation' },
-        { status: 500 }
-      );
-    }
-
     // Send the invite email manually using the generated link
     // Note: This requires additional email sending setup
     // For now, we'll use the password recovery flow as a workaround

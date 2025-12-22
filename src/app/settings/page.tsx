@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/lib/supabase";
 import { getSupportedLanguages } from "@/lib/ui-translations";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -26,6 +27,17 @@ const DEFAULT_COLORS: BrandColors = {
   text: "#334155"
 };
 
+const COUNTRY_CODES = [
+  { code: "+1", country: "US/CA" },
+  { code: "+44", country: "UK" },
+  { code: "+39", country: "IT" },
+  { code: "+33", country: "FR" },
+  { code: "+49", country: "DE" },
+  { code: "+34", country: "ES" },
+  { code: "+48", country: "PL" },
+  { code: "+353", country: "IE" },
+];
+
 export default function SettingsPage() {
   const { t: translate, tVar } = useLanguage();
   const { setBranding } = useBranding();
@@ -45,21 +57,35 @@ export default function SettingsPage() {
   const [brandLogoUrl, setBrandLogoUrl] = useState<string | null>(null);
   const [brandColors, setBrandColors] = useState<BrandColors>(DEFAULT_COLORS);
   const [isGeneratingTheme, setIsGeneratingTheme] = useState(false);
+
+  // Alerts State
+  const [emailAlerts, setEmailAlerts] = useState(false);
+  const [smsAlerts, setSmsAlerts] = useState(false);
+  const [countryCode, setCountryCode] = useState("+44");
+  const [phoneNumber, setPhoneNumber] = useState("");
   
   // Track original values to detect changes
   const [originalFullName, setOriginalFullName] = useState("");
   const [originalLanguage, setOriginalLanguage] = useState<SupportedLanguage>("en");
   const [originalBrandColors, setOriginalBrandColors] = useState<BrandColors>(DEFAULT_COLORS);
   const [originalBrandLogoUrl, setOriginalBrandLogoUrl] = useState<string | null>(null);
+  const [originalEmailAlerts, setOriginalEmailAlerts] = useState(false);
+  const [originalSmsAlerts, setOriginalSmsAlerts] = useState(false);
+  const [originalFullPhone, setOriginalFullPhone] = useState<string | null>(null);
   
   const supportedLanguages = getSupportedLanguages();
   
   // Check if profile has been modified
+  const currentFullPhone = smsAlerts ? `${countryCode}${phoneNumber}` : null;
+  
   const hasProfileChanges = 
     fullName !== originalFullName || 
     preferredLanguage !== originalLanguage ||
     JSON.stringify(brandColors) !== JSON.stringify(originalBrandColors) ||
-    brandLogoUrl !== originalBrandLogoUrl;
+    brandLogoUrl !== originalBrandLogoUrl ||
+    emailAlerts !== originalEmailAlerts ||
+    smsAlerts !== originalSmsAlerts ||
+    (smsAlerts && currentFullPhone !== originalFullPhone);
 
   // Load current profile data
   useEffect(() => {
@@ -94,6 +120,29 @@ export default function SettingsPage() {
             setBrandColors(colors);
             setOriginalBrandColors(colors);
           }
+
+          // Load alerts
+          // Check if columns exist (might be undefined if migration hasn't run fully or caching)
+          // We default to false for email if undefined (user request)
+          setEmailAlerts(profile.email_alerts_enabled ?? false);
+          setOriginalEmailAlerts(profile.email_alerts_enabled ?? false);
+          
+          setSmsAlerts(profile.sms_alerts_enabled ?? false);
+          setOriginalSmsAlerts(profile.sms_alerts_enabled ?? false);
+
+          if (profile.phone_number) {
+            setOriginalFullPhone(profile.phone_number);
+            // Parse country code (simple heuristic: first 2-4 chars)
+            const phone = profile.phone_number;
+            const foundCode = COUNTRY_CODES.find(c => phone.startsWith(c.code));
+            if (foundCode) {
+              setCountryCode(foundCode.code);
+              setPhoneNumber(phone.substring(foundCode.code.length));
+            } else {
+              setPhoneNumber(phone);
+            }
+          }
+
         } else if (u.user_metadata?.full_name) {
           setFullName(u.user_metadata.full_name);
           setOriginalFullName(u.user_metadata.full_name);
@@ -115,9 +164,16 @@ export default function SettingsPage() {
       if (!supabase) throw new Error("Supabase not configured");
       const { data: session } = await supabase.auth.getUser();
       if (!session.user) throw new Error("Not authenticated");
+
+      // Validation
+      if (smsAlerts && !phoneNumber) {
+        throw new Error("Phone number is required for SMS alerts");
+      }
       
-      const languageChanged = preferredLanguage !== originalLanguage;
-      
+      // Strip leading zero from phone number if present
+      const cleanPhone = phoneNumber.startsWith('0') ? phoneNumber.substring(1) : phoneNumber;
+      const finalPhone = smsAlerts ? `${countryCode}${cleanPhone}` : null;
+
       // Update profile in database
       const { error: profileErr } = await supabase
         .from('profiles')
@@ -125,7 +181,10 @@ export default function SettingsPage() {
           full_name: fullName,
           preferred_language: preferredLanguage,
           branding_logo_url: brandLogoUrl,
-          branding_settings: brandColors
+          branding_settings: brandColors,
+          email_alerts_enabled: emailAlerts,
+          sms_alerts_enabled: smsAlerts,
+          phone_number: finalPhone
         })
         .eq('id', session.user.id);
       
@@ -142,6 +201,9 @@ export default function SettingsPage() {
       setOriginalLanguage(preferredLanguage);
       setOriginalBrandLogoUrl(brandLogoUrl);
       setOriginalBrandColors(brandColors);
+      setOriginalEmailAlerts(emailAlerts);
+      setOriginalSmsAlerts(smsAlerts);
+      setOriginalFullPhone(finalPhone);
       
       // Update global branding context
       setBranding(brandLogoUrl, brandColors);
@@ -331,6 +393,68 @@ export default function SettingsPage() {
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Notifications / Alerts Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Alerts & Notifications</CardTitle>
+            <CardDescription>
+              Choose how you want to be notified about transaction updates (milestones, messages).
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="flex items-center justify-between">
+               <div className="space-y-0.5">
+                  <Label className="text-base">Email Alerts</Label>
+                  <p className="text-sm text-muted-foreground">Receive updates via email to {email}</p>
+               </div>
+               <Switch 
+                 checked={emailAlerts}
+                 onCheckedChange={setEmailAlerts}
+               />
+            </div>
+            
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                 <div className="space-y-0.5">
+                    <Label className="text-base">SMS Alerts</Label>
+                    <p className="text-sm text-muted-foreground">Receive urgent updates via text message</p>
+                 </div>
+                 <Switch 
+                   checked={smsAlerts}
+                   onCheckedChange={setSmsAlerts}
+                 />
+              </div>
+              
+              {smsAlerts && (
+                <div className="grid grid-cols-3 gap-2 animate-in fade-in slide-in-from-top-1">
+                   <div className="col-span-1">
+                     <Select value={countryCode} onValueChange={setCountryCode}>
+                        <SelectTrigger>
+                           <SelectValue placeholder="Code" />
+                        </SelectTrigger>
+                        <SelectContent>
+                           {COUNTRY_CODES.map((c) => (
+                              <SelectItem key={c.code} value={c.code}>
+                                 {c.country} ({c.code})
+                              </SelectItem>
+                           ))}
+                        </SelectContent>
+                     </Select>
+                   </div>
+                   <div className="col-span-2">
+                     <Input 
+                        placeholder="Phone Number (e.g. 712345678)" 
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(e.target.value.replace(/[^0-9]/g, ''))}
+                        type="tel"
+                     />
+                   </div>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>

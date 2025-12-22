@@ -5,8 +5,13 @@ import { Resend } from 'resend';
 import { MilestoneUpdateEmail } from '@/components/emails/MilestoneUpdateEmail';
 import { NewMessageEmail } from '@/components/emails/NewMessageEmail';
 import * as React from 'react';
+import twilio from 'twilio';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+
+// Twilio Setup
+const twilioClient = twilio(process.env.TWILIO_SID, process.env.TWILIO_SECRET);
+const twilioFrom = process.env.TWILIO_PHONE_NUMBER || 'PROPERTY';
 
 // Use Admin client to fetch participant details and settings even if RLS would block
 const supabaseAdmin = createClient(
@@ -71,17 +76,41 @@ export async function sendNotifications({ transactionId, triggerUserId, type, da
     const emailFrom = 'Updates <Updates@mail.thepropertygateway.com>';
 
     // 4. Iterate and Notify
+    console.log(`[Notifications] Found ${participants.length} participants.`);
+    
     for (const p of participants) {
       const profile = p.profiles as any;
       if (!profile) continue;
 
       // Skip the user who triggered the action
-      if (profile.id === triggerUserId) continue;
+      if (profile.id === triggerUserId) {
+        console.log(`[Notifications] Skipping trigger user ${profile.full_name} (${profile.id})`);
+        continue;
+      }
 
-      // --- SMS Logic (Placeholder) ---
+      console.log(`[Notifications] Checking alerts for ${profile.full_name}: Email=${profile.email_alerts_enabled}, SMS=${profile.sms_alerts_enabled}`);
+
+      // --- SMS Logic ---
       if (profile.sms_alerts_enabled && profile.phone_number) {
-        // TODO: Integrate Twilio or MessageBird here
-        console.log(`[SMS] Would send SMS to ${profile.phone_number}: "${type} in ${transaction.title}"`);
+        let smsBody = '';
+        if (type === 'MILESTONE_UPDATE') {
+          smsBody = `Update: ${data.milestoneTitle} is now ${data.status} in transaction "${transaction.title}". View at: ${siteUrl}/dashboard`;
+        } else if (type === 'NEW_MESSAGE') {
+          smsBody = `New message from ${data.authorName} in "${transaction.title}". Reply at: ${siteUrl}/dashboard`;
+        }
+
+        if (smsBody) {
+          try {
+            await twilioClient.messages.create({
+              body: smsBody,
+              from: twilioFrom,
+              to: profile.phone_number,
+            });
+            console.log(`[SMS] Sent to ${profile.phone_number}`);
+          } catch (smsError) {
+            console.error(`[SMS] Failed to send to ${profile.phone_number}:`, smsError);
+          }
+        }
       }
 
       // --- Email Logic ---
