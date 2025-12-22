@@ -42,7 +42,7 @@ export default function Home() {
               </span>
             </h1>
             <p className="mt-4 text-xl text-blue-100 sm:text-2xl">
-              {t('landing.heroTitle1')} • {t('landing.heroTitle2')}
+              {t('landing.heroTitle1')} {t('landing.heroTitle2')}
             </p>
           </div>
         </div>
