@@ -18,6 +18,7 @@ import { EditTransactionTitleModal } from '@/components/features/transaction/Edi
 import { TransactionFilesPanel } from '@/components/features/transaction/TransactionFilesPanel';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import type { Milestone } from '@/types';
+import { useBranding } from '@/contexts/BrandingContext';
 
 interface Transaction {
   id: string;
@@ -33,6 +34,15 @@ interface Transaction {
   created_at: string;
   created_by: string;
   creator_name: string;
+  agent_branding?: {
+    logo?: string | null;
+    colors?: {
+      primary?: string;
+      secondary?: string;
+      background?: string;
+      text?: string;
+    };
+  };
 }
 
 interface Participant {
@@ -75,6 +85,7 @@ export default function TransactionDetailPage({ params }: PageProps) {
   const router = useRouter();
   const { user, profile } = useAuth();
   const { t, tVar, language } = useLanguage();
+  const { setBranding } = useBranding();
   const [transaction, setTransaction] = useState<Transaction | null>(null);
   const [milestones, setMilestones] = useState<TransactionMilestone[]>([]);
   const [participants, setParticipants] = useState<Participant[]>([]);
@@ -93,6 +104,22 @@ export default function TransactionDetailPage({ params }: PageProps) {
     const langKey = `title_${language}` as keyof Transaction;
     return (transaction[langKey] as string) || transaction.title_en || transaction.title || '';
   };
+
+  // Apply branding
+  useEffect(() => {
+    if (transaction?.agent_branding) {
+      const { logo, colors } = transaction.agent_branding;
+      // Update global branding context (Header + Colors)
+      setBranding(logo || null, colors as any || null);
+    }
+    
+    // Cleanup function to reset (optional, but good for SPA navigation)
+    return () => {
+      // If we leave the page, we might want to reset to the logged-in user's branding
+      // But BrandingContext doesn't auto-reset yet. For now, this is acceptable.
+      // Ideally, BrandingContext should listen to the URL or Auth state to reset.
+    };
+  }, [transaction, setBranding]);
 
   useEffect(() => {
     if (!user) {
@@ -128,7 +155,9 @@ export default function TransactionDetailPage({ params }: PageProps) {
           created_at,
           created_by,
           profiles!transactions_created_by_fkey (
-            full_name
+            full_name,
+            branding_logo_url,
+            branding_settings
           )
         `)
         .eq('id', transactionId)
@@ -169,9 +198,14 @@ export default function TransactionDetailPage({ params }: PageProps) {
         }
       }
 
+      const agentProfile = txData.profiles as any;
       setTransaction({
         ...txData,
-        creator_name: (txData.profiles as any)?.full_name || 'Unknown',
+        creator_name: agentProfile?.full_name || 'Unknown',
+        agent_branding: {
+          logo: agentProfile?.branding_logo_url,
+          colors: agentProfile?.branding_settings
+        }
       });
 
       // Fetch milestones
@@ -184,7 +218,7 @@ export default function TransactionDetailPage({ params }: PageProps) {
       if (milestonesError) throw milestonesError;
       setMilestones(milestonesData || []);
 
-      // Fetch participants using RPC function that has access to auth.users
+      // Fetch participants
       let participantsData: any[] = [];
       const { data: rpcData, error: participantsError } = await supabase
         .rpc('get_transaction_participants', {
@@ -193,8 +227,6 @@ export default function TransactionDetailPage({ params }: PageProps) {
 
       if (participantsError) {
         console.warn('[TransactionDetail] Participants RPC failed, using fallback:', participantsError);
-
-        // Fallback: fetch without emails
         const { data: fallbackData, error: fallbackError } = await supabase
           .from('transaction_participants')
           .select(`
@@ -209,11 +241,9 @@ export default function TransactionDetailPage({ params }: PageProps) {
           .eq('transaction_id', transactionId);
 
         if (fallbackError) {
-          console.error('[TransactionDetail] Fallback fetch also failed:', fallbackError);
           throw new Error(`Failed to fetch participants: ${fallbackError.message}`);
         }
 
-        // Map fallback data to expected format (without real emails)
         participantsData = (fallbackData || []).map((p: any) => ({
           id: p.id,
           profile_id: p.profile_id,
@@ -289,8 +319,6 @@ export default function TransactionDetailPage({ params }: PageProps) {
         .eq('id', milestoneId);
 
       if (error) throw error;
-
-      // Refresh milestones
       await fetchTransaction();
     } catch (err: any) {
       console.error('[TransactionDetail] Error updating milestone:', err);
@@ -337,48 +365,29 @@ export default function TransactionDetailPage({ params }: PageProps) {
     try {
       setDeleting(true);
 
-      // First, get file paths before deletion (for storage cleanup)
       const { data: files } = await supabase
         .from('files')
         .select('storage_path')
         .eq('transaction_id', transaction.id);
 
-      // Delete files from storage bucket (if any exist)
-      // This must be done before database deletion
       if (files && files.length > 0) {
         const filePaths = files.map((f: any) => f.storage_path).filter(Boolean);
         if (filePaths.length > 0) {
-          const { error: storageError } = await supabase.storage
-            .from('transaction_files')
-            .remove(filePaths);
-          
-          if (storageError) {
-            console.warn('[TransactionDetail] Storage deletion warning:', storageError);
-            // Continue with database deletion even if storage deletion fails
-          }
+          await supabase.storage.from('transaction_files').remove(filePaths);
         }
       }
 
-      // Use the database function to atomically delete all related data
-      // This ensures all deletions happen in a single transaction
       const { error: deleteError } = await supabase.rpc('delete_transaction', {
         p_transaction_id: transaction.id,
       });
 
       if (deleteError) {
-        // Check if transaction was already deleted (might have been cleaned up)
-        if (deleteError.code === 'PGRST116' || deleteError.message?.includes('not found')) {
-          console.log('[TransactionDetail] Transaction already deleted, redirecting...');
+         if (deleteError.code === 'PGRST116' || deleteError.message?.includes('not found')) {
           router.push('/dashboard');
           return;
         }
         
-        // If function doesn't exist, fall back to manual deletion
-        if (deleteError.message?.includes('Could not find the function') || 
-            deleteError.message?.includes('function') && deleteError.message?.includes('not found')) {
-          console.warn('[TransactionDetail] Delete function not available, using fallback method');
-          
-          // Fallback: manual deletion (less atomic but works)
+        if (deleteError.message?.includes('function') && deleteError.message?.includes('not found')) {
           const deletePromises = [
             supabase.from('files').delete().eq('transaction_id', transaction.id),
             supabase.from('messages').delete().eq('transaction_id', transaction.id),
@@ -390,15 +399,12 @@ export default function TransactionDetailPage({ params }: PageProps) {
           const results = await Promise.all(deletePromises);
           const errors = results.filter(r => r.error).map(r => r.error);
           
-          if (errors.length > 0) {
-            throw errors[0];
-          }
+          if (errors.length > 0) throw errors[0];
         } else {
           throw deleteError;
         }
       }
 
-      // Success - redirect to dashboard
       router.push('/dashboard');
     } catch (err: any) {
       console.error('[TransactionDetail] Error deleting transaction:', err);
@@ -451,10 +457,7 @@ export default function TransactionDetailPage({ params }: PageProps) {
     order: m.order_index,
   }));
 
-  // Handler for milestone toggle from ProgressTracker
-  // milestoneIndex corresponds to the index in both arrays
   const handleProgressTrackerToggle = (milestoneIndex: number, currentlyCompleted: boolean) => {
-    // Use the same index to find the actual milestone from the database
     const milestone = milestones[milestoneIndex];
     if (milestone) {
       handleMilestoneToggle(milestone.id, currentlyCompleted);
@@ -465,7 +468,7 @@ export default function TransactionDetailPage({ params }: PageProps) {
     id: m.id,
     label: language === 'it' ? m.label_it || m.label_en : m.label_en,
   }));
-  const canUploadFiles = !!user; // access already enforced above
+  const canUploadFiles = !!user;
 
   return (
     <div className="max-w-6xl mx-auto p-4 space-y-6">
@@ -477,6 +480,7 @@ export default function TransactionDetailPage({ params }: PageProps) {
           </Button>
         </Link>
         <div className="flex-1">
+          {/* Branding Logo */}
           <div className="flex items-center gap-3 flex-wrap">
             <h1 className="text-3xl font-bold">{getTranslatedTitle()}</h1>
             <Badge variant={transaction.status === 'active' ? 'default' : 'secondary'}>

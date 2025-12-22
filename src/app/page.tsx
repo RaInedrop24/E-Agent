@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle, MessageSquare, Globe, Shield, Settings, Users, Link as LinkIcon, Languages } from 'lucide-react';
+import { CheckCircle, MessageSquare, Globe, Shield, Settings, Users, Link as LinkIcon, Languages, Palette } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { LanguageSelector } from '@/components/ui/language-selector';
@@ -172,6 +172,18 @@ export default function Home() {
               <CardContent>
                 <CardDescription>
                   {t('landing.featureMultilingualDesc')}
+                </CardDescription>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="text-center">
+                <Palette className="mx-auto h-10 w-10 text-rose-500" />
+                <CardTitle>Agency Branding</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription>
+                  Customise the portal with your agency logo and brand colours for a professional co-branded experience.
                 </CardDescription>
               </CardContent>
             </Card>

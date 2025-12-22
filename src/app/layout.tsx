@@ -4,6 +4,7 @@ import "./globals.css";
 import { ConditionalHeader } from "@/components/layout/ConditionalHeader";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import { BrandingProvider } from "@/contexts/BrandingContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,10 +32,12 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <AuthProvider>
-          <LanguageProvider>
-            <ConditionalHeader />
-            {children}
-          </LanguageProvider>
+          <BrandingProvider>
+            <LanguageProvider>
+              <ConditionalHeader />
+              {children}
+            </LanguageProvider>
+          </BrandingProvider>
         </AuthProvider>
       </body>
     </html>

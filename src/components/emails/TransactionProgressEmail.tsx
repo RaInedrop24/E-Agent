@@ -9,6 +9,7 @@ import {
   Preview,
   Section,
   Text,
+  Img,
 } from "@react-email/components";
 import * as React from "react";
 
@@ -38,6 +39,8 @@ interface TransactionProgressEmailProps {
   files: FileAttachment[];
   siteUrl: string;
   transactionUrl: string;
+  brandLogoUrl?: string | null;
+  brandColor?: string | null;
 }
 
 export const TransactionProgressEmail = ({
@@ -49,8 +52,11 @@ export const TransactionProgressEmail = ({
   files,
   siteUrl,
   transactionUrl,
+  brandLogoUrl,
+  brandColor,
 }: TransactionProgressEmailProps) => {
   const previewText = `Transaction Progress for ${transactionTitle}`;
+  const primaryColor = brandColor || "#2563eb";
 
   return (
     <Html>
@@ -58,7 +64,18 @@ export const TransactionProgressEmail = ({
       <Preview>{previewText}</Preview>
       <Body style={main}>
         <Container style={container}>
-          <Heading style={h1}>Transaction Progress Report</Heading>
+          {brandLogoUrl ? (
+            <Section style={{ textAlign: "center", marginBottom: "20px" }}>
+              <Img 
+                src={brandLogoUrl} 
+                alt="Agency Logo" 
+                width="200"
+                style={{ margin: "0 auto", objectFit: "contain", maxHeight: "80px" }} 
+              />
+            </Section>
+          ) : (
+             <Heading style={h1}>Transaction Progress Report</Heading>
+          )}
           
           <Section style={headerSection}>
             <Text style={transactionName}>{transactionTitle}</Text>
@@ -66,7 +83,7 @@ export const TransactionProgressEmail = ({
               <Text style={address}>{propertyAddress}</Text>
             )}
             {propertyUrl && (
-              <Link href={propertyUrl} style={link}>
+              <Link href={propertyUrl} style={{ ...link, color: primaryColor }}>
                 View Property Listing
               </Link>
             )}
@@ -78,7 +95,7 @@ export const TransactionProgressEmail = ({
             <Heading as="h2" style={h2}>Milestones</Heading>
             {milestones.map((m, i) => (
               <div key={i} style={milestoneRow}>
-                <span style={m.completed ? completedDot : pendingDot}>
+                <span style={m.completed ? { ...completedDot, backgroundColor: primaryColor } : pendingDot}>
                   {m.completed ? "✓" : "○"}
                 </span>
                 <span style={m.completed ? completedText : pendingText}>
@@ -131,7 +148,7 @@ export const TransactionProgressEmail = ({
             <Text style={footerText}>
               You can view the full details and continue the conversation on the portal:
             </Text>
-            <Link href={transactionUrl} style={button}>
+            <Link href={transactionUrl} style={{ ...button, backgroundColor: primaryColor }}>
               View Transaction on Site
             </Link>
             <Text style={footerSecondary}>

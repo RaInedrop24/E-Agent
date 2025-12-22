@@ -155,24 +155,21 @@ export default function TransactionsListPage() {
           ) : (
             <div className="space-y-3">
               {transactions.map((transaction) => (
-                <div key={transaction.id} className="flex items-center justify-between rounded-lg border p-4 hover:bg-slate-50 transition-colors">
-                  <div className="space-y-1">
-                    <div className="font-medium flex items-center gap-2">
-                        {getTranslatedTitle(transaction)}
-                        <Badge variant={transaction.status === 'active' ? 'default' : 'secondary'} className="text-xs">
-                            {transaction.status}
-                        </Badge>
+                <Link key={transaction.id} href={`/transaction/${transaction.id}`} className="block">
+                  <div className="flex items-center justify-between rounded-lg border p-4 hover:border-primary hover:bg-slate-50 transition-all cursor-pointer group">
+                    <div className="space-y-1">
+                      <div className="font-medium flex items-center gap-2 group-hover:text-primary transition-colors">
+                          {getTranslatedTitle(transaction)}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {t('transactions.createdOn')} {new Date(transaction.created_at).toLocaleDateString()}
+                      </div>
                     </div>
-                    <div className="text-xs text-muted-foreground">
-                      {t('transactions.createdOn')} {new Date(transaction.created_at).toLocaleDateString()}
-                    </div>
+                    <Badge variant={transaction.status === 'active' ? 'default' : 'secondary'} className="text-xs">
+                        {transaction.status}
+                    </Badge>
                   </div>
-                  <Link href={`/transaction/${transaction.id}`}>
-                    <Button variant="outline" size="sm">
-                      {t('transactions.viewDetails')}
-                    </Button>
-                  </Link>
-                </div>
+                </Link>
               ))}
             </div>
           )}

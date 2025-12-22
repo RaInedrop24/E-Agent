@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -9,9 +9,26 @@ import { supabase } from "@/lib/supabase";
 import { getSupportedLanguages } from "@/lib/ui-translations";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { SupportedLanguage } from "@/lib/translation";
+import { Loader2 } from "lucide-react";
+import { useBranding } from "@/contexts/BrandingContext";
+
+interface BrandColors {
+  primary: string;
+  secondary: string;
+  background: string;
+  text: string;
+}
+
+const DEFAULT_COLORS: BrandColors = {
+  primary: "#0f172a",
+  secondary: "#64748b",
+  background: "#f8fafc",
+  text: "#334155"
+};
 
 export default function SettingsPage() {
   const { t: translate, tVar } = useLanguage();
+  const { setBranding } = useBranding();
   const [fullName, setFullName] = useState("");
   const [preferredLanguage, setPreferredLanguage] = useState<SupportedLanguage>("en");
   const [password, setPassword] = useState("");
@@ -23,14 +40,26 @@ export default function SettingsPage() {
   const [originalAvatarUrl, setOriginalAvatarUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   
+  // Branding State
+  const [brandLogoFile, setBrandLogoFile] = useState<File | null>(null);
+  const [brandLogoUrl, setBrandLogoUrl] = useState<string | null>(null);
+  const [brandColors, setBrandColors] = useState<BrandColors>(DEFAULT_COLORS);
+  const [isGeneratingTheme, setIsGeneratingTheme] = useState(false);
+  
   // Track original values to detect changes
   const [originalFullName, setOriginalFullName] = useState("");
   const [originalLanguage, setOriginalLanguage] = useState<SupportedLanguage>("en");
+  const [originalBrandColors, setOriginalBrandColors] = useState<BrandColors>(DEFAULT_COLORS);
+  const [originalBrandLogoUrl, setOriginalBrandLogoUrl] = useState<string | null>(null);
   
   const supportedLanguages = getSupportedLanguages();
   
   // Check if profile has been modified
-  const hasProfileChanges = fullName !== originalFullName || preferredLanguage !== originalLanguage;
+  const hasProfileChanges = 
+    fullName !== originalFullName || 
+    preferredLanguage !== originalLanguage ||
+    JSON.stringify(brandColors) !== JSON.stringify(originalBrandColors) ||
+    brandLogoUrl !== originalBrandLogoUrl;
 
   // Load current profile data
   useEffect(() => {
@@ -47,12 +76,24 @@ export default function SettingsPage() {
           const name = profile.full_name || "";
           const lang = (profile.preferred_language as SupportedLanguage) || "en";
           const avatar = profile.avatar_url || null;
+          
           setFullName(name);
           setOriginalFullName(name);
           setAvatarUrl(avatar);
           setOriginalAvatarUrl(avatar);
           setPreferredLanguage(lang);
           setOriginalLanguage(lang);
+
+          // Load branding
+          if (profile.branding_logo_url) {
+            setBrandLogoUrl(profile.branding_logo_url);
+            setOriginalBrandLogoUrl(profile.branding_logo_url);
+          }
+          if (profile.branding_settings) {
+            const colors = { ...DEFAULT_COLORS, ...profile.branding_settings };
+            setBrandColors(colors);
+            setOriginalBrandColors(colors);
+          }
         } else if (u.user_metadata?.full_name) {
           setFullName(u.user_metadata.full_name);
           setOriginalFullName(u.user_metadata.full_name);
@@ -77,12 +118,14 @@ export default function SettingsPage() {
       
       const languageChanged = preferredLanguage !== originalLanguage;
       
-      // Update profile in database (full_name and preferred_language)
+      // Update profile in database
       const { error: profileErr } = await supabase
         .from('profiles')
         .update({
           full_name: fullName,
           preferred_language: preferredLanguage,
+          branding_logo_url: brandLogoUrl,
+          branding_settings: brandColors
         })
         .eq('id', session.user.id);
       
@@ -97,10 +140,15 @@ export default function SettingsPage() {
       // Update original values
       setOriginalFullName(fullName);
       setOriginalLanguage(preferredLanguage);
+      setOriginalBrandLogoUrl(brandLogoUrl);
+      setOriginalBrandColors(brandColors);
+      
+      // Update global branding context
+      setBranding(brandLogoUrl, brandColors);
       
       if (languageChanged) {
         // Language changed - reload the page to apply UI translations
-        setStatus("Language updated! Reloading page...");
+        setStatus("Profile saved! Reloading for language change...");
         setTimeout(() => {
           window.location.reload();
         }, 1000);
@@ -141,7 +189,6 @@ export default function SettingsPage() {
     try {
       if (!supabase) throw new Error("Supabase not configured");
       if (!avatarFile) throw new Error("No file selected");
-      // Resize avatar to square 128x128 webp to keep badge crisp and small
       const resized = await resizeImage(avatarFile, 128);
       const { data: session } = await supabase.auth.getUser();
       const uid = session.user?.id;
@@ -154,37 +201,61 @@ export default function SettingsPage() {
       if (upErr) throw upErr;
       const { data: pub } = supabase.storage.from('avatars').getPublicUrl(path);
       const avatarUrl = pub.publicUrl;
-      // Update profile avatar; avoid inserting without role
-      const { error: updateErr, data: updateData, status: updateStatus } = await supabase
+      
+      const { error: updateErr } = await supabase
         .from('profiles')
         .update({ avatar_url: avatarUrl })
-        .eq('id', uid)
-        .select()
-        .maybeSingle();
+        .eq('id', uid);
 
-      if (updateErr && updateErr.code !== 'PGRST116') throw updateErr;
-
-      // If no profile row, create via RPC then update
-      if (!updateData && updateStatus === 406 || (updateErr && updateErr.code === 'PGRST116')) {
-        const { error: createErr } = await supabase.rpc('create_profile_for_current_user');
-        if (createErr) throw createErr;
-        const { error: finalErr } = await supabase
-          .from('profiles')
-          .update({ avatar_url: avatarUrl })
-          .eq('id', uid);
-        if (finalErr) throw finalErr;
-      }
+      if (updateErr) throw updateErr;
 
       setStatus("Avatar uploaded");
       setAvatarUrl(avatarUrl);
-      // Refresh to propagate avatar to header badge immediately
+      setOriginalAvatarUrl(avatarUrl);
+      // Refresh to propagate avatar
       setTimeout(() => window.location.reload(), 400);
     } catch (e: any) {
       setError(e?.message || "Failed to upload avatar");
     }
   };
 
-  // Resize helper: center-crop to square and scale to targetSize
+  const onBrandLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    setBrandLogoFile(file);
+  };
+
+  const onUploadBrandLogo = async () => {
+    setStatus(null);
+    setError(null);
+    setIsGeneratingTheme(true); // Re-using state for "Uploading"
+    try {
+      if (!supabase) throw new Error("Supabase not configured");
+      if (!brandLogoFile) throw new Error("No file selected");
+
+      const { data: session } = await supabase.auth.getUser();
+      const uid = session.user?.id;
+      if (!uid) throw new Error("Not authenticated");
+
+      // Upload Logo
+      const path = `${uid}/brand-logo-${Date.now()}`;
+      const { error: upErr } = await supabase.storage.from('agency-branding').upload(path, brandLogoFile, {
+        upsert: true,
+      });
+      if (upErr) throw upErr;
+
+      const { data: pub } = supabase.storage.from('agency-branding').getPublicUrl(path);
+      const publicUrl = pub.publicUrl;
+      setBrandLogoUrl(publicUrl);
+      setStatus("Logo uploaded! You can now adjust your theme colors below.");
+
+    } catch (e: any) {
+      setError(e?.message || "Failed to upload brand logo");
+    } finally {
+      setIsGeneratingTheme(false);
+    }
+  };
+
+  // Resize helper
   const resizeImage = (file: File, targetSize = 128) => {
     return new Promise<Blob>((resolve, reject) => {
       const img = new Image();
@@ -193,19 +264,13 @@ export default function SettingsPage() {
         canvas.width = targetSize;
         canvas.height = targetSize;
         const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          reject(new Error('Canvas not supported'));
-          return;
-        }
+        if (!ctx) { reject(new Error('Canvas not supported')); return; }
         const minDim = Math.min(img.width, img.height);
         const sx = (img.width - minDim) / 2;
         const sy = (img.height - minDim) / 2;
         ctx.drawImage(img, sx, sy, minDim, minDim, 0, 0, targetSize, targetSize);
         canvas.toBlob((blob) => {
-          if (!blob) {
-            reject(new Error('Failed to create image blob'));
-            return;
-          }
+          if (!blob) { reject(new Error('Failed to create image blob')); return; }
           resolve(blob);
         }, 'image/webp', 0.9);
       };
@@ -215,80 +280,223 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-4 space-y-6">
+    <div className="max-w-3xl mx-auto p-4 space-y-8 pb-20">
       <h1 className="text-2xl font-semibold">{translate('nav.settings')}</h1>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{translate('settings.profile')}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {email && <div className="text-sm text-muted-foreground">{tVar('settings.signedInAs', { email })}</div>}
-          {avatarUrl && (
-            <div className="flex items-center gap-3">
-              <img src={avatarUrl} alt="Avatar" className="h-12 w-12 rounded-full border" />
-              <span className="text-sm text-gray-600">Current avatar</span>
+      <div className="grid gap-8">
+        {/* Profile Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle>{translate('settings.profile')}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {email && <div className="text-sm text-muted-foreground">{tVar('settings.signedInAs', { email })}</div>}
+            
+            <div className="flex items-center gap-6">
+               <div className="shrink-0">
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt="Avatar" className="h-16 w-16 rounded-full border object-cover" />
+                ) : (
+                  <div className="h-16 w-16 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">?</div>
+                )}
+               </div>
+               <div className="space-y-2 flex-1">
+                 <Label htmlFor="avatar">{translate('settings.avatar')}</Label>
+                 <div className="flex gap-2">
+                   <Input id="avatar" type="file" accept="image/*" onChange={onAvatarChange} className="max-w-xs" />
+                   <Button variant="outline" onClick={onUploadAvatar} disabled={!avatarFile}>
+                     {translate('settings.uploadAvatar')}
+                   </Button>
+                 </div>
+               </div>
             </div>
-          )}
-          <div className="space-y-2">
-            <Label htmlFor="full_name">{translate('form.fullName')}</Label>
-            <Input id="full_name" placeholder="Your name" value={fullName} onChange={(e) => setFullName(e.target.value)} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="language">{translate('form.language')}</Label>
-            <Select value={preferredLanguage} onValueChange={(value) => setPreferredLanguage(value as SupportedLanguage)}>
-              <SelectTrigger id="language">
-                <SelectValue placeholder="Select language" />
-              </SelectTrigger>
-              <SelectContent>
-                {supportedLanguages.map((lang) => (
-                  <SelectItem key={lang.code} value={lang.code}>
-                    {lang.nativeName} ({lang.name})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-muted-foreground">
-              {translate('settings.languageDescription')}
-            </p>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="avatar">{translate('settings.avatar')}</Label>
-            <Input id="avatar" type="file" accept="image/*" onChange={onAvatarChange} />
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={onUploadAvatar} disabled={!avatarFile}>{translate('settings.uploadAvatar')}</Button>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="full_name">{translate('form.fullName')}</Label>
+                <Input id="full_name" placeholder="Your name" value={fullName} onChange={(e) => setFullName(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="language">{translate('form.language')}</Label>
+                <Select value={preferredLanguage} onValueChange={(value) => setPreferredLanguage(value as SupportedLanguage)}>
+                  <SelectTrigger id="language">
+                    <SelectValue placeholder="Select language" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {supportedLanguages.map((lang) => (
+                      <SelectItem key={lang.code} value={lang.code}>
+                        {lang.nativeName} ({lang.name})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-          </div>
-            <Button 
+          </CardContent>
+        </Card>
+
+        {/* Brand Identity Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Brand Identity</CardTitle>
+            <CardDescription>
+              Upload your agency logo to automatically generate a matching theme for your client portals and emails.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="flex flex-col sm:flex-row gap-6">
+              <div className="flex-1 space-y-4">
+                <div className="space-y-2">
+                  <Label>Agency Logo</Label>
+                  <div className="flex gap-2">
+                    <Input type="file" accept="image/*" onChange={onBrandLogoChange} />
+                    <Button 
+                      onClick={onUploadBrandLogo} 
+                      disabled={!brandLogoFile || isGeneratingTheme}
+                    >
+                      {isGeneratingTheme ? (
+                        <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Uploading...</>
+                      ) : (
+                        "Upload Logo"
+                      )}
+                    </Button>
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                   <div className="flex items-center justify-between">
+                     <Label>Theme Colors</Label>
+                     <Button 
+                       variant="ghost" 
+                       size="sm" 
+                       className="h-8 text-xs text-muted-foreground hover:text-foreground"
+                       onClick={() => setBrandColors(DEFAULT_COLORS)}
+                     >
+                       Reset to Defaults
+                     </Button>
+                   </div>
+                   <div className="grid grid-cols-2 gap-4">
+                     <div className="space-y-1">
+                       <Label className="text-xs">Primary</Label>
+                       <div className="flex gap-2 items-center">
+                         <input 
+                           type="color" 
+                           value={brandColors.primary} 
+                           onChange={(e) => setBrandColors({...brandColors, primary: e.target.value})}
+                           className="h-8 w-12 cursor-pointer border rounded"
+                         />
+                         <span className="text-xs font-mono">{brandColors.primary}</span>
+                       </div>
+                     </div>
+                     <div className="space-y-1">
+                       <Label className="text-xs">Secondary</Label>
+                       <div className="flex gap-2 items-center">
+                         <input 
+                           type="color" 
+                           value={brandColors.secondary} 
+                           onChange={(e) => setBrandColors({...brandColors, secondary: e.target.value})}
+                           className="h-8 w-12 cursor-pointer border rounded"
+                         />
+                         <span className="text-xs font-mono">{brandColors.secondary}</span>
+                       </div>
+                     </div>
+                     <div className="space-y-1">
+                       <Label className="text-xs">Background</Label>
+                       <div className="flex gap-2 items-center">
+                         <input 
+                           type="color" 
+                           value={brandColors.background} 
+                           onChange={(e) => setBrandColors({...brandColors, background: e.target.value})}
+                           className="h-8 w-12 cursor-pointer border rounded"
+                         />
+                         <span className="text-xs font-mono">{brandColors.background}</span>
+                       </div>
+                     </div>
+                     <div className="space-y-1">
+                       <Label className="text-xs">Text</Label>
+                       <div className="flex gap-2 items-center">
+                         <input 
+                           type="color" 
+                           value={brandColors.text} 
+                           onChange={(e) => setBrandColors({...brandColors, text: e.target.value})}
+                           className="h-8 w-12 cursor-pointer border rounded"
+                         />
+                         <span className="text-xs font-mono">{brandColors.text}</span>
+                       </div>
+                     </div>
+                   </div>
+                </div>
+              </div>
+
+              {/* Preview Card */}
+              <div className="w-full sm:w-64 shrink-0">
+                <Label className="mb-2 block">Live Preview</Label>
+                <div 
+                  className="rounded-lg border shadow-sm p-4 flex flex-col items-center gap-3 text-center"
+                  style={{ backgroundColor: brandColors.background }}
+                >
+                  {brandLogoUrl ? (
+                    <img src={brandLogoUrl} alt="Logo Preview" className="h-12 object-contain" />
+                  ) : (
+                    <div className="h-12 w-12 bg-gray-200 rounded flex items-center justify-center text-xs text-gray-400">Logo</div>
+                  )}
+                  
+                  <div className="space-y-1">
+                    <h3 className="font-semibold text-sm" style={{ color: brandColors.text }}>Agent Portal</h3>
+                    <p className="text-xs opacity-80" style={{ color: brandColors.text }}>Welcome back!</p>
+                  </div>
+                  
+                  <button 
+                    className="text-xs px-3 py-1.5 rounded-md font-medium text-white w-full"
+                    style={{ backgroundColor: brandColors.primary }}
+                  >
+                    View Properties
+                  </button>
+                  <button 
+                    className="text-xs px-3 py-1.5 rounded-md font-medium w-full border"
+                    style={{ borderColor: brandColors.secondary, color: brandColors.secondary }}
+                  >
+                    Contact Agent
+                  </button>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Security Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle>{translate('settings.security')}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="password">{translate('form.newPassword')}</Label>
+              <Input id="password" type="password" placeholder="********" value={password} onChange={(e) => setPassword(e.target.value)} />
+            </div>
+            <Button onClick={onChangePassword} variant="outline">{translate('settings.changePassword')}</Button>
+          </CardContent>
+        </Card>
+
+        {/* Global Save Button */}
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-sm border-t flex justify-end gap-4 max-w-5xl mx-auto w-full z-10">
+           {status && <div className="flex items-center text-sm text-green-600 mr-auto">{status}</div>}
+           {error && <div className="flex items-center text-sm text-red-600 mr-auto">{error}</div>}
+           
+           <Button 
             onClick={onSaveProfile} 
             disabled={!hasProfileChanges || saving}
+            size="lg"
+            className="shadow-lg"
           >
-            {saving ? translate('settings.saving') : translate('settings.saveProfile')}
+            {saving ? (
+              <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> {translate('settings.saving')}</>
+            ) : (
+              translate('settings.saveProfile')
+            )}
           </Button>
-          {!hasProfileChanges && !status && !error && (
-            <p className="text-xs text-muted-foreground">
-              {translate('settings.makeChanges')}
-            </p>
-          )}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>{translate('settings.security')}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="password">{translate('form.newPassword')}</Label>
-            <Input id="password" type="password" placeholder="********" value={password} onChange={(e) => setPassword(e.target.value)} />
-          </div>
-          <Button onClick={onChangePassword}>{translate('settings.changePassword')}</Button>
-        </CardContent>
-      </Card>
-
-      {status && <div className="text-sm text-green-600">{status}</div>}
-      {error && <div className="text-sm text-red-600">{error}</div>}
+        </div>
+      </div>
     </div>
   );
 }
-

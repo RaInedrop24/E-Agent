@@ -40,7 +40,7 @@ export async function POST(
     // Check if user is a participant or creator
     const { data: tx, error: txError } = await supabaseAdmin
       .from('transactions')
-      .select('*, profiles!transactions_created_by_fkey(full_name)')
+      .select('*, profiles!transactions_created_by_fkey(full_name, branding_logo_url, branding_settings)')
       .eq('id', transactionId)
       .single();
 
@@ -59,6 +59,13 @@ export async function POST(
     if (!isCreator && !participant) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
+
+    // Extract branding
+    const agentProfile = tx.profiles as any;
+    const brandLogoUrl = agentProfile?.branding_logo_url;
+    // branding_settings might be null or json
+    const brandSettings = agentProfile?.branding_settings; 
+    const brandColor = brandSettings?.primary;
 
     // Fetch all data
     const [milestonesRes, messagesRes, filesRes] = await Promise.all([
@@ -122,6 +129,8 @@ export async function POST(
       })),
       siteUrl,
       transactionUrl,
+      brandLogoUrl,
+      brandColor,
     };
 
     // Send email
