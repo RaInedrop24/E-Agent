@@ -307,7 +307,7 @@ export default function TransactionDetailPage({ params }: PageProps) {
   };
 
   const handleMilestoneToggle = async (milestoneId: string, currentlyCompleted: boolean) => {
-    if (!profile?.role === 'agent') return; // Only agents can toggle (frontend check)
+    if (profile?.role !== 'agent') return; // Only agents can toggle (frontend check)
 
     try {
       const result = await toggleMilestone(transactionId, milestoneId, currentlyCompleted);
