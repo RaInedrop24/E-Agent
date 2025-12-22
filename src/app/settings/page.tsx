@@ -165,6 +165,8 @@ export default function SettingsPage() {
       const { data: session } = await supabase.auth.getUser();
       if (!session.user) throw new Error("Not authenticated");
 
+      const languageChanged = preferredLanguage !== originalLanguage;
+
       // Validation
       if (smsAlerts && !phoneNumber) {
         throw new Error("Phone number is required for SMS alerts");
