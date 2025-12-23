@@ -9,6 +9,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { MessageCircle, Send, Languages, Globe } from 'lucide-react';
 import type { SupportedLanguage } from '@/lib/translation';
+import { notifyNewMessage } from '@/app/actions/transaction';
 
 interface MessagingMessage {
   id: string;
@@ -184,6 +185,10 @@ export function MessagingPanel({ transactionId, messages: initialMessages, onRef
 
       setMessages([...messages, newMsg]);
       setNewMessage('');
+
+      // Trigger notifications
+      await notifyNewMessage(transactionId, user.id, newMessage.trim());
+
       onRefresh();
     } catch (error) {
       console.error('Failed to send message:', error);

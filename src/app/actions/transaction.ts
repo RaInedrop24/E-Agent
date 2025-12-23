@@ -92,3 +92,109 @@ export async function toggleMilestone(
 
   return { success: true };
 }
+
+export async function notifyFileUpload(
+  transactionId: string,
+  fileName: string,
+  uploaderId: string
+) {
+  // 1. Authenticate User via cookie
+  const cookieStore = await cookies();
+  const authCookie = cookieStore.get('sb-skvfgvlwccxetglmfhpm-auth-token');
+
+  if (!authCookie?.value) {
+    return { error: 'Unauthorized: No session' };
+  }
+
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      }
+    }
+  );
+
+  try {
+    const sessionData = JSON.parse(authCookie.value);
+    await supabase.auth.setSession({
+      access_token: sessionData.access_token,
+      refresh_token: sessionData.refresh_token,
+    });
+
+    // Fetch uploader's name
+    const { data: profile } = await supabase.from('profiles').select('full_name').eq('id', uploaderId).single();
+    const uploaderName = profile?.full_name || 'A user';
+
+    // Send notifications
+    await sendNotifications({
+      transactionId,
+      triggerUserId: uploaderId,
+      type: 'FILE_UPLOAD',
+      data: {
+        fileName,
+        uploaderName,
+      }
+    });
+
+    return { success: true };
+  } catch (error: any) {
+    console.error('[notifyFileUpload] Error:', error);
+    return { error: error.message || 'Failed to send notifications' };
+  }
+}
+
+export async function notifyNewMessage(
+  transactionId: string,
+  authorId: string,
+  messageContent: string
+) {
+  // 1. Authenticate User via cookie
+  const cookieStore = await cookies();
+  const authCookie = cookieStore.get('sb-skvfgvlwccxetglmfhpm-auth-token');
+
+  if (!authCookie?.value) {
+    return { error: 'Unauthorized: No session' };
+  }
+
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      }
+    }
+  );
+
+  try {
+    const sessionData = JSON.parse(authCookie.value);
+    await supabase.auth.setSession({
+      access_token: sessionData.access_token,
+      refresh_token: sessionData.refresh_token,
+    });
+
+    // Fetch author's name
+    const { data: profile } = await supabase.from('profiles').select('full_name').eq('id', authorId).single();
+    const authorName = profile?.full_name || 'A user';
+
+    // Send notifications
+    await sendNotifications({
+      transactionId,
+      triggerUserId: authorId,
+      type: 'NEW_MESSAGE',
+      data: {
+        authorName,
+        content: messageContent,
+      }
+    });
+
+    return { success: true };
+  } catch (error: any) {
+    console.error('[notifyNewMessage] Error:', error);
+    return { error: error.message || 'Failed to send notifications' };
+  }
+}

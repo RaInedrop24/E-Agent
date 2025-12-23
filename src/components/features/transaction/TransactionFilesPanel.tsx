@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Download, Loader2, Paperclip } from 'lucide-react';
+import { notifyFileUpload } from '@/app/actions/transaction';
 
 type MilestoneOption = {
   id: string;
@@ -149,6 +150,9 @@ export function TransactionFilesPanel({
       });
 
       if (insertError) throw insertError;
+
+      // Trigger notifications
+      await notifyFileUpload(transactionId, selectedFile.name, user.id);
 
       setSelectedFile(null);
       setSelectedMilestone(null);
