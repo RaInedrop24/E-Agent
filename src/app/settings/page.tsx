@@ -41,6 +41,7 @@ const COUNTRY_CODES = [
 export default function SettingsPage() {
   const { t: translate, tVar } = useLanguage();
   const { setBranding } = useBranding();
+  const [role, setRole] = useState<string | null>(null);
   const [fullName, setFullName] = useState("");
   const [preferredLanguage, setPreferredLanguage] = useState<SupportedLanguage>("en");
   const [password, setPassword] = useState("");
@@ -99,6 +100,7 @@ export default function SettingsPage() {
         setEmail(u.email ?? null);
         const { data: profile } = await supabase.from('profiles').select('*').eq('id', u.id).maybeSingle();
         if (profile) {
+          setRole(profile.role);
           const name = profile.full_name || "";
           const lang = (profile.preferred_language as SupportedLanguage) || "en";
           const avatar = profile.avatar_url || null;
@@ -462,133 +464,135 @@ export default function SettingsPage() {
         </Card>
 
         {/* Brand Identity Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Brand Identity</CardTitle>
-            <CardDescription>
-              Upload your agency logo to automatically generate a matching theme for your client portals and emails.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="flex flex-col sm:flex-row gap-6">
-              <div className="flex-1 space-y-4">
-                <div className="space-y-2">
-                  <Label>Agency Logo</Label>
-                  <div className="flex gap-2">
-                    <Input type="file" accept="image/*" onChange={onBrandLogoChange} />
-                    <Button 
-                      onClick={onUploadBrandLogo} 
-                      disabled={!brandLogoFile || isGeneratingTheme}
-                    >
-                      {isGeneratingTheme ? (
-                        <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Uploading...</>
-                      ) : (
-                        "Upload Logo"
-                      )}
-                    </Button>
+        {role === 'agent' && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Brand Identity</CardTitle>
+              <CardDescription>
+                Upload your agency logo to automatically generate a matching theme for your client portals and emails.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex flex-col sm:flex-row gap-6">
+                <div className="flex-1 space-y-4">
+                  <div className="space-y-2">
+                    <Label>Agency Logo</Label>
+                    <div className="flex gap-2">
+                      <Input type="file" accept="image/*" onChange={onBrandLogoChange} />
+                      <Button 
+                        onClick={onUploadBrandLogo} 
+                        disabled={!brandLogoFile || isGeneratingTheme}
+                      >
+                        {isGeneratingTheme ? (
+                          <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Uploading...</>
+                        ) : (
+                          "Upload Logo"
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                     <div className="flex items-center justify-between">
+                       <Label>Theme Colors</Label>
+                       <Button 
+                         variant="ghost" 
+                         size="sm" 
+                         className="h-8 text-xs text-muted-foreground hover:text-foreground"
+                         onClick={() => setBrandColors(DEFAULT_COLORS)}
+                       >
+                         Reset to Defaults
+                       </Button>
+                     </div>
+                     <div className="grid grid-cols-2 gap-4">
+                       <div className="space-y-1">
+                         <Label className="text-xs">Primary</Label>
+                         <div className="flex gap-2 items-center">
+                           <input 
+                             type="color" 
+                             value={brandColors.primary} 
+                             onChange={(e) => setBrandColors({...brandColors, primary: e.target.value})}
+                             className="h-8 w-12 cursor-pointer border rounded"
+                           />
+                           <span className="text-xs font-mono">{brandColors.primary}</span>
+                         </div>
+                       </div>
+                       <div className="space-y-1">
+                         <Label className="text-xs">Secondary</Label>
+                         <div className="flex gap-2 items-center">
+                           <input 
+                             type="color" 
+                             value={brandColors.secondary} 
+                             onChange={(e) => setBrandColors({...brandColors, secondary: e.target.value})}
+                             className="h-8 w-12 cursor-pointer border rounded"
+                           />
+                           <span className="text-xs font-mono">{brandColors.secondary}</span>
+                         </div>
+                       </div>
+                       <div className="space-y-1">
+                         <Label className="text-xs">Background</Label>
+                         <div className="flex gap-2 items-center">
+                           <input 
+                             type="color" 
+                             value={brandColors.background} 
+                             onChange={(e) => setBrandColors({...brandColors, background: e.target.value})}
+                             className="h-8 w-12 cursor-pointer border rounded"
+                           />
+                           <span className="text-xs font-mono">{brandColors.background}</span>
+                         </div>
+                       </div>
+                       <div className="space-y-1">
+                         <Label className="text-xs">Text</Label>
+                         <div className="flex gap-2 items-center">
+                           <input 
+                             type="color" 
+                             value={brandColors.text} 
+                             onChange={(e) => setBrandColors({...brandColors, text: e.target.value})}
+                             className="h-8 w-12 cursor-pointer border rounded"
+                           />
+                           <span className="text-xs font-mono">{brandColors.text}</span>
+                         </div>
+                       </div>
+                     </div>
                   </div>
                 </div>
-                
-                <div className="space-y-3">
-                   <div className="flex items-center justify-between">
-                     <Label>Theme Colors</Label>
-                     <Button 
-                       variant="ghost" 
-                       size="sm" 
-                       className="h-8 text-xs text-muted-foreground hover:text-foreground"
-                       onClick={() => setBrandColors(DEFAULT_COLORS)}
-                     >
-                       Reset to Defaults
-                     </Button>
-                   </div>
-                   <div className="grid grid-cols-2 gap-4">
-                     <div className="space-y-1">
-                       <Label className="text-xs">Primary</Label>
-                       <div className="flex gap-2 items-center">
-                         <input 
-                           type="color" 
-                           value={brandColors.primary} 
-                           onChange={(e) => setBrandColors({...brandColors, primary: e.target.value})}
-                           className="h-8 w-12 cursor-pointer border rounded"
-                         />
-                         <span className="text-xs font-mono">{brandColors.primary}</span>
-                       </div>
-                     </div>
-                     <div className="space-y-1">
-                       <Label className="text-xs">Secondary</Label>
-                       <div className="flex gap-2 items-center">
-                         <input 
-                           type="color" 
-                           value={brandColors.secondary} 
-                           onChange={(e) => setBrandColors({...brandColors, secondary: e.target.value})}
-                           className="h-8 w-12 cursor-pointer border rounded"
-                         />
-                         <span className="text-xs font-mono">{brandColors.secondary}</span>
-                       </div>
-                     </div>
-                     <div className="space-y-1">
-                       <Label className="text-xs">Background</Label>
-                       <div className="flex gap-2 items-center">
-                         <input 
-                           type="color" 
-                           value={brandColors.background} 
-                           onChange={(e) => setBrandColors({...brandColors, background: e.target.value})}
-                           className="h-8 w-12 cursor-pointer border rounded"
-                         />
-                         <span className="text-xs font-mono">{brandColors.background}</span>
-                       </div>
-                     </div>
-                     <div className="space-y-1">
-                       <Label className="text-xs">Text</Label>
-                       <div className="flex gap-2 items-center">
-                         <input 
-                           type="color" 
-                           value={brandColors.text} 
-                           onChange={(e) => setBrandColors({...brandColors, text: e.target.value})}
-                           className="h-8 w-12 cursor-pointer border rounded"
-                         />
-                         <span className="text-xs font-mono">{brandColors.text}</span>
-                       </div>
-                     </div>
-                   </div>
-                </div>
-              </div>
 
-              {/* Preview Card */}
-              <div className="w-full sm:w-64 shrink-0">
-                <Label className="mb-2 block">Live Preview</Label>
-                <div 
-                  className="rounded-lg border shadow-sm p-4 flex flex-col items-center gap-3 text-center"
-                  style={{ backgroundColor: brandColors.background }}
-                >
-                  {brandLogoUrl ? (
-                    <img src={brandLogoUrl} alt="Logo Preview" className="h-12 object-contain" />
-                  ) : (
-                    <div className="h-12 w-12 bg-gray-200 rounded flex items-center justify-center text-xs text-gray-400">Logo</div>
-                  )}
-                  
-                  <div className="space-y-1">
-                    <h3 className="font-semibold text-sm" style={{ color: brandColors.text }}>Agent Portal</h3>
-                    <p className="text-xs opacity-80" style={{ color: brandColors.text }}>Welcome back!</p>
+                {/* Preview Card */}
+                <div className="w-full sm:w-64 shrink-0">
+                  <Label className="mb-2 block">Live Preview</Label>
+                  <div 
+                    className="rounded-lg border shadow-sm p-4 flex flex-col items-center gap-3 text-center"
+                    style={{ backgroundColor: brandColors.background }}
+                  >
+                    {brandLogoUrl ? (
+                      <img src={brandLogoUrl} alt="Logo Preview" className="h-12 object-contain" />
+                    ) : (
+                      <div className="h-12 w-12 bg-gray-200 rounded flex items-center justify-center text-xs text-gray-400">Logo</div>
+                    )}
+                    
+                    <div className="space-y-1">
+                      <h3 className="font-semibold text-sm" style={{ color: brandColors.text }}>Agent Portal</h3>
+                      <p className="text-xs opacity-80" style={{ color: brandColors.text }}>Welcome back!</p>
+                    </div>
+                    
+                    <button 
+                      className="text-xs px-3 py-1.5 rounded-md font-medium text-white w-full"
+                      style={{ backgroundColor: brandColors.primary }}
+                    >
+                      View Properties
+                    </button>
+                    <button 
+                      className="text-xs px-3 py-1.5 rounded-md font-medium w-full border"
+                      style={{ borderColor: brandColors.secondary, color: brandColors.secondary }}
+                    >
+                      Contact Agent
+                    </button>
                   </div>
-                  
-                  <button 
-                    className="text-xs px-3 py-1.5 rounded-md font-medium text-white w-full"
-                    style={{ backgroundColor: brandColors.primary }}
-                  >
-                    View Properties
-                  </button>
-                  <button 
-                    className="text-xs px-3 py-1.5 rounded-md font-medium w-full border"
-                    style={{ borderColor: brandColors.secondary, color: brandColors.secondary }}
-                  >
-                    Contact Agent
-                  </button>
                 </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Security Section */}
         <Card>

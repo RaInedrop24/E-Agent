@@ -114,10 +114,8 @@ export async function sendNotifications({ transactionId, triggerUserId, type, da
       }
 
       // --- Email Logic ---
-      if (profile.email_alerts_enabled && profile.email) { // Ensure email is available (Supabase Auth usually handles this, but profile table might not have it synced if not customized)
-        // Wait, the 'profiles' table doesn't have an 'email' column in the default schema I saw earlier.
-        // It relies on the auth.users table.
-        // I need to fetch the email from auth.users using the admin client.
+      if (profile.email_alerts_enabled) {
+        // Fetch email from auth.users table using the admin client
         const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUserById(profile.id);
         
         if (userError || !userData.user || !userData.user.email) {

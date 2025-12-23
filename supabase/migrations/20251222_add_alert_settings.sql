@@ -1,6 +1,6 @@
 -- Add alert settings to profiles table
-ALTER TABLE public.profiles 
-ADD COLUMN IF NOT EXISTS email_alerts_enabled boolean DEFAULT true,
+ALTER TABLE public.profiles
+ADD COLUMN IF NOT EXISTS email_alerts_enabled boolean DEFAULT false,
 ADD COLUMN IF NOT EXISTS sms_alerts_enabled boolean DEFAULT false,
 ADD COLUMN IF NOT EXISTS phone_number text;
 
