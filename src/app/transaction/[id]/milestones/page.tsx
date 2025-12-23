@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useSuperAdmin } from '@/hooks/useSuperAdmin';
 import { supabase } from '@/lib/supabase';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -37,6 +38,7 @@ export default function MilestonePage({ params }: PageProps) {
   const router = useRouter();
   const { user, profile } = useAuth();
   const { language } = useLanguage();
+  const { isSuperAdmin, loading: superAdminLoading } = useSuperAdmin();
   const [milestones, setMilestones] = useState<Milestone[]>([]);
   const [transactionTitle, setTransactionTitle] = useState('');
   const [loading, setLoading] = useState(true);
@@ -51,12 +53,16 @@ export default function MilestonePage({ params }: PageProps) {
       router.push('/login');
       return;
     }
-    if (profile?.role !== 'agent') {
+    // Wait for super admin check to complete
+    if (superAdminLoading) {
+      return;
+    }
+    if (profile?.role !== 'agent' && !isSuperAdmin) {
       router.push(`/transaction/${transactionId}`);
       return;
     }
     fetchMilestones();
-  }, [user, profile, transactionId]);
+  }, [user, profile, transactionId, isSuperAdmin, superAdminLoading]);
 
   const fetchMilestones = async () => {
     try {
@@ -73,22 +79,37 @@ export default function MilestonePage({ params }: PageProps) {
       if (txError) throw txError;
       if (!txData) throw new Error('Transaction not found');
 
-      // Check if user is creator or participant
+      // Check if user is creator or participant or super admin
       const isCreator = txData.created_by === user?.id;
-      if (!isCreator) {
-        const { data: participantCheck } = await supabase
+
+      console.log('[MilestonePage] Access check:', {
+        isCreator,
+        isSuperAdmin,
+        userId: user?.id,
+        createdBy: txData.created_by
+      });
+
+      if (!isCreator && !isSuperAdmin) {
+        const { data: participantCheck, error: participantError } = await supabase
           .from('transaction_participants')
           .select('id')
           .eq('transaction_id', transactionId)
           .eq('profile_id', user?.id)
           .eq('participant_role', 'agent')
-          .single();
+          .maybeSingle();
+
+        console.log('[MilestonePage] Participant check:', {
+          participantCheck,
+          participantError
+        });
 
         if (!participantCheck) {
           setError('Access denied');
           setLoading(false);
           return;
         }
+      } else {
+        console.log('[MilestonePage] Access granted:', isSuperAdmin ? 'Super Admin' : 'Creator');
       }
 
       setTransactionTitle(txData.title);

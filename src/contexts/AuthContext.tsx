@@ -12,6 +12,7 @@ interface Profile {
   avatar_url: string | null;
   created_at: string;
   updated_at: string;
+  is_super_admin?: boolean;
   branding_logo_url?: string | null;
   branding_settings?: {
     primary?: string;

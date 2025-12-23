@@ -118,7 +118,7 @@ export default function RegisterPage() {
           </Button>
           <p className="text-sm text-muted-foreground">
             Already have an account?{" "}
-            <Link className="underline" href="/(auth)/login">
+            <Link className="underline" href="/login">
               Sign in
             </Link>
           </p>

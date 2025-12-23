@@ -56,7 +56,7 @@ export default function LoginPage() {
           </Button>
           <p className="text-sm text-muted-foreground">
             Don&apos;t have an account?{" "}
-            <Link className="underline" href="/(auth)/register">
+            <Link className="underline" href="/register">
               Register
             </Link>
           </p>

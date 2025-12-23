@@ -1,8 +1,9 @@
 'use client';
 
-import { Menu, LayoutDashboard, Receipt, Plus, Users, BookOpen } from 'lucide-react';
+import { Menu, LayoutDashboard, Receipt, Plus, Users, BookOpen, Shield } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { User } from '@/types';
+import { useSuperAdmin } from '@/hooks/useSuperAdmin';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,6 +23,7 @@ interface HamburgerMenuProps {
 
 export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({ user }) => {
   const { t } = useLanguage();
+  const { isSuperAdmin } = useSuperAdmin();
 
   if (!user) return null;
 
@@ -86,6 +88,19 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({ user }) => {
               <Link href="/milestone-templates" className="flex items-center cursor-pointer">
                 <BookOpen className="mr-2 h-4 w-4" />
                 <span>{t('nav.milestoneTemplates')}</span>
+              </Link>
+            </DropdownMenuItem>
+          </>
+        )}
+
+        {/* Super Admin Dashboard - Super Admins only */}
+        {isSuperAdmin && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link href="/admin/dashboard" className="flex items-center cursor-pointer">
+                <Shield className="mr-2 h-4 w-4 text-blue-600" />
+                <span className="font-medium text-blue-600">Super Admin Dashboard</span>
               </Link>
             </DropdownMenuItem>
           </>

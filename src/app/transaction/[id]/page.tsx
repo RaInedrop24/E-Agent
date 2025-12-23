@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useSuperAdmin } from '@/hooks/useSuperAdmin';
 import { supabase } from '@/lib/supabase';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -86,6 +87,7 @@ export default function TransactionDetailPage({ params }: PageProps) {
   const router = useRouter();
   const { user, profile } = useAuth();
   const { t, tVar, language } = useLanguage();
+  const { isSuperAdmin, loading: superAdminLoading } = useSuperAdmin();
   const { setBranding } = useBranding();
   const [transaction, setTransaction] = useState<Transaction | null>(null);
   const [milestones, setMilestones] = useState<TransactionMilestone[]>([]);
@@ -127,8 +129,11 @@ export default function TransactionDetailPage({ params }: PageProps) {
       router.push('/login');
       return;
     }
-    fetchTransaction();
-  }, [user, transactionId]);
+    // Wait for super admin check to complete before fetching
+    if (!superAdminLoading) {
+      fetchTransaction();
+    }
+  }, [user, transactionId, isSuperAdmin, superAdminLoading]);
 
   const fetchTransaction = async () => {
     try {
@@ -180,23 +185,37 @@ export default function TransactionDetailPage({ params }: PageProps) {
         return;
       }
 
-      // Check access: user must be either creator OR a participant
+      // Check access: user must be either creator OR a participant OR super admin
       const isCreator = txData.created_by === user!.id;
-      
-      if (!isCreator) {
+
+      console.log('[TransactionDetail] Access check:', {
+        isCreator,
+        isSuperAdmin,
+        userId: user!.id,
+        createdBy: txData.created_by
+      });
+
+      if (!isCreator && !isSuperAdmin) {
         // Check if user is a participant
-        const { data: participantCheck } = await supabase
+        const { data: participantCheck, error: participantError } = await supabase
           .from('transaction_participants')
           .select('id')
           .eq('transaction_id', transactionId)
           .eq('profile_id', user!.id)
-          .single();
+          .maybeSingle();
+
+        console.log('[TransactionDetail] Participant check:', {
+          participantCheck,
+          participantError
+        });
 
         if (!participantCheck) {
           setError('You do not have access to this transaction');
           setLoading(false);
           return;
         }
+      } else {
+        console.log('[TransactionDetail] Access granted:', isSuperAdmin ? 'Super Admin' : 'Creator');
       }
 
       const agentProfile = txData.profiles as any;
