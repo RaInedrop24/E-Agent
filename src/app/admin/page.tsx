@@ -216,23 +216,74 @@ export default function AdminDashboardPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
-          <div className="flex flex-wrap gap-2">
-            <Button asChild variant="ghost">
-              <Link href="/debug/session">Session Debug</Link>
-            </Button>
-            <Button asChild variant="ghost">
-              <Link href="/debug/profile">Profile Debug</Link>
-            </Button>
-            <Button asChild variant="ghost">
-              <Link href="/debug/supabase">Supabase Config</Link>
-            </Button>
-            <Button asChild variant="ghost">
-              <Link href="/transactions">Transactions</Link>
-            </Button>
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-sm font-semibold mb-2">Authentication & Session</h3>
+              <div className="flex flex-wrap gap-2">
+                <Button asChild variant="ghost">
+                  <Link href="/debug/session">Session Debug</Link>
+                </Button>
+                <Button asChild variant="ghost">
+                  <Link href="/debug/profile">Profile Debug</Link>
+                </Button>
+                <Button asChild variant="ghost">
+                  <Link href="/debug/supabase">Supabase Config</Link>
+                </Button>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-sm font-semibold mb-2">Notifications & Alerts</h3>
+              <div className="flex flex-wrap gap-2">
+                <Button asChild variant="ghost">
+                  <Link href="/debug/sms-config">SMS Alert Settings</Link>
+                </Button>
+                <Button asChild variant="ghost">
+                  <Link href="/test-sms">Test SMS Sending</Link>
+                </Button>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-sm font-semibold mb-2">Business Data</h3>
+              <div className="flex flex-wrap gap-2">
+                <Button asChild variant="ghost">
+                  <Link href="/transactions">Transactions</Link>
+                </Button>
+                <Button asChild variant="ghost">
+                  <Link href="/buyers">Buyers</Link>
+                </Button>
+              </div>
+            </div>
           </div>
-          <div className="text-sm text-muted-foreground">
+
+          <div className="text-sm text-muted-foreground pt-2 border-t">
             Use the Supabase dashboard scripts (`debug_check_all_policies.sql`, `debug_test_agent_function.sql`) available in the repo when you need deeper visibility.
           </div>
+        </CardContent>
+      </Card>
+
+      {/* TODO: PRODUCTION SECURITY - SUPER ADMIN REQUIRED */}
+      <Card className="border-red-200 bg-red-50">
+        <CardHeader>
+          <CardTitle className="text-red-800">⚠️ Production Security Notice</CardTitle>
+          <CardDescription className="text-red-700">
+            This page is currently accessible to all authenticated users
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm text-red-900">
+          <p className="font-semibold">Before going to production, implement:</p>
+          <ul className="list-disc list-inside space-y-1 ml-2">
+            <li>SUPER ADMIN role in the database (new role type beyond agent/buyer)</li>
+            <li>Server-side middleware to restrict access to /admin/* routes</li>
+            <li>Check user role before rendering this page (redirect non-super-admins)</li>
+            <li>Audit logging for all admin actions</li>
+            <li>Consider IP whitelisting for extra security</li>
+          </ul>
+          <p className="text-xs mt-3 text-red-700">
+            Currently, any authenticated user can access /admin and all debug pages.
+            This is acceptable for development but MUST be secured before production deployment.
+          </p>
         </CardContent>
       </Card>
     </div>

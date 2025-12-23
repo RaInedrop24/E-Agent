@@ -11,8 +11,18 @@ import twilio from 'twilio';
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Twilio Setup
-const twilioClient = twilio(process.env.TWILIO_SID, process.env.TWILIO_SECRET);
+console.log('[Notifications Init] Twilio SID present:', !!process.env.TWILIO_SID);
+console.log('[Notifications Init] Twilio Secret present:', !!process.env.TWILIO_SECRET);
+console.log('[Notifications Init] Twilio Phone Number:', process.env.TWILIO_PHONE_NUMBER);
+
+const twilioClient = process.env.TWILIO_SID && process.env.TWILIO_SECRET
+  ? twilio(process.env.TWILIO_SID, process.env.TWILIO_SECRET)
+  : null;
 const twilioFrom = process.env.TWILIO_PHONE_NUMBER || 'PROPERTY';
+
+if (!twilioClient) {
+  console.warn('[Notifications Init] WARNING: Twilio client not initialized - SMS will not work!');
+}
 
 // Use Admin client to fetch participant details and settings even if RLS would block
 const supabaseAdmin = createClient(
@@ -93,31 +103,38 @@ export async function sendNotifications({ transactionId, triggerUserId, type, da
 
       // --- SMS Logic ---
       if (profile.sms_alerts_enabled && profile.phone_number) {
-        let smsBody = '';
-        if (type === 'MILESTONE_UPDATE') {
-          smsBody = `Update: ${data.milestoneTitle} is now ${data.status} in transaction "${transaction.title}". View at: ${siteUrl}/dashboard`;
-        } else if (type === 'NEW_MESSAGE') {
-          smsBody = `New message from ${data.authorName} in "${transaction.title}". Reply at: ${siteUrl}/dashboard`;
-        } else if (type === 'FILE_UPLOAD') {
-          smsBody = `New file "${data.fileName}" uploaded by ${data.uploaderName} to "${transaction.title}". View at: ${siteUrl}/dashboard`;
-        }
+        if (!twilioClient) {
+          console.error(`[SMS] Cannot send to ${profile.full_name} - Twilio client not initialized. Check TWILIO_SID and TWILIO_SECRET in .env.local`);
+        } else {
+          let smsBody = '';
+          if (type === 'MILESTONE_UPDATE') {
+            smsBody = `Update: ${data.milestoneTitle} is now ${data.status} in transaction "${transaction.title}". View at: ${siteUrl}/dashboard`;
+          } else if (type === 'NEW_MESSAGE') {
+            smsBody = `New message from ${data.authorName} in "${transaction.title}". Reply at: ${siteUrl}/dashboard`;
+          } else if (type === 'FILE_UPLOAD') {
+            smsBody = `New file "${data.fileName}" uploaded by ${data.uploaderName} to "${transaction.title}". View at: ${siteUrl}/dashboard`;
+          }
 
-        if (smsBody) {
-          try {
-            console.log(`[SMS] Attempting to send to ${profile.phone_number}`);
-            const result = await twilioClient.messages.create({
-              body: smsBody,
-              from: twilioFrom,
-              to: profile.phone_number,
-            });
-            console.log(`[SMS] Successfully sent to ${profile.phone_number}. SID: ${result.sid}`);
-          } catch (smsError: any) {
-            console.error(`[SMS] Failed to send to ${profile.phone_number}:`, smsError);
-            console.error(`[SMS] Error details:`, {
-              message: smsError.message,
-              code: smsError.code,
-              status: smsError.status,
-            });
+          if (smsBody) {
+            try {
+              console.log(`[SMS] Attempting to send to ${profile.phone_number}`);
+              console.log(`[SMS] From number: ${twilioFrom}`);
+              console.log(`[SMS] Message: ${smsBody}`);
+              const result = await twilioClient.messages.create({
+                body: smsBody,
+                from: twilioFrom,
+                to: profile.phone_number,
+              });
+              console.log(`[SMS] Successfully sent to ${profile.phone_number}. SID: ${result.sid}, Status: ${result.status}`);
+            } catch (smsError: any) {
+              console.error(`[SMS] Failed to send to ${profile.phone_number}:`, smsError);
+              console.error(`[SMS] Error details:`, {
+                message: smsError.message,
+                code: smsError.code,
+                status: smsError.status,
+                moreInfo: smsError.moreInfo,
+              });
+            }
           }
         }
       } else {

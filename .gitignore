@@ -48,3 +48,6 @@ next-env.d.ts
 test-console.log
 playwright-report/
 test-results/
+
+# Security documentation
+docs/SUPER_ADMIN_SECURITY.md
