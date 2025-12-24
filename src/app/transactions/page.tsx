@@ -138,7 +138,7 @@ export default function TransactionsListPage() {
         if (!agentsError && agentsList) {
           // Add transaction count to each agent
           const agentsWithCounts = agentsList.map((agent: Agent) => {
-            const count = transactionsWithAgent.filter(tx => tx.created_by === agent.id).length;
+            const count = transactionsWithAgent.filter((tx: Transaction) => tx.created_by === agent.id).length;
             return {
               ...agent,
               transaction_count: count,
