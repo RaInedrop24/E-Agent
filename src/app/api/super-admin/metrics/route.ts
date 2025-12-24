@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
       recentActivityResult,
     ] = await Promise.all([
       // Users metrics
-      supabaseAdmin.from('profiles').select('id, role, created_at, is_super_admin'),
+      supabaseAdmin.from('profiles').select('id, role, created_at, is_super_admin, full_name, email'),
 
       // Transactions metrics
       supabaseAdmin.from('transactions').select('id, status, created_at, created_by'),
