@@ -25,6 +25,7 @@ interface Milestone {
   label_de?: string | null;
   label_fr?: string | null;
   label_es?: string | null;
+  label_pl?: string | null;
 }
 
 interface SaveMilestoneTemplateModalProps {
@@ -66,6 +67,7 @@ export function SaveMilestoneTemplateModal({ milestones, onSuccess }: SaveMilest
         label_de: m.label_de || null,
         label_fr: m.label_fr || null,
         label_es: m.label_es || null,
+        label_pl: m.label_pl || null,
       }));
 
       // Call the RPC function

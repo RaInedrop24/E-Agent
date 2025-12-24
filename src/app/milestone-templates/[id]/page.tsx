@@ -271,6 +271,7 @@ export default function EditTemplatePage({ params }: PageProps) {
               label_de: item.label_de,
               label_fr: item.label_fr,
               label_es: item.label_es,
+              label_pl: item.label_pl,
             });
 
           if (error) throw error;
@@ -285,6 +286,7 @@ export default function EditTemplatePage({ params }: PageProps) {
               label_de: item.label_de,
               label_fr: item.label_fr,
               label_es: item.label_es,
+              label_pl: item.label_pl,
               code: item.code,
             })
             .eq('id', item.id);
