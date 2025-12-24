@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { createManagementClient, isManagementAPIConfigured } from '@/lib/supabase-management';
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -36,6 +37,21 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
+    // Check if Management API is configured
+    const hasManagementAPI = isManagementAPIConfigured();
+    let managementMetrics = null;
+
+    if (hasManagementAPI) {
+      try {
+        const managementClient = createManagementClient();
+        managementMetrics = await managementClient.getAllMetrics();
+        // Note: Public Management API v1 doesn't expose usage metrics
+        // We're just verifying the connection works
+      } catch (error: any) {
+        console.error('[Metrics API] Management API error:', error.message);
+      }
+    }
+
     // Fetch all metrics in parallel
     const [
       usersResult,
@@ -48,7 +64,7 @@ export async function GET(request: NextRequest) {
       recentActivityResult,
     ] = await Promise.all([
       // Users metrics
-      supabaseAdmin.from('profiles').select('id, role, created_at, is_super_admin, full_name, email'),
+      supabaseAdmin.from('profiles').select('id, role, created_at, is_super_admin, full_name'),
 
       // Transactions metrics
       supabaseAdmin.from('transactions').select('id, status, created_at, created_by'),
@@ -63,10 +79,10 @@ export async function GET(request: NextRequest) {
       supabaseAdmin.from('files').select('id, file_size, created_at'),
 
       // Buyers
-      supabaseAdmin.from('profiles').select('id, full_name, email, created_at').eq('role', 'buyer'),
+      supabaseAdmin.from('profiles').select('id, full_name, created_at').eq('role', 'buyer'),
 
       // Milestone templates
-      supabaseAdmin.from('milestone_templates').select('id, name, created_by'),
+      supabaseAdmin.from('milestone_templates').select('id, template_name, agent_id'),
 
       // Recent activity (last 30 days)
       supabaseAdmin
@@ -135,31 +151,28 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    // Supabase Pro Limits
+    // Application Metrics (calculated from database)
+    // Note: Supabase's public Management API v1 doesn't expose usage metrics
     const supabaseLimits = {
-      database: {
-        size: { used: 0, limit: 8, unit: 'GB', percentage: 0 }, // Pro: 8GB
-        connections: { used: 0, limit: 200, unit: 'connections' }, // Can't easily measure without direct pg access
-      },
       storage: {
         size: {
           used: Number(totalStorageGB.toFixed(2)),
           limit: 100,
           unit: 'GB',
-          percentage: Number((totalStorageGB / 100 * 100).toFixed(2))
-        }, // Pro: 100GB
+          percentage: Number((totalStorageGB / 100 * 100).toFixed(2)),
+          source: 'calculated'
+        },
       },
-      bandwidth: {
-        egress: { used: 0, limit: 250, unit: 'GB/month' }, // Pro: 250GB
-      },
-      auth: {
-        mau: {
+      users: {
+        total: {
           used: users.length,
           limit: 100000,
-          unit: 'MAU',
-          percentage: Number((users.length / 100000 * 100).toFixed(2))
-        }, // Pro: 100k MAU
+          unit: 'users',
+          percentage: Number((users.length / 100000 * 100).toFixed(2)),
+          source: 'calculated'
+        },
       },
+      hasManagementAPI,
     };
 
     return NextResponse.json({
@@ -178,7 +191,11 @@ export async function GET(request: NextRequest) {
         totalMessages: messagesResult.data?.length || 0,
         totalFiles: filesResult.data?.length || 0,
         storageUsedGB: Number(totalStorageGB.toFixed(2)),
-        totalTemplates: templatesResult.data?.length || 0,
+        totalTemplates: (() => {
+          // Deduplicate templates by name
+          const uniqueNames = new Set((templatesResult.data || []).map((t: any) => t.template_name));
+          return uniqueNames.size;
+        })(),
       },
       topAgents,
       activityTrends: activityByDay,

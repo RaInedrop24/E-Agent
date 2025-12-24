@@ -50,35 +50,58 @@ export async function GET(request: NextRequest) {
     console.log('[Templates API] User is super admin, fetching templates');
 
     // Fetch all milestone templates with creator info
+    // Note: column is 'agent_id', not 'created_by'
     const { data: templatesData, error: templatesError } = await supabaseAdmin
       .from('milestone_templates')
       .select(`
-        *,
-        profiles!milestone_templates_created_by_fkey(id, full_name)
+        id,
+        agent_id,
+        template_name,
+        description,
+        created_at,
+        updated_at,
+        profiles:agent_id(id, full_name)
       `)
+      .order('template_name', { ascending: true })
       .order('created_at', { ascending: false });
 
-    if (templatesError) throw templatesError;
+    if (templatesError) {
+      console.error('[Templates API] Error fetching templates:', templatesError);
+      throw templatesError;
+    }
+
+    // Deduplicate by template name - keep the most recent one for each name
+    const uniqueTemplates = new Map<string, any>();
+    (templatesData || []).forEach((template: any) => {
+      const existingTemplate = uniqueTemplates.get(template.template_name);
+      if (!existingTemplate || new Date(template.created_at) > new Date(existingTemplate.created_at)) {
+        uniqueTemplates.set(template.template_name, template);
+      }
+    });
+
+    const deduplicatedTemplates = Array.from(uniqueTemplates.values());
 
     // For each template, get milestone count and usage count
     const templatesWithDetails = await Promise.all(
-      (templatesData || []).map(async (template: any) => {
+      deduplicatedTemplates.map(async (template: any) => {
         try {
-          // Get milestones for this template
+          // Get milestones for this template (including Polish)
           const { data: milestonesData, count: milestoneCount } = await supabaseAdmin
             .from('milestone_template_items')
-            .select('label_en, label_it, label_de, label_fr, label_es, order_index', { count: 'exact' })
+            .select('label_en, label_it, label_de, label_fr, label_es, label_pl, order_index', { count: 'exact' })
             .eq('template_id', template.id)
             .order('order_index');
 
-          // Count how many transactions use this template
-          const { count: usageCount } = await supabaseAdmin
-            .from('transactions')
-            .select('*', { count: 'exact', head: true })
-            .eq('milestone_template_id', template.id);
+          // Note: milestone_template_id column doesn't exist in transactions table yet
+          // Usage count feature would require adding this column in a future migration
+          const usageCount = 0;
 
           return {
-            ...template,
+            id: template.id,
+            name: template.template_name, // Map template_name to name for frontend
+            description: template.description,
+            created_at: template.created_at,
+            created_by: template.agent_id,
             creator_name: template.profiles?.full_name || 'Unknown',
             milestone_count: milestoneCount || 0,
             usage_count: usageCount || 0,
@@ -87,7 +110,11 @@ export async function GET(request: NextRequest) {
         } catch (err) {
           console.error(`Error fetching details for template ${template.id}:`, err);
           return {
-            ...template,
+            id: template.id,
+            name: template.template_name, // Map template_name to name for frontend
+            description: template.description,
+            created_at: template.created_at,
+            created_by: template.agent_id,
             creator_name: template.profiles?.full_name || 'Unknown',
             milestone_count: 0,
             usage_count: 0,

@@ -23,6 +23,7 @@ import {
   Circle,
   Loader2,
   ArrowRight,
+  ExternalLink,
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 
@@ -54,19 +55,20 @@ interface Metrics {
     count: number;
   }>;
   supabaseLimits: {
-    database: {
-      size: { used: number; limit: number; unit: string; percentage: number };
-      connections: { used: number; limit: number; unit: string };
-    };
     storage: {
-      size: { used: number; limit: number; unit: string; percentage: number };
+      size: { used: number; limit: number; unit: string; percentage: number; source: string };
     };
-    bandwidth: {
-      egress: { used: number; limit: number; unit: string };
+    database?: {
+      size: { used: number; limit: number; unit: string; percentage: number; source: string };
     };
-    auth: {
-      mau: { used: number; limit: number; unit: string; percentage: number };
+    bandwidth?: {
+      egress: { used: number; limit: number; unit: string; percentage: number; source: string };
     };
+    users: {
+      total: { used: number; limit: number; unit: string; percentage: number; source: string };
+      mau?: { used: number; limit: number; unit: string; percentage: number; source: string };
+    };
+    hasManagementAPI: boolean;
   };
 }
 
@@ -74,6 +76,10 @@ export default function SuperAdminDashboard() {
   const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Extract project ref from Supabase URL
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+  const projectRef = supabaseUrl.match(/https:\/\/([^.]+)\.supabase\.co/)?.[1] || '';
 
   useEffect(() => {
     fetchMetrics();
@@ -196,14 +202,66 @@ export default function SuperAdminDashboard() {
         </Card>
       </div>
 
-      {/* Supabase Pro Limits */}
+      {/* System Health Indicators */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Activity className="h-5 w-5" />
+            System Health
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="flex items-center gap-3">
+              <CheckCircle2 className="h-8 w-8 text-green-600" />
+              <div>
+                <p className="font-medium">Database</p>
+                <p className="text-sm text-muted-foreground">Operational</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <CheckCircle2 className="h-8 w-8 text-green-600" />
+              <div>
+                <p className="font-medium">Storage</p>
+                <p className="text-sm text-muted-foreground">{supabaseLimits.storage.size.percentage}% used</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <CheckCircle2 className="h-8 w-8 text-green-600" />
+              <div>
+                <p className="font-medium">Authentication</p>
+                <p className="text-sm text-muted-foreground">Active</p>
+              </div>
+            </div>
+            <a
+              href={projectRef ? `https://supabase.com/dashboard/project/${projectRef}` : 'https://supabase.com/dashboard'}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 hover:bg-slate-50 p-2 rounded-lg transition-colors cursor-pointer group"
+            >
+              <CheckCircle2 className="h-8 w-8 text-green-600" />
+              <div className="flex-1">
+                <p className="font-medium group-hover:text-blue-600 transition-colors">Management API</p>
+                <p className="text-sm text-muted-foreground flex items-center gap-1">
+                  Connected
+                  <ExternalLink className="h-3 w-3" />
+                </p>
+              </div>
+            </a>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Resource Monitoring */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Database className="h-5 w-5" />
-            Supabase Pro Plan Limits
+            Resource Monitoring
           </CardTitle>
-          <CardDescription>Monitor resource usage against plan limits</CardDescription>
+          <CardDescription>
+            Application metrics calculated from database records
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Storage */}
@@ -211,51 +269,35 @@ export default function SuperAdminDashboard() {
             <div className="flex items-center justify-between text-sm">
               <span className="font-medium flex items-center gap-2">
                 <HardDrive className="h-4 w-4" />
-                Storage
+                File Storage
               </span>
               <span className="text-muted-foreground">
-                {supabaseLimits.storage.size.used} / {supabaseLimits.storage.size.limit} {supabaseLimits.storage.size.unit}
+                {supabaseLimits.storage.size.used} {supabaseLimits.storage.size.unit}
               </span>
             </div>
             <Progress value={supabaseLimits.storage.size.percentage} />
             <p className="text-xs text-muted-foreground">
-              {supabaseLimits.storage.size.percentage}% used
+              Calculated from uploaded file sizes
             </p>
           </div>
 
-          {/* Auth MAU */}
+          {/* Total Users */}
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
               <span className="font-medium flex items-center gap-2">
-                <UserCheck className="h-4 w-4" />
-                Monthly Active Users
+                <Users className="h-4 w-4" />
+                Total Users
               </span>
               <span className="text-muted-foreground">
-                {supabaseLimits.auth.mau.used.toLocaleString()} / {supabaseLimits.auth.mau.limit.toLocaleString()} {supabaseLimits.auth.mau.unit}
+                {supabaseLimits.users.total.used.toLocaleString()} {supabaseLimits.users.total.unit}
               </span>
             </div>
-            <Progress value={supabaseLimits.auth.mau.percentage} />
+            <Progress value={supabaseLimits.users.total.percentage} />
             <p className="text-xs text-muted-foreground">
-              {supabaseLimits.auth.mau.percentage}% used
+              {overview.totalAgents} agents • {overview.totalBuyers} buyers
             </p>
           </div>
 
-          {/* Bandwidth */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <span className="font-medium flex items-center gap-2">
-                <Wifi className="h-4 w-4" />
-                Bandwidth (Egress)
-              </span>
-              <span className="text-muted-foreground">
-                {supabaseLimits.bandwidth.egress.used} / {supabaseLimits.bandwidth.egress.limit} {supabaseLimits.bandwidth.egress.unit}
-              </span>
-            </div>
-            <Progress value={0} />
-            <p className="text-xs text-muted-foreground">
-              Monitoring not available (requires Supabase dashboard)
-            </p>
-          </div>
         </CardContent>
       </Card>
 
@@ -351,6 +393,22 @@ export default function SuperAdminDashboard() {
           </Link>
         </Card>
 
+        <Card className="hover:border-indigo-300 transition-colors cursor-pointer">
+          <Link href="/admin/agents">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-indigo-100 rounded-lg">
+                  <UserCheck className="h-6 w-6 text-indigo-600" />
+                </div>
+                <div>
+                  <p className="font-medium">All Agents</p>
+                  <p className="text-xs text-muted-foreground">{overview.totalAgents} total</p>
+                </div>
+              </div>
+            </CardContent>
+          </Link>
+        </Card>
+
         <Card className="hover:border-purple-300 transition-colors cursor-pointer">
           <Link href="/admin/buyers">
             <CardContent className="pt-6">
@@ -398,42 +456,24 @@ export default function SuperAdminDashboard() {
             </CardContent>
           </Link>
         </Card>
+
+        <Card className="hover:border-red-300 transition-colors cursor-pointer">
+          <Link href="/admin/sql-editor">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-red-100 rounded-lg">
+                  <Database className="h-6 w-6 text-red-600" />
+                </div>
+                <div>
+                  <p className="font-medium">SQL Query Editor</p>
+                  <p className="text-xs text-muted-foreground">Execute queries</p>
+                </div>
+              </div>
+            </CardContent>
+          </Link>
+        </Card>
       </div>
 
-      {/* System Health Indicators */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Activity className="h-5 w-5" />
-            System Health
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-3">
-            <div className="flex items-center gap-3">
-              <CheckCircle2 className="h-8 w-8 text-green-600" />
-              <div>
-                <p className="font-medium">Database</p>
-                <p className="text-sm text-muted-foreground">Operational</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <CheckCircle2 className="h-8 w-8 text-green-600" />
-              <div>
-                <p className="font-medium">Storage</p>
-                <p className="text-sm text-muted-foreground">{supabaseLimits.storage.size.percentage}% used</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <CheckCircle2 className="h-8 w-8 text-green-600" />
-              <div>
-                <p className="font-medium">Authentication</p>
-                <p className="text-sm text-muted-foreground">Active</p>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }

@@ -36,6 +36,7 @@ interface MilestoneTemplate {
     label_de?: string;
     label_fr?: string;
     label_es?: string;
+    label_pl?: string;
     order_index: number;
   }>;
 }
@@ -152,7 +153,7 @@ export default function MilestoneTemplatesPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Templates</CardTitle>
@@ -160,7 +161,7 @@ export default function MilestoneTemplatesPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{templates.length}</div>
-            <p className="text-xs text-muted-foreground">Available in system</p>
+            <p className="text-xs text-muted-foreground">Unique templates available</p>
           </CardContent>
         </Card>
 
@@ -174,19 +175,6 @@ export default function MilestoneTemplatesPage() {
               {templates.reduce((sum, t) => sum + (t.milestone_count || 0), 0)}
             </div>
             <p className="text-xs text-muted-foreground">Across all templates</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Usage</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {templates.reduce((sum, t) => sum + (t.usage_count || 0), 0)}
-            </div>
-            <p className="text-xs text-muted-foreground">Transactions using templates</p>
           </CardContent>
         </Card>
       </div>
@@ -228,18 +216,13 @@ export default function MilestoneTemplatesPage() {
                     className="flex items-center justify-between p-4 cursor-pointer"
                     onClick={() => toggleExpanded(template.id)}
                   >
-                    <div className="space-y-1 flex-1">
-                      <div className="font-medium flex items-center gap-2">
-                        {template.name}
-                        <Badge variant="outline" className="text-xs">
-                          {template.milestone_count} milestone{template.milestone_count !== 1 ? 's' : ''}
-                        </Badge>
-                        {(template.usage_count || 0) > 0 && (
-                          <Badge variant="default" className="text-xs">
-                            Used in {template.usage_count} transaction{template.usage_count !== 1 ? 's' : ''}
+                      <div className="space-y-1 flex-1">
+                        <div className="font-medium flex items-center gap-2">
+                          {template.name}
+                          <Badge variant="outline" className="text-xs">
+                            {template.milestone_count} milestone{template.milestone_count !== 1 ? 's' : ''}
                           </Badge>
-                        )}
-                      </div>
+                        </div>
                       {template.description && (
                         <p className="text-sm text-muted-foreground">{template.description}</p>
                       )}
@@ -282,12 +265,13 @@ export default function MilestoneTemplatesPage() {
                                 </div>
                                 <div className="flex-1">
                                   <p className="font-medium">{milestone.label_en}</p>
-                                  {(milestone.label_it || milestone.label_de || milestone.label_fr || milestone.label_es) && (
+                                  {(milestone.label_it || milestone.label_de || milestone.label_fr || milestone.label_es || milestone.label_pl) && (
                                     <div className="mt-1 space-y-1 text-xs text-muted-foreground">
-                                      {milestone.label_it && <p>IT: {milestone.label_it}</p>}
-                                      {milestone.label_de && <p>DE: {milestone.label_de}</p>}
-                                      {milestone.label_fr && <p>FR: {milestone.label_fr}</p>}
-                                      {milestone.label_es && <p>ES: {milestone.label_es}</p>}
+                                      {milestone.label_it && <p><strong>IT:</strong> {milestone.label_it}</p>}
+                                      {milestone.label_de && <p><strong>DE:</strong> {milestone.label_de}</p>}
+                                      {milestone.label_fr && <p><strong>FR:</strong> {milestone.label_fr}</p>}
+                                      {milestone.label_es && <p><strong>ES:</strong> {milestone.label_es}</p>}
+                                      {milestone.label_pl && <p><strong>PL:</strong> {milestone.label_pl}</p>}
                                     </div>
                                   )}
                                 </div>
