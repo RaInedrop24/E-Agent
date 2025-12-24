@@ -105,8 +105,8 @@ export default function AgentDetailPage({ params }: PageProps) {
       if (transError) throw transError;
 
       const transaction_count = transactions?.length || 0;
-      const active_transaction_count = transactions?.filter(t => t.status === 'active').length || 0;
-      const completed_transaction_count = transactions?.filter(t => t.status === 'completed').length || 0;
+      const active_transaction_count = transactions?.filter((t: { status: string }) => t.status === 'active').length || 0;
+      const completed_transaction_count = transactions?.filter((t: { status: string }) => t.status === 'completed').length || 0;
       const recent_transactions = transactions?.slice(0, 5) || [];
 
       // Fetch template count
