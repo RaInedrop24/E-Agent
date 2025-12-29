@@ -39,6 +39,7 @@ export const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
                   width={120}
                   height={40}
                   className="h-8 md:h-10 w-auto object-contain"
+                  style={{ width: 'auto', height: 'auto' }}
                   priority
                 />
               )}
@@ -52,6 +53,7 @@ export const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
                   width={120}
                   height={40}
                   className="h-8 md:h-10 w-auto object-contain"
+                  style={{ width: 'auto', height: 'auto' }}
                   priority
                 />
               )}

@@ -283,7 +283,8 @@ export function useTransactionData(transactionId: string): UseTransactionDataRet
       setError(err.message || 'Failed to load transaction');
       setLoading(false);
     }
-  }, [transactionId, user, isSuperAdmin, superAdminLoading, setBranding]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [transactionId, user, isSuperAdmin, superAdminLoading]);
 
   useEffect(() => {
     if (user && !superAdminLoading) {
