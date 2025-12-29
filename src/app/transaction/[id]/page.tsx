@@ -502,13 +502,14 @@ export default function TransactionDetailPage({ params }: PageProps) {
   return (
     <div className="max-w-6xl mx-auto p-4 space-y-6">
       {/* Header */}
-      <div className="flex items-start gap-4">
-        <Link href="/dashboard">
+      <div className="flex flex-col sm:flex-row items-start gap-4">
+        <Link href="/dashboard" className="sm:self-start">
           <Button variant="ghost" size="icon">
             <ArrowLeft className="h-5 w-5" />
+            <span className="sr-only">Back to dashboard</span>
           </Button>
         </Link>
-        <div className="flex-1">
+        <div className="flex-1 w-full sm:w-auto min-w-0">
           {/* Branding Logo */}
           <div className="flex items-center gap-3 flex-wrap">
             <h1 className="text-3xl font-bold">{getTranslatedTitle()}</h1>
@@ -542,7 +543,7 @@ export default function TransactionDetailPage({ params }: PageProps) {
             })}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap sm:flex-nowrap w-full sm:w-auto">
           <Button 
             variant="outline" 
             size="sm" 
@@ -610,19 +611,23 @@ export default function TransactionDetailPage({ params }: PageProps) {
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="tracker" className="flex items-center gap-2">
             <Check className="h-4 w-4" />
-            {t('transaction.tracker')}
+            <span className="hidden sm:inline">{t('transaction.tracker')}</span>
+            <span className="sm:hidden" aria-label={t('transaction.tracker')}>Track</span>
           </TabsTrigger>
           <TabsTrigger value="messages" className="flex items-center gap-2">
             <MessageCircle className="h-4 w-4" />
-            {t('transaction.messages')} ({messages.length})
+            <span className="hidden sm:inline">{t('transaction.messages')} ({messages.length})</span>
+            <span className="sm:hidden">({messages.length})</span>
           </TabsTrigger>
           <TabsTrigger value="files" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
-            {t('transaction.files')} ({fileCount})
+            <span className="hidden sm:inline">{t('transaction.files')} ({fileCount})</span>
+            <span className="sm:hidden">({fileCount})</span>
           </TabsTrigger>
           <TabsTrigger value="participants" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
-            {t('transaction.participants')} ({participants.length})
+            <span className="hidden sm:inline">{t('transaction.participants')} ({participants.length})</span>
+            <span className="sm:hidden">({participants.length})</span>
           </TabsTrigger>
         </TabsList>
 
