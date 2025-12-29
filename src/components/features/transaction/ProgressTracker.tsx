@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { CheckCircle, Circle, Clock } from 'lucide-react';
 import { Milestone } from '@/types';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface ProgressTrackerProps {
   milestones: Milestone[];
@@ -27,9 +28,24 @@ export const ProgressTracker: React.FC<ProgressTrackerProps> = ({
 
   const getMilestoneIcon = (milestone: Milestone, index: number) => {
     if (milestone.isCompleted) {
-      return <CheckCircle className="h-6 w-6 text-success" />;
+      return (
+        <motion.div
+          initial={{ scale: 0, rotate: -180 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+        >
+          <CheckCircle className="h-6 w-6 text-success" />
+        </motion.div>
+      );
     } else if (index === currentMilestone) {
-      return <Clock className="h-6 w-6 text-info" />;
+      return (
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+        >
+          <Clock className="h-6 w-6 text-info" />
+        </motion.div>
+      );
     } else {
       return <Circle className="h-6 w-6 text-gray-400" />;
     }
@@ -61,10 +77,14 @@ export const ProgressTracker: React.FC<ProgressTrackerProps> = ({
         <div className="space-y-4">
           {milestones.map((milestone, index) => {
             const status = getMilestoneStatus(milestone, index);
-            
+
             return (
-              <div
+              <motion.div
                 key={milestone.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+                layout
                 className={`flex items-start space-x-3 p-3 rounded-lg border ${
                   status === 'completed'
                     ? 'bg-success/10 border-success/30'
@@ -109,14 +129,16 @@ export const ProgressTracker: React.FC<ProgressTrackerProps> = ({
                           : t('milestones.pending')}
                       </Badge>
                       {isAgent && onMilestoneToggle && (
-                        <Button
-                          size="sm"
-                          variant={milestone.isCompleted ? 'outline' : 'default'}
-                          onClick={() => onMilestoneToggle(milestone.id, milestone.isCompleted)}
-                          className="shrink-0"
-                        >
-                          {milestone.isCompleted ? t('milestones.markIncomplete') : t('milestones.markComplete')}
-                        </Button>
+                        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                          <Button
+                            size="sm"
+                            variant={milestone.isCompleted ? 'outline' : 'default'}
+                            onClick={() => onMilestoneToggle(milestone.id, milestone.isCompleted)}
+                            className="shrink-0"
+                          >
+                            {milestone.isCompleted ? t('milestones.markIncomplete') : t('milestones.markComplete')}
+                          </Button>
+                        </motion.div>
                       )}
                     </div>
                   </div>
@@ -138,7 +160,7 @@ export const ProgressTracker: React.FC<ProgressTrackerProps> = ({
                     </p>
                   )}
                 </div>
-              </div>
+              </motion.div>
             );
           })}
         </div>

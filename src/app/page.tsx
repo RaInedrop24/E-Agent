@@ -8,6 +8,7 @@ import { CheckCircle, MessageSquare, Globe, Shield, Settings, Users, Link as Lin
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { LanguageSelector } from '@/components/ui/language-selector';
+import { motion } from 'framer-motion';
 
 export default function Home() {
   const router = useRouter();
@@ -56,19 +57,23 @@ export default function Home() {
               {t('landing.heroDescription')}
             </p>
             <div className="mt-8 flex justify-center gap-4 flex-wrap">
-              <Button
-                size="lg"
-                asChild
-                className="shadow-lg hover:shadow-xl transition-shadow"
-              >
-                <a href="/register" className="flex items-center gap-2">
-                  {t('landing.getStarted')}
-                  <ArrowRight className="h-4 w-4" />
-                </a>
-              </Button>
-              <Button variant="outline" size="lg" asChild>
-                <a href="/login">{t('landing.signIn')}</a>
-              </Button>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button
+                  size="lg"
+                  asChild
+                  className="shadow-lg hover:shadow-xl transition-shadow"
+                >
+                  <a href="/register" className="flex items-center gap-2">
+                    {t('landing.getStarted')}
+                    <ArrowRight className="h-4 w-4" />
+                  </a>
+                </Button>
+              </motion.div>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button variant="outline" size="lg" asChild>
+                  <a href="/login">{t('landing.signIn')}</a>
+                </Button>
+              </motion.div>
             </div>
           </div>
         </div>
@@ -209,9 +214,11 @@ export default function Home() {
               {t('landing.ctaDescription')}
             </p>
             <div className="mt-8">
-              <Button size="lg" variant="secondary" asChild>
-                <a href="/register">{t('landing.startJourney')}</a>
-              </Button>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button size="lg" variant="secondary" asChild>
+                  <a href="/register">{t('landing.startJourney')}</a>
+                </Button>
+              </motion.div>
             </div>
           </div>
         </div>
