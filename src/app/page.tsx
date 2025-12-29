@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle, MessageSquare, Globe, Shield, Settings, Users, Link as LinkIcon, Languages, Palette } from 'lucide-react';
+import { CheckCircle, MessageSquare, Globe, Shield, Settings, Users, Link as LinkIcon, Languages, Palette, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { LanguageSelector } from '@/components/ui/language-selector';
@@ -55,9 +55,16 @@ export default function Home() {
             <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-gray-600">
               {t('landing.heroDescription')}
             </p>
-            <div className="mt-8 flex justify-center gap-4">
-              <Button size="lg" asChild>
-                <a href="/register">{t('landing.getStarted')}</a>
+            <div className="mt-8 flex justify-center gap-4 flex-wrap">
+              <Button
+                size="lg"
+                asChild
+                className="shadow-lg hover:shadow-xl transition-shadow"
+              >
+                <a href="/register" className="flex items-center gap-2">
+                  {t('landing.getStarted')}
+                  <ArrowRight className="h-4 w-4" />
+                </a>
               </Button>
               <Button variant="outline" size="lg" asChild>
                 <a href="/login">{t('landing.signIn')}</a>

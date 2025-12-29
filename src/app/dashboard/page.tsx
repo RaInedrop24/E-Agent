@@ -7,8 +7,12 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { createClient } from "@/lib/supabase";
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
-import { CheckCircle, MessageSquare, FileText, Clock, Bell } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { CheckCircle, MessageSquare, FileText, Clock, Bell, Receipt } from "lucide-react";
 import { formatRelativeTime } from '@/lib/date-utils';
+import { EmptyState } from '@/components/ui/empty-state';
+import Skeleton from 'react-loading-skeleton';
+import 'react-loading-skeleton/dist/skeleton.css';
 
 interface Transaction {
   id: string;
@@ -34,6 +38,7 @@ interface ActivityItem {
 export default function DashboardPage() {
   const { user, profile } = useAuth();
   const { t, tVar } = useLanguage();
+  const router = useRouter();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [recentActivity, setRecentActivity] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -236,8 +241,40 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="max-w-5xl mx-auto p-4 space-y-6">
-        <h1 className="text-2xl font-semibold">{t('dashboard.title')}</h1>
-        <div className="text-muted-foreground">Loading your transactions...</div>
+        <Skeleton height={32} width={200} />
+        <div className="grid gap-4 md:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <Skeleton height={24} width={150} />
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="border rounded p-3">
+                  <Skeleton height={20} width="80%" />
+                  <Skeleton height={8} width="100%" className="mt-2" />
+                  <Skeleton height={12} width="40%" className="mt-1" />
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <Skeleton height={24} width={150} />
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="flex gap-3">
+                  <Skeleton circle width={16} height={16} />
+                  <div className="flex-1">
+                    <Skeleton height={16} width="90%" />
+                    <Skeleton height={12} width="60%" className="mt-1" />
+                  </div>
+                  <Skeleton height={12} width={50} />
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
@@ -253,11 +290,17 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             {transactions.length === 0 ? (
-              <div className="text-sm text-muted-foreground py-4 text-center">
-                {profile?.role === 'agent'
+              <EmptyState
+                icon={Receipt}
+                title={profile?.role === 'agent' ? 'No transactions yet' : 'No invitations yet'}
+                description={profile?.role === 'agent'
                   ? t('dashboard.createFirst')
-                  : "You haven't been invited to any transactions yet."}
-              </div>
+                  : "You haven't been invited to any transactions yet. Your agent will send you an invitation when they create a transaction."}
+                action={profile?.role === 'agent' ? {
+                  label: 'Create your first transaction',
+                  onClick: () => router.push('/transactions/create')
+                } : undefined}
+              />
             ) : (
               transactions.map((transaction) => {
                 const progress = calculateProgress(transaction);

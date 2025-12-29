@@ -12,6 +12,7 @@ import type { SupportedLanguage } from '@/lib/translation';
 import { notifyNewMessage } from '@/app/actions/transaction';
 import { formatRelativeTime } from '@/lib/date-utils';
 import { toast } from 'sonner';
+import { EmptyState } from '@/components/ui/empty-state';
 
 interface MessagingMessage {
   id: string;
@@ -268,11 +269,11 @@ export function MessagingPanel({ transactionId, messages: initialMessages, onRef
       {/* Messages List */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 rounded-t-lg">
         {messages.length === 0 ? (
-          <div className="text-center py-12 text-muted-foreground">
-            <MessageCircle className="mx-auto h-12 w-12 text-muted-foreground/50 mb-4" />
-            <p className="text-lg font-medium">No messages yet</p>
-            <p className="text-sm mt-2">Start the conversation!</p>
-          </div>
+          <EmptyState
+            icon={MessageCircle}
+            title="No messages yet"
+            description="Start the conversation! Send a message to begin collaborating on this transaction."
+          />
         ) : (
           messages.map((message) => {
             const isOwnMessage = message.author_profile_id === user?.id;
