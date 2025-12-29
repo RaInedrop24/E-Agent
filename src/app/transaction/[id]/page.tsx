@@ -256,7 +256,7 @@ export default function TransactionDetailPage({ params }: PageProps) {
               {transaction.status}
             </Badge>
             {isAgent && transaction.created_by === user?.id && (
-              <EditTransactionTitleModal transaction={transaction} onSuccess={fetchTransaction} />
+              <EditTransactionTitleModal transaction={transaction} onSuccess={refetch} />
             )}
           </div>
           {transaction.property_address && (
@@ -471,7 +471,7 @@ export default function TransactionDetailPage({ params }: PageProps) {
                 <div className="mt-6 flex justify-center">
                   <InviteBuyerModal
                     transactionId={transaction.id}
-                    onSuccess={fetchTransaction}
+                    onSuccess={refetch}
                   />
                 </div>
               )}
