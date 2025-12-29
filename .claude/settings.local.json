@@ -18,7 +18,8 @@
       "Bash(npx playwright:*)",
       "Bash(move testsfix-auth.spec.js testse2efix-auth.spec.js)",
       "Bash(curl:*)",
-      "Bash(node scripts/apply-migration.js:*)"
+      "Bash(node scripts/apply-migration.js:*)",
+      "Bash(npm install:*)"
     ],
     "deny": [],
     "ask": []

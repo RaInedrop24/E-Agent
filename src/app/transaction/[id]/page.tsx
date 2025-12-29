@@ -24,6 +24,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import type { Milestone } from '@/types';
 import { useBranding } from '@/contexts/BrandingContext';
 import { toggleMilestone } from '@/app/actions/transaction';
+import { toast } from 'sonner';
 
 interface Transaction {
   id: string;
@@ -342,7 +343,9 @@ export default function TransactionDetailPage({ params }: PageProps) {
       await fetchTransaction();
     } catch (err: any) {
       console.error('[TransactionDetail] Error updating milestone:', err);
-      alert('Failed to update milestone: ' + err.message);
+      toast.error('Failed to update milestone', {
+        description: err.message
+      });
     }
   };
 
@@ -370,10 +373,14 @@ export default function TransactionDetailPage({ params }: PageProps) {
         throw new Error(result.error || 'Failed to send email');
       }
 
-      alert('Transaction progress email sent successfully to ' + user.email);
+      toast.success('Email sent successfully', {
+        description: `Progress update sent to ${user.email}`
+      });
     } catch (err: any) {
       console.error('[TransactionDetail] Error emailing progress:', err);
-      alert('Failed to send email: ' + err.message);
+      toast.error('Failed to send email', {
+        description: err.message
+      });
     } finally {
       setEmailing(false);
     }
@@ -428,7 +435,9 @@ export default function TransactionDetailPage({ params }: PageProps) {
       router.push('/dashboard');
     } catch (err: any) {
       console.error('[TransactionDetail] Error deleting transaction:', err);
-      alert(t('transaction.deleteFailed') + ': ' + (err.message || 'Unknown error'));
+      toast.error(t('transaction.deleteFailed'), {
+        description: err.message || 'Unknown error'
+      });
       setDeleting(false);
       setShowDeleteDialog(false);
     }

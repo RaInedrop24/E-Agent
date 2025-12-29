@@ -11,6 +11,7 @@ import { MessageCircle, Send, Languages, Globe } from 'lucide-react';
 import type { SupportedLanguage } from '@/lib/translation';
 import { notifyNewMessage } from '@/app/actions/transaction';
 import { formatRelativeTime } from '@/lib/date-utils';
+import { toast } from 'sonner';
 
 interface MessagingMessage {
   id: string;
@@ -193,7 +194,9 @@ export function MessagingPanel({ transactionId, messages: initialMessages, onRef
       onRefresh();
     } catch (error) {
       console.error('Failed to send message:', error);
-      alert('Failed to send message. Please try again.');
+      toast.error('Failed to send message', {
+        description: 'Please try again'
+      });
     } finally {
       setSending(false);
     }
@@ -245,7 +248,9 @@ export function MessagingPanel({ transactionId, messages: initialMessages, onRef
       onRefresh();
     } catch (error) {
       console.error('Translation error:', error);
-      alert('Failed to translate message');
+      toast.error('Translation failed', {
+        description: 'Please try again later'
+      });
     } finally {
       setTranslating({ ...translating, [messageId]: false });
     }

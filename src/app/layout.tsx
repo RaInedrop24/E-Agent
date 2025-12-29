@@ -5,6 +5,7 @@ import { ConditionalHeader } from "@/components/layout/ConditionalHeader";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { BrandingProvider } from "@/contexts/BrandingContext";
+import { Toaster } from 'sonner';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -88,6 +89,7 @@ export default function RootLayout({
               <main id="main-content">
                 {children}
               </main>
+              <Toaster position="top-right" richColors />
             </LanguageProvider>
           </BrandingProvider>
         </AuthProvider>
