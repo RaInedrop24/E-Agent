@@ -26,37 +26,27 @@ export const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
           </div>
 
           {/* Center: Branded Logo */}
-          <div className="absolute left-1/2 transform -translate-x-1/2">
+          <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center gap-3">
             <Link
               href={user ? "/dashboard" : "/"}
               className="flex items-center gap-3"
               aria-label="The Property Gateway - Go to home page"
             >
               {logoUrl && (
-                <Image
-                  src={logoUrl}
-                  alt="Agency Logo"
-                  width={120}
-                  height={40}
-                  className="h-8 md:h-10 w-auto object-contain"
-                  style={{ width: 'auto', height: 'auto' }}
-                  priority
-                />
+                <div className="h-8 md:h-10 flex items-center">
+                  <Image
+                    src={logoUrl}
+                    alt="Agency Logo"
+                    width={120}
+                    height={40}
+                    className="max-h-full w-auto object-contain"
+                    priority
+                  />
+                </div>
               )}
-              <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent hover:from-blue-700 hover:via-purple-700 hover:to-blue-900 transition-all duration-300 cursor-pointer whitespace-nowrap">
+              <h1 className="text-xl md:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent hover:from-blue-700 hover:via-purple-700 hover:to-blue-900 transition-all duration-300 cursor-pointer whitespace-nowrap">
                 The Property Gateway
               </h1>
-              {logoUrl && (
-                <Image
-                  src={logoUrl}
-                  alt="Agency Logo"
-                  width={120}
-                  height={40}
-                  className="h-8 md:h-10 w-auto object-contain"
-                  style={{ width: 'auto', height: 'auto' }}
-                  priority
-                />
-              )}
             </Link>
           </div>
 
