@@ -303,7 +303,7 @@ export function MessagingPanel({ transactionId, messages: initialMessages, onRef
                   </div>
 
                   {/* Message content */}
-                  <Card className={`p-3 ${isOwnMessage ? 'bg-blue-500 text-white' : 'bg-white'}`}>
+                  <Card className={`p-3 ${isOwnMessage ? 'bg-primary text-primary-foreground' : 'bg-white'}`}>
                     {/* Always show translated version first if available and needed */}
                     {needsTranslation && hasTranslation && !showingOriginal ? (
                       <div>
@@ -313,7 +313,7 @@ export function MessagingPanel({ transactionId, messages: initialMessages, onRef
                             {translatedContent}
                           </p>
                         </div>
-                        <div className={`text-xs mt-2 pt-2 border-t ${isOwnMessage ? 'border-blue-400' : 'border-gray-200'}`}>
+                        <div className={`text-xs mt-2 pt-2 border-t ${isOwnMessage ? 'border-primary/40' : 'border-gray-200'}`}>
                           <button
                             onClick={() => toggleShowOriginal(message.id)}
                             className="flex items-center gap-1 hover:underline"
@@ -331,7 +331,7 @@ export function MessagingPanel({ transactionId, messages: initialMessages, onRef
                         
                         {/* Translation controls - only show if translating */}
                         {needsTranslation && !hasTranslation && translating[message.id] && (
-                          <div className={`text-xs mt-2 pt-2 border-t ${isOwnMessage ? 'border-blue-400' : 'border-gray-200'}`}>
+                          <div className={`text-xs mt-2 pt-2 border-t ${isOwnMessage ? 'border-primary/40' : 'border-gray-200'}`}>
                             <span className="flex items-center gap-1 text-muted-foreground">
                               <Languages className="h-3 w-3 animate-pulse" />
                               Translating...
@@ -339,7 +339,7 @@ export function MessagingPanel({ transactionId, messages: initialMessages, onRef
                           </div>
                         )}
                         {needsTranslation && hasTranslation && (
-                          <div className={`text-xs mt-2 pt-2 border-t ${isOwnMessage ? 'border-blue-400' : 'border-gray-200'}`}>
+                          <div className={`text-xs mt-2 pt-2 border-t ${isOwnMessage ? 'border-primary/40' : 'border-gray-200'}`}>
                             <button
                               onClick={() => toggleShowOriginal(message.id)}
                               className="flex items-center gap-1 hover:underline"

@@ -27,9 +27,9 @@ export const ProgressTracker: React.FC<ProgressTrackerProps> = ({
 
   const getMilestoneIcon = (milestone: Milestone, index: number) => {
     if (milestone.isCompleted) {
-      return <CheckCircle className="h-6 w-6 text-green-600" />;
+      return <CheckCircle className="h-6 w-6 text-success" />;
     } else if (index === currentMilestone) {
-      return <Clock className="h-6 w-6 text-blue-600" />;
+      return <Clock className="h-6 w-6 text-info" />;
     } else {
       return <Circle className="h-6 w-6 text-gray-400" />;
     }
@@ -67,9 +67,9 @@ export const ProgressTracker: React.FC<ProgressTrackerProps> = ({
                 key={milestone.id}
                 className={`flex items-start space-x-3 p-3 rounded-lg border ${
                   status === 'completed'
-                    ? 'bg-green-50 border-green-200'
+                    ? 'bg-success/10 border-success/30'
                     : status === 'current'
-                    ? 'bg-blue-50 border-blue-200'
+                    ? 'bg-info/10 border-info/30'
                     : 'bg-gray-50 border-gray-200'
                 }`}
               >
@@ -82,9 +82,9 @@ export const ProgressTracker: React.FC<ProgressTrackerProps> = ({
                       <h4
                         className={`text-sm font-medium ${
                           status === 'completed'
-                            ? 'text-green-900'
+                            ? 'text-success'
                             : status === 'current'
-                            ? 'text-blue-900'
+                            ? 'text-info'
                             : 'text-gray-900'
                         }`}
                       >
@@ -123,16 +123,16 @@ export const ProgressTracker: React.FC<ProgressTrackerProps> = ({
                   <p
                     className={`mt-1 text-sm ${
                       status === 'completed'
-                        ? 'text-green-700'
+                        ? 'text-success/90'
                         : status === 'current'
-                        ? 'text-blue-700'
+                        ? 'text-info/90'
                         : 'text-gray-600'
                     }`}
                   >
                     {milestone.description}
                   </p>
                   {milestone.isCompleted && milestone.completedAt && (
-                    <p className="mt-1 text-xs text-green-600">
+                    <p className="mt-1 text-xs text-success">
                       {t('milestones.completedOnLabel')}{' '}
                       {new Date(milestone.completedAt).toLocaleDateString()}
                     </p>

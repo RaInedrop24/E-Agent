@@ -226,13 +226,13 @@ export default function DashboardPage() {
   function getActivityIcon(type: string) {
     switch (type) {
       case 'milestone':
-        return <CheckCircle className="w-4 h-4 text-green-600" />;
+        return <CheckCircle className="w-4 h-4 text-success" />;
       case 'message':
-        return <MessageSquare className="w-4 h-4 text-blue-600" />;
+        return <MessageSquare className="w-4 h-4 text-info" />;
       case 'file':
-        return <FileText className="w-4 h-4 text-purple-600" />;
+        return <FileText className="w-4 h-4 text-info" />;
       case 'notification':
-        return <Bell className="w-4 h-4 text-orange-600" />;
+        return <Bell className="w-4 h-4 text-warning" />;
       default:
         return <Clock className="w-4 h-4" />;
     }
@@ -312,7 +312,7 @@ export default function DashboardPage() {
                   >
                     <div className="flex items-center justify-between">
                       <span className="font-medium">{transaction.title}</span>
-                      <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-800 capitalize">
+                      <span className="text-xs px-2 py-1 rounded-full bg-success/10 text-success capitalize">
                         {transaction.status === 'active' ? t('status.active') : transaction.status === 'completed' ? t('status.completed') : t('status.archived')}
                       </span>
                     </div>

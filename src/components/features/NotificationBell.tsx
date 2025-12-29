@@ -234,7 +234,7 @@ export function NotificationBell() {
               <DropdownMenuItem
                 key={notification.id}
                 className={`flex-col items-start p-3 cursor-pointer ${
-                  !notification.read ? 'bg-blue-50 hover:bg-blue-100' : ''
+                  !notification.read ? 'bg-info/10 hover:bg-info/20' : ''
                 }`}
                 onClick={() => {
                   if (!notification.read) {
@@ -245,11 +245,11 @@ export function NotificationBell() {
                 <div className="flex items-start justify-between w-full gap-2">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <p className={`text-sm font-medium ${!notification.read ? 'text-blue-900' : ''}`}>
+                      <p className={`text-sm font-medium ${!notification.read ? 'text-info' : ''}`}>
                         {notification.subject}
                       </p>
                       {!notification.read && (
-                        <div className="h-2 w-2 rounded-full bg-blue-600 flex-shrink-0" />
+                        <div className="h-2 w-2 rounded-full bg-info flex-shrink-0" />
                       )}
                     </div>
                     <p className="text-xs text-muted-foreground line-clamp-2 mb-1">
