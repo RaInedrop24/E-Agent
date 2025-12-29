@@ -5,9 +5,10 @@ import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { createClient } from "@/lib/supabase";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
-import { CheckCircle, MessageSquare, FileText, Clock } from "lucide-react";
+import { CheckCircle, MessageSquare, FileText, Clock, Bell } from "lucide-react";
+import { formatRelativeTime } from '@/lib/date-utils';
 
 interface Transaction {
   id: string;
@@ -23,7 +24,7 @@ interface Transaction {
 
 interface ActivityItem {
   id: string;
-  type: 'milestone' | 'message' | 'file';
+  type: 'milestone' | 'message' | 'file' | 'notification';
   description: string;
   transaction_title: string;
   transaction_id: string;
@@ -129,6 +130,14 @@ export default function DashboardPage() {
         .order('created_at', { ascending: false })
         .limit(5);
 
+      // Fetch recent system notifications (filtered by user role)
+      const { data: notificationsActivity, error: notificationsError } = await supabase
+        .from('user_notifications_with_details')
+        .select('*')
+        .eq('user_id', user?.id)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
       // Combine and sort all activity
       const allActivity: ActivityItem[] = [];
 
@@ -172,6 +181,19 @@ export default function DashboardPage() {
         });
       }
 
+      if (notificationsActivity) {
+        notificationsActivity.forEach((n: any) => {
+          allActivity.push({
+            id: n.id,
+            type: 'notification',
+            description: `notification:${n.subject}`, // Will be translated in render
+            transaction_title: 'System Announcement', // Not tied to a transaction
+            transaction_id: '', // No transaction ID for system notifications
+            created_at: n.created_at,
+          });
+        });
+      }
+
       // Sort by date and take top 10
       allActivity.sort((a, b) =>
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
@@ -186,13 +208,15 @@ export default function DashboardPage() {
     }
   }
 
-  function calculateProgress(transaction: Transaction): number {
-    if (!transaction.milestones || transaction.milestones.length === 0) {
-      return 0;
-    }
-    const completed = transaction.milestones.filter(m => m.completed).length;
-    return Math.round((completed / transaction.milestones.length) * 100);
-  }
+  const calculateProgress = useMemo(() => {
+    return (transaction: Transaction): number => {
+      if (!transaction.milestones || transaction.milestones.length === 0) {
+        return 0;
+      }
+      const completed = transaction.milestones.filter(m => m.completed).length;
+      return Math.round((completed / transaction.milestones.length) * 100);
+    };
+  }, []);
 
   function getActivityIcon(type: string) {
     switch (type) {
@@ -202,27 +226,10 @@ export default function DashboardPage() {
         return <MessageSquare className="w-4 h-4 text-blue-600" />;
       case 'file':
         return <FileText className="w-4 h-4 text-purple-600" />;
+      case 'notification':
+        return <Bell className="w-4 h-4 text-orange-600" />;
       default:
         return <Clock className="w-4 h-4" />;
-    }
-  }
-
-  function formatDate(dateString: string): string {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-
-    if (diffMins < 60) {
-      return `${diffMins}m ago`;
-    } else if (diffHours < 24) {
-      return `${diffHours}h ago`;
-    } else if (diffDays < 7) {
-      return `${diffDays}d ago`;
-    } else {
-      return date.toLocaleDateString();
     }
   }
 
@@ -300,14 +307,13 @@ export default function DashboardPage() {
                   displayText = tVar('dashboard.newMessageFrom', { author: value });
                 } else if (type === 'file') {
                   displayText = tVar('dashboard.fileUploaded', { filename: value });
+                } else if (type === 'notification') {
+                  displayText = `System: ${value}`;
                 }
                 
-                return (
-                  <Link
-                    key={activity.id}
-                    href={`/transaction/${activity.transaction_id}`}
-                    className="flex items-start gap-3 text-sm hover:bg-gray-50 p-2 rounded-md transition-colors"
-                  >
+                // For system notifications, don't link to a transaction
+                const activityElement = (
+                  <div className="flex items-start gap-3 text-sm hover:bg-gray-50 p-2 rounded-md transition-colors">
                     <div className="mt-0.5">
                       {getActivityIcon(activity.type)}
                     </div>
@@ -318,8 +324,21 @@ export default function DashboardPage() {
                       </div>
                     </div>
                     <div className="text-xs text-muted-foreground whitespace-nowrap">
-                      {formatDate(activity.created_at)}
+                      {formatRelativeTime(activity.created_at)}
                     </div>
+                  </div>
+                );
+
+                return activity.type === 'notification' ? (
+                  <div key={activity.id}>
+                    {activityElement}
+                  </div>
+                ) : (
+                  <Link
+                    key={activity.id}
+                    href={`/transaction/${activity.transaction_id}`}
+                  >
+                    {activityElement}
                   </Link>
                 );
               })

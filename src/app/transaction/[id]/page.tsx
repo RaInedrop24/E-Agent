@@ -12,11 +12,14 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowLeft, Check, Clock, Users, FileText, MessageCircle, Trash2, Mail } from 'lucide-react';
-import { ProgressTracker } from '@/components/features/transaction/ProgressTracker';
-import { InviteBuyerModal } from '@/components/features/transaction/InviteBuyerModal';
-import { MessagingPanel } from '@/components/features/transaction/MessagingPanel';
-import { EditTransactionTitleModal } from '@/components/features/transaction/EditTransactionTitleModal';
-import { TransactionFilesPanel } from '@/components/features/transaction/TransactionFilesPanel';
+import dynamic from 'next/dynamic';
+
+// Lazy load components that are only visible in specific tabs
+const ProgressTracker = dynamic(() => import('@/components/features/transaction/ProgressTracker').then(mod => ({ default: mod.ProgressTracker })));
+const InviteBuyerModal = dynamic(() => import('@/components/features/transaction/InviteBuyerModal').then(mod => ({ default: mod.InviteBuyerModal })));
+const MessagingPanel = dynamic(() => import('@/components/features/transaction/MessagingPanel').then(mod => ({ default: mod.MessagingPanel })));
+const EditTransactionTitleModal = dynamic(() => import('@/components/features/transaction/EditTransactionTitleModal').then(mod => ({ default: mod.EditTransactionTitleModal })));
+const TransactionFilesPanel = dynamic(() => import('@/components/features/transaction/TransactionFilesPanel').then(mod => ({ default: mod.TransactionFilesPanel })));
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import type { Milestone } from '@/types';
 import { useBranding } from '@/contexts/BrandingContext';

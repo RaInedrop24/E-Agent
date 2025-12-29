@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { SendSystemMessageDialog } from '@/components/features/SendSystemMessageDialog';
 import { 
   Loader2, 
   Shield, 
@@ -21,6 +22,7 @@ import {
   CheckCircle2,
   ArrowRight,
   Globe,
+  Bell,
 } from 'lucide-react';
 
 interface Agent {
@@ -51,6 +53,8 @@ export default function AllAgentsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [notificationDialogOpen, setNotificationDialogOpen] = useState(false);
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false);
 
   useEffect(() => {
     if (!superAdminLoading) {
@@ -152,10 +156,30 @@ export default function AllAgentsPage() {
             </div>
           </div>
         </div>
-        <Badge variant="secondary" className="gap-1">
-          <Shield className="h-3 w-3" />
-          Super Admin View
-        </Badge>
+        <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setNotificationDialogOpen(true)}
+            className="gap-2"
+          >
+            <Bell className="h-4 w-4" />
+            Send Notification
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setEmailDialogOpen(true)}
+            className="gap-2"
+          >
+            <Mail className="h-4 w-4" />
+            Send Email
+          </Button>
+          <Badge variant="secondary" className="gap-1">
+            <Shield className="h-3 w-3" />
+            Super Admin View
+          </Badge>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -330,6 +354,20 @@ export default function AllAgentsPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* System Message Dialogs */}
+      <SendSystemMessageDialog
+        open={notificationDialogOpen}
+        onOpenChange={setNotificationDialogOpen}
+        recipientType="agents"
+        messageType="notification"
+      />
+      <SendSystemMessageDialog
+        open={emailDialogOpen}
+        onOpenChange={setEmailDialogOpen}
+        recipientType="agents"
+        messageType="email"
+      />
     </div>
   );
 }

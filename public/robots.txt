@@ -1,0 +1,12 @@
+# Allow all crawlers
+User-agent: *
+Allow: /
+
+# Disallow admin and debug routes
+Disallow: /admin/
+Disallow: /debug/
+Disallow: /api/
+Disallow: /auth/callback
+
+# Sitemap location
+Sitemap: https://mail.thepropertygateway.com/sitemap.xml
