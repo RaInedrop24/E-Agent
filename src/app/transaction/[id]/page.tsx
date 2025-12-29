@@ -25,6 +25,7 @@ import type { Milestone } from '@/types';
 import { toggleMilestone } from '@/app/actions/transaction';
 import { toast } from 'sonner';
 import { useEffect } from 'react';
+import { logger } from '@/lib/logger';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -80,7 +81,7 @@ export default function TransactionDetailPage({ params }: PageProps) {
       // Refresh transaction data
       await refetch();
     } catch (err: any) {
-      console.error('[TransactionDetail] Error updating milestone:', err);
+      logger.error('Error updating milestone', { transactionId, milestoneId, error: err.message });
       toast.error('Failed to update milestone', {
         description: err.message
       });
@@ -115,7 +116,7 @@ export default function TransactionDetailPage({ params }: PageProps) {
         description: `Progress update sent to ${user.email}`
       });
     } catch (err: any) {
-      console.error('[TransactionDetail] Error emailing progress:', err);
+      logger.error('Error emailing progress', { transactionId, error: err.message });
       toast.error('Failed to send email', {
         description: err.message
       });
@@ -172,7 +173,7 @@ export default function TransactionDetailPage({ params }: PageProps) {
 
       router.push('/dashboard');
     } catch (err: any) {
-      console.error('[TransactionDetail] Error deleting transaction:', err);
+      logger.error('Error deleting transaction', { transactionId: transaction.id, error: err.message });
       toast.error(t('transaction.deleteFailed'), {
         description: err.message || 'Unknown error'
       });

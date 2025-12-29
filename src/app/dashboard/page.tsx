@@ -13,6 +13,7 @@ import { formatRelativeTime } from '@/lib/date-utils';
 import { EmptyState } from '@/components/ui/empty-state';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
+import { logger } from '@/lib/logger';
 
 interface Transaction {
   id: string;
@@ -207,8 +208,8 @@ export default function DashboardPage() {
       setRecentActivity(allActivity.slice(0, 10));
       setLoading(false);
 
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error);
+    } catch (error: any) {
+      logger.error('Error fetching dashboard data', { userId: user?.id, error: error.message });
       setLoading(false);
     }
   }

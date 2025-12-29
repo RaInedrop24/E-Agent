@@ -14,6 +14,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/lib/supabase';
 import { formatRelativeTime } from '@/lib/date-utils';
+import { logger } from '@/lib/logger';
 
 interface Notification {
   id: string;
@@ -65,9 +66,9 @@ export function NotificationBell() {
           setNotifications(filteredNotifications);
           setUnreadCount(data.unreadCount || 0);
         }
-      } catch (error) {
+      } catch (error: any) {
         if (isMounted) {
-          console.error('Error fetching notifications:', error);
+          logger.error('Error fetching notifications', { error: error.message });
         }
       } finally {
         if (isMounted) {
@@ -142,8 +143,8 @@ export function NotificationBell() {
         );
         setUnreadCount(prev => Math.max(0, prev - 1));
       }
-    } catch (error) {
-      console.error('Error marking notification as read:', error);
+    } catch (error: any) {
+      logger.error('Error marking notification as read', { notificationId, error: error.message });
     }
   };
 
@@ -170,8 +171,8 @@ export function NotificationBell() {
         );
         setUnreadCount(0);
       }
-    } catch (error) {
-      console.error('Error marking all as read:', error);
+    } catch (error: any) {
+      logger.error('Error marking all notifications as read', { error: error.message });
     }
   };
 

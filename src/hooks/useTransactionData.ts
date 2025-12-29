@@ -3,6 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useSuperAdmin } from '@/hooks/useSuperAdmin';
 import { useBranding } from '@/contexts/BrandingContext';
 import { supabase } from '@/lib/supabase';
+import { logger } from '@/lib/logger';
 
 interface Transaction {
   id: string;
@@ -271,14 +272,14 @@ export function useTransactionData(transactionId: string): UseTransactionDataRet
         .eq('transaction_id', transactionId);
 
       if (filesCountError) {
-        console.warn('[useTransactionData] Error fetching file count:', filesCountError);
+        logger.warn('Error fetching file count', { transactionId, error: filesCountError.message });
       } else {
         setFileCount(filesCount || 0);
       }
 
       setLoading(false);
     } catch (err: any) {
-      console.error('[useTransactionData] Error:', err);
+      logger.error('Failed to load transaction data', { transactionId, error: err.message });
       setError(err.message || 'Failed to load transaction');
       setLoading(false);
     }

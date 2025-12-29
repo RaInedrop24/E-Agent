@@ -13,6 +13,7 @@ import { notifyNewMessage } from '@/app/actions/transaction';
 import { formatRelativeTime } from '@/lib/date-utils';
 import { toast } from 'sonner';
 import { EmptyState } from '@/components/ui/empty-state';
+import { logger } from '@/lib/logger';
 
 interface MessagingMessage {
   id: string;
@@ -100,8 +101,8 @@ export function MessagingPanel({ transactionId, messages: initialMessages, onRef
               )
             );
           }
-        } catch (error) {
-          console.error('Auto-translation failed for message', message.id, error);
+        } catch (error: any) {
+          logger.error('Auto-translation failed', { messageId: message.id, error: error.message });
         }
       }
     }
@@ -193,8 +194,8 @@ export function MessagingPanel({ transactionId, messages: initialMessages, onRef
       await notifyNewMessage(transactionId, user.id, newMessage.trim());
 
       onRefresh();
-    } catch (error) {
-      console.error('Failed to send message:', error);
+    } catch (error: any) {
+      logger.error('Failed to send message', { transactionId, error: error.message });
       toast.error('Failed to send message', {
         description: 'Please try again'
       });
@@ -247,8 +248,8 @@ export function MessagingPanel({ transactionId, messages: initialMessages, onRef
       ));
 
       onRefresh();
-    } catch (error) {
-      console.error('Translation error:', error);
+    } catch (error: any) {
+      logger.error('Translation failed', { messageId, error: error.message });
       toast.error('Translation failed', {
         description: 'Please try again later'
       });
