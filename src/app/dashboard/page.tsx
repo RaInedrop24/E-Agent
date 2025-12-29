@@ -14,6 +14,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 import { logger } from '@/lib/logger';
+import { LIMITS } from '@/lib/constants';
 
 interface Transaction {
   id: string;
@@ -205,7 +206,7 @@ export default function DashboardPage() {
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       );
 
-      setRecentActivity(allActivity.slice(0, 10));
+      setRecentActivity(allActivity.slice(0, LIMITS.MAX_RECENT_ACTIVITY));
       setLoading(false);
 
     } catch (error: any) {

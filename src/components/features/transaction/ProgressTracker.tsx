@@ -8,6 +8,7 @@ import { CheckCircle, Circle, Clock } from 'lucide-react';
 import { Milestone } from '@/types';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import { UI } from '@/lib/constants';
 
 interface ProgressTrackerProps {
   milestones: Milestone[];
@@ -83,7 +84,7 @@ export const ProgressTracker: React.FC<ProgressTrackerProps> = ({
                 key={milestone.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
+                transition={{ delay: index * (UI.STAGGER_DELAY / 1000) }}
                 layout
                 className={`flex items-start space-x-3 p-3 rounded-lg border ${
                   status === 'completed'

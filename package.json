@@ -6,6 +6,7 @@
     "dev": "next dev",
     "dev:3001": "next dev -p 3001",
     "build": "next build",
+    "build:analyze": "ANALYZE=true npm run build",
     "start": "next start",
     "lint": "eslint",
     "playwright:install": "playwright install",
@@ -42,6 +43,7 @@
     "twilio": "^5.11.1"
   },
   "devDependencies": {
+    "@next/bundle-analyzer": "^16.1.1",
     "@playwright/test": "^1.47.2",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
