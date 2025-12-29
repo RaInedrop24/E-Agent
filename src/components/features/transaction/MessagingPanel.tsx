@@ -265,7 +265,7 @@ export function MessagingPanel({ transactionId, messages: initialMessages, onRef
   };
 
   return (
-    <div className="flex flex-col h-[600px]">
+    <div className="flex flex-col h-[600px] md:h-[600px] sm:h-[calc(100vh-200px)]">
       {/* Messages List */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 rounded-t-lg">
         {messages.length === 0 ? (
