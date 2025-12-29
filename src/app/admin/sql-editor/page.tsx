@@ -93,17 +93,17 @@ LIMIT 20;`,
     description: 'File storage usage by transaction',
     query: `SELECT 
   t.id,
-  t.title_en as transaction_title,
+  COALESCE(t.title_en, t.title) as transaction_title,
   p.full_name as agent_name,
-  COUNT(tf.id) as file_count,
-  SUM(tf.file_size)::bigint as total_bytes,
-  ROUND(SUM(tf.file_size) / 1024.0 / 1024.0, 2) as total_mb
+  COUNT(f.id) as file_count,
+  SUM(f.file_size)::bigint as total_bytes,
+  ROUND(SUM(f.file_size) / 1024.0 / 1024.0, 2) as total_mb
 FROM transactions t
-LEFT JOIN transaction_files tf ON tf.transaction_id = t.id
+LEFT JOIN files f ON f.transaction_id = t.id
 LEFT JOIN profiles p ON p.id = t.created_by
-GROUP BY t.id, t.title_en, p.full_name
-HAVING SUM(tf.file_size) > 0
-ORDER BY total_bytes DESC
+GROUP BY t.id, COALESCE(t.title_en, t.title), p.full_name
+HAVING SUM(f.file_size) > 0 OR COUNT(f.id) > 0
+ORDER BY total_bytes DESC NULLS LAST
 LIMIT 20;`,
   },
   {
@@ -157,12 +157,17 @@ ORDER BY user_count DESC;`,
     description: 'List all tables with row counts',
     query: `SELECT 
   schemaname,
-  tablename,
+  relname as tablename,
+  n_live_tup as row_count,
   n_tup_ins as total_inserts,
   n_tup_upd as total_updates,
-  n_tup_del as total_deletes
+  n_tup_del as total_deletes,
+  last_vacuum,
+  last_autovacuum,
+  last_analyze,
+  last_autoanalyze
 FROM pg_stat_user_tables
-ORDER BY n_tup_ins DESC;`,
+ORDER BY n_live_tup DESC;`,
   },
   {
     name: 'Super Admin List',
