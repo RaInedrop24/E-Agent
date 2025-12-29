@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/lib/supabase';
+import { formatRelativeTime } from '@/lib/date-utils';
 
 interface Notification {
   id: string;
@@ -33,8 +34,50 @@ export function NotificationBell() {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
+    let isMounted = true;
+
+    const fetchNotifications = async () => {
+      try {
+        if (!supabase) return;
+
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session || !isMounted) return;
+
+        const response = await fetch('/api/notifications', {
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+          },
+        });
+
+        if (!response.ok || !isMounted) {
+          return;
+        }
+
+        const data = await response.json();
+        const allNotifications = data.notifications || [];
+
+        // Filter to show: all unread + last 10 read
+        const unread = allNotifications.filter((n: Notification) => !n.read);
+        const read = allNotifications.filter((n: Notification) => n.read).slice(0, 10);
+        const filteredNotifications = [...unread, ...read];
+
+        if (isMounted) {
+          setNotifications(filteredNotifications);
+          setUnreadCount(data.unreadCount || 0);
+        }
+      } catch (error) {
+        if (isMounted) {
+          console.error('Error fetching notifications:', error);
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
     fetchNotifications();
-    
+
     // Set up Realtime subscription for new notifications
     if (!supabase) return;
 
@@ -49,7 +92,7 @@ export function NotificationBell() {
         },
         () => {
           // New notification received - refresh
-          fetchNotifications();
+          if (isMounted) fetchNotifications();
         }
       )
       .on(
@@ -61,50 +104,16 @@ export function NotificationBell() {
         },
         () => {
           // Notification updated (probably marked as read) - refresh
-          fetchNotifications();
+          if (isMounted) fetchNotifications();
         }
       )
       .subscribe();
 
     return () => {
+      isMounted = false;
       supabase.removeChannel(channel);
     };
   }, []);
-
-  const fetchNotifications = async () => {
-    try {
-      if (!supabase) return;
-
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
-
-      const response = await fetch('/api/notifications', {
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-      });
-
-      if (!response.ok) {
-        console.error('Failed to fetch notifications');
-        return;
-      }
-
-      const data = await response.json();
-      const allNotifications = data.notifications || [];
-      
-      // Filter to show: all unread + last 10 read
-      const unread = allNotifications.filter((n: Notification) => !n.read);
-      const read = allNotifications.filter((n: Notification) => n.read).slice(0, 10);
-      const filteredNotifications = [...unread, ...read];
-      
-      setNotifications(filteredNotifications);
-      setUnreadCount(data.unreadCount || 0);
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const markAsRead = async (notificationId: string) => {
     try {
@@ -166,19 +175,6 @@ export function NotificationBell() {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-
-    if (diffInSeconds < 60) return 'Just now';
-    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
-    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
-    if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d ago`;
-    
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  };
-
   if (loading) {
     return (
       <Button variant="ghost" size="icon" disabled>
@@ -190,12 +186,21 @@ export function NotificationBell() {
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative"
+          aria-label={unreadCount > 0
+            ? `Notifications - ${unreadCount > 9 ? 'more than 9' : unreadCount} unread`
+            : 'Notifications'
+          }
+        >
           <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
             <Badge
               variant="destructive"
               className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
+              aria-label={`${unreadCount > 9 ? 'more than 9' : unreadCount} unread notification${unreadCount > 1 ? 's' : ''}`}
             >
               {unreadCount > 9 ? '9+' : unreadCount}
             </Badge>
@@ -251,7 +256,7 @@ export function NotificationBell() {
                       {notification.message}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {formatDate(notification.created_at)}
+                      {formatRelativeTime(notification.created_at)}
                     </p>
                   </div>
                   {!notification.read && (
