@@ -13,6 +13,14 @@ import {
 } from "@react-email/components";
 import * as React from "react";
 
+interface Translations {
+  title: string;
+  preview: string;
+  sentMessage: string;
+  reply: string;
+  footer: string;
+}
+
 interface NewMessageEmailProps {
   transactionTitle: string;
   authorName: string;
@@ -20,6 +28,7 @@ interface NewMessageEmailProps {
   transactionUrl: string;
   brandLogoUrl?: string | null;
   brandColor?: string | null;
+  translations?: Translations;
 }
 
 export const NewMessageEmail = ({
@@ -29,9 +38,12 @@ export const NewMessageEmail = ({
   transactionUrl,
   brandLogoUrl,
   brandColor,
+  translations,
 }: NewMessageEmailProps) => {
   const primaryColor = brandColor || "#2563eb";
-  const previewText = `New message from ${authorName} in ${transactionTitle}`;
+  const previewText = translations?.preview
+    ? translations.preview.replace('{{author}}', authorName).replace('{{transaction}}', transactionTitle)
+    : `New message from ${authorName} in ${transactionTitle}`;
 
   return (
     <Html>
@@ -53,13 +65,13 @@ export const NewMessageEmail = ({
           )}
 
           <Section style={headerSection}>
-             <Heading as="h2" style={h2}>New Message</Heading>
+             <Heading as="h2" style={h2}>{translations?.title || 'New Message'}</Heading>
              <Text style={subheading}>{transactionTitle}</Text>
           </Section>
           
           <Section style={contentSection}>
             <Text style={text}>
-              <strong>{authorName}</strong> sent a new message:
+              {translations?.sentMessage?.replace('{{author}}', authorName) || `${authorName} sent a new message:`}
             </Text>
 
             <div style={messageBox}>
@@ -69,12 +81,12 @@ export const NewMessageEmail = ({
             <Hr style={hr} />
 
             <Link href={transactionUrl} style={{ ...button, backgroundColor: primaryColor }}>
-              Reply in Dashboard
+              {translations?.reply || 'Reply in Dashboard'}
             </Link>
           </Section>
 
           <Text style={footer}>
-            You received this email because you are a participant in this transaction and have enabled email alerts.
+            {translations?.footer || 'You received this email because you are a participant in this transaction and have enabled email alerts.'}
           </Text>
         </Container>
       </Body>

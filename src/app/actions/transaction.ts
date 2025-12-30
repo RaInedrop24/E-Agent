@@ -62,7 +62,7 @@ export async function toggleMilestone(
       completed_by: completedBy,
     })
     .eq('id', milestoneId)
-    .select('label_en, label_it') // Fetch label for notification
+    .select('id, label_en, label_it') // Fetch id and label for notification
     .single();
 
   if (updateError) {
@@ -84,7 +84,8 @@ export async function toggleMilestone(
     triggerUserId: user.id,
     type: 'MILESTONE_UPDATE',
     data: {
-      milestoneTitle,
+      milestoneId: milestone.id,
+      milestoneTitle: milestone.label_en || milestone.label_it || 'Milestone',
       status: newStatus ? 'completed' : 'pending',
       updatedByName,
     }

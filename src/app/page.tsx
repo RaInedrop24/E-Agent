@@ -191,11 +191,11 @@ export default function Home() {
             <Card>
               <CardHeader className="text-center">
                 <Palette className="mx-auto h-10 w-10 text-rose-500" />
-                <CardTitle>Agency Branding</CardTitle>
+                <CardTitle>{t('landing.featureCustomBrandingTitle')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <CardDescription>
-                  Customise the portal with your agency logo and brand colours for a professional co-branded experience.
+                  {t('landing.featureCustomBrandingDesc')}
                 </CardDescription>
               </CardContent>
             </Card>

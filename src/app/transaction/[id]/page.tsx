@@ -82,7 +82,7 @@ export default function TransactionDetailPage({ params }: PageProps) {
       await refetch();
     } catch (err: any) {
       logger.error('Error updating milestone', { transactionId, milestoneId, error: err.message });
-      toast.error('Failed to update milestone', {
+      toast.error(t('transaction.milestoneUpdateFailed'), {
         description: err.message
       });
     }
@@ -112,12 +112,12 @@ export default function TransactionDetailPage({ params }: PageProps) {
         throw new Error(result.error || 'Failed to send email');
       }
 
-      toast.success('Email sent successfully', {
-        description: `Progress update sent to ${user.email}`
+      toast.success(t('transaction.emailSentSuccess'), {
+        description: tVar('transaction.emailSentDescription', { email: user.email || '' })
       });
     } catch (err: any) {
       logger.error('Error emailing progress', { transactionId, error: err.message });
-      toast.error('Failed to send email', {
+      toast.error(t('transaction.emailFailed'), {
         description: err.message
       });
     } finally {
@@ -216,10 +216,17 @@ export default function TransactionDetailPage({ params }: PageProps) {
 
   const isAgent = profile?.role === 'agent';
   const currentMilestone = milestones.filter((m) => m.completed).length;
+  
+  // Get milestone label in user's preferred language
+  const getMilestoneLabel = (m: any) => {
+    const langKey = `label_${language}` as keyof typeof m;
+    return (m[langKey] as string) || m.label_en || m.label_it || 'Milestone';
+  };
+  
   const progressTrackerMilestones: Milestone[] = milestones.map((m, index) => ({
     id: index,
-    title: m.label_en,
-    description: m.label_it || 'Property purchase milestone',
+    title: getMilestoneLabel(m),
+    description: '', // Don't show description to avoid showing multiple languages
     isCompleted: m.completed,
     completedAt: m.completed_at || undefined,
     order: m.order_index,

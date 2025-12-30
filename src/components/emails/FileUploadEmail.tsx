@@ -13,6 +13,14 @@ import {
 } from "@react-email/components";
 import * as React from "react";
 
+interface Translations {
+  title: string;
+  preview: string;
+  uploadedFile: string;
+  viewDashboard: string;
+  footer: string;
+}
+
 interface FileUploadEmailProps {
   transactionTitle: string;
   fileName: string;
@@ -20,6 +28,7 @@ interface FileUploadEmailProps {
   transactionUrl: string;
   brandLogoUrl?: string | null;
   brandColor?: string | null;
+  translations?: Translations;
 }
 
 export const FileUploadEmail = ({
@@ -29,9 +38,12 @@ export const FileUploadEmail = ({
   transactionUrl,
   brandLogoUrl,
   brandColor,
+  translations,
 }: FileUploadEmailProps) => {
   const primaryColor = brandColor || "#2563eb";
-  const previewText = `${uploaderName} uploaded "${fileName}" to ${transactionTitle}`;
+  const previewText = translations?.preview
+    ? translations.preview.replace('{{uploader}}', uploaderName).replace('{{fileName}}', fileName).replace('{{transaction}}', transactionTitle)
+    : `${uploaderName} uploaded "${fileName}" to ${transactionTitle}`;
 
   return (
     <Html>
@@ -53,13 +65,13 @@ export const FileUploadEmail = ({
           )}
 
           <Section style={headerSection}>
-             <Heading as="h2" style={h2}>New File Uploaded</Heading>
+             <Heading as="h2" style={h2}>{translations?.title || 'New File Uploaded'}</Heading>
              <Text style={subheading}>{transactionTitle}</Text>
           </Section>
 
           <Section style={contentSection}>
             <Text style={text}>
-              <strong>{uploaderName}</strong> uploaded a new file:
+              {translations?.uploadedFile?.replace('{{uploader}}', uploaderName) || `${uploaderName} uploaded a new file:`}
             </Text>
 
             <div style={fileBox}>
@@ -69,12 +81,12 @@ export const FileUploadEmail = ({
             <Hr style={hr} />
 
             <Link href={transactionUrl} style={{ ...button, backgroundColor: primaryColor }}>
-              View in Dashboard
+              {translations?.viewDashboard || 'View in Dashboard'}
             </Link>
           </Section>
 
           <Text style={footer}>
-            You received this email because you are a participant in this transaction and have enabled email alerts.
+            {translations?.footer || 'You received this email because you are a participant in this transaction and have enabled email alerts.'}
           </Text>
         </Container>
       </Body>

@@ -62,7 +62,11 @@ const translations = {
     'dashboard.recentActivity': 'Recent Activity',
     'dashboard.noActivity': 'No recent activity',
     'dashboard.noTransactions': 'No transactions yet',
+    'dashboard.noTransactionsAgent': 'No transactions yet',
+    'dashboard.noTransactionsBuyer': 'No invitations yet',
     'dashboard.createFirst': 'Create your first transaction to get started',
+    'dashboard.createFirstButton': 'Create your first transaction',
+    'dashboard.noInvitationsYet': 'You haven\'t been invited to any transactions yet. Your agent will send you an invitation when they create a transaction.',
     'dashboard.newMessages': 'New Messages',
     'dashboard.viewAll': 'View All',
     'dashboard.quickActions': 'Quick Actions',
@@ -70,6 +74,7 @@ const translations = {
     'dashboard.milestoneCompleted': 'Milestone completed: {{milestone}}',
     'dashboard.newMessageFrom': 'New message from {{author}}',
     'dashboard.fileUploaded': 'File uploaded: {{filename}}',
+    'dashboard.systemAnnouncement': 'System Announcement',
     
     // Transactions
     'transactions.title': 'Transactions',
@@ -140,6 +145,58 @@ const translations = {
     'transaction.editTitle': 'Edit Transaction Title',
     'transaction.editTitleDescription': 'Update the transaction title in multiple languages. Translations are displayed based on user language preference.',
     'transaction.emailProgress': 'Email Progress',
+    'transaction.emailSentSuccess': 'Email sent successfully',
+    'transaction.emailSentDescription': 'Progress update sent to {{email}}',
+    'transaction.emailFailed': 'Failed to send email',
+    'transaction.milestoneUpdateFailed': 'Failed to update milestone',
+    
+    // Email Content
+    'email.progressReport': 'Transaction Progress Report',
+    'email.transactionProgressFor': 'Transaction Progress for {{title}}',
+    'email.viewPropertyListing': 'View Property Listing',
+    'email.milestones': 'Milestones',
+    'email.completedOn': 'Completed on {{date}}',
+    'email.recentMessages': 'Recent Messages',
+    'email.noMessages': 'No messages yet.',
+    'email.files': 'Files',
+    'email.noFiles': 'No files uploaded yet.',
+    'email.attachmentNote': 'Note: All files are attached to this email.',
+    'email.viewTransaction': 'View Transaction on Site',
+    'email.viewDetails': 'You can view the full details and continue the conversation on the portal:',
+    'email.sentFrom': 'Sent from',
+    
+    // Milestone Update Email
+    'email.milestoneUpdate.title': 'Transaction Update',
+    'email.milestoneUpdate.preview': 'Milestone Update: {{milestone}} was {{status}}',
+    'email.milestoneUpdate.milestoneUpdated': 'A milestone has been updated by {{updater}}.',
+    'email.milestoneUpdate.nowCompleted': 'Now COMPLETED',
+    'email.milestoneUpdate.nowPending': 'Now PENDING',
+    'email.milestoneUpdate.viewDetails': 'View Transaction Details',
+    'email.milestoneUpdate.subject': 'Update: {{title}}',
+    'email.milestoneUpdate.completed': 'completed',
+    'email.milestoneUpdate.markedPending': 'marked as pending',
+    'email.milestoneUpdate.footer': 'You received this email because you are a participant in this transaction and have enabled email alerts.',
+    
+    // New Message Email
+    'email.newMessage.title': 'New Message',
+    'email.newMessage.preview': 'New message from {{author}} in {{transaction}}',
+    'email.newMessage.sentMessage': '{{author}} sent a new message:',
+    'email.newMessage.reply': 'Reply in Dashboard',
+    'email.newMessage.subject': 'New Message in {{title}}',
+    'email.newMessage.footer': 'You received this email because you are a participant in this transaction and have enabled email alerts.',
+    
+    // File Upload Email
+    'email.fileUpload.title': 'New File Uploaded',
+    'email.fileUpload.preview': '{{uploader}} uploaded "{{fileName}}" to {{transaction}}',
+    'email.fileUpload.uploadedFile': '{{uploader}} uploaded a new file:',
+    'email.fileUpload.viewDashboard': 'View in Dashboard',
+    'email.fileUpload.subject': 'New File in {{title}}',
+    'email.fileUpload.footer': 'You received this email because you are a participant in this transaction and have enabled email alerts.',
+    
+    // SMS Messages
+    'sms.milestoneUpdate': 'Update: {{milestone}} is now {{status}} in transaction "{{transaction}}". View at: {{url}}',
+    'sms.newMessage': 'New message from {{author}} in "{{transaction}}". Reply at: {{url}}',
+    'sms.fileUpload': 'New file "{{fileName}}" uploaded by {{uploader}} to "{{transaction}}". View at: {{url}}',
     
     // Messages
     'messages.title': 'Messages',
@@ -154,6 +211,10 @@ const translations = {
     'messages.newMessage': 'New Message',
     'messages.autoTranslate': 'Messages will be automatically translated for participants with different language preferences',
     'messages.description': 'Communication between transaction participants with automatic translation.',
+    'messages.sendFailed': 'Failed to send message',
+    'messages.sendFailedDescription': 'Please try again',
+    'messages.translationFailed': 'Translation failed',
+    'messages.translationFailedDescription': 'Please try again later',
     
     // Milestones
     'milestones.title': 'Milestones',
@@ -381,6 +442,8 @@ const translations = {
     'landing.featurePropertyLinksDesc': 'Link transactions directly to your property listings for easy reference and client access',
     'landing.featureMultilingualTitle': 'Multilingual Transactions',
     'landing.featureMultilingualDesc': 'Transaction titles and content automatically translate to support international buyers and agents',
+    'landing.featureCustomBrandingTitle': 'Custom Branding',
+    'landing.featureCustomBrandingDesc': 'Customise the portal with your agency logo and brand colours for a professional co-branded experience',
   },
   
   it: {
@@ -419,7 +482,11 @@ const translations = {
     'dashboard.recentActivity': 'Attività Recenti',
     'dashboard.noActivity': 'Nessuna attività recente',
     'dashboard.noTransactions': 'Nessuna transazione ancora',
+    'dashboard.noTransactionsAgent': 'Nessuna transazione ancora',
+    'dashboard.noTransactionsBuyer': 'Nessun invito ancora',
     'dashboard.createFirst': 'Crea la tua prima transazione per iniziare',
+    'dashboard.createFirstButton': 'Crea la tua prima transazione',
+    'dashboard.noInvitationsYet': 'Non sei ancora stato invitato ad alcuna transazione. Il tuo agente ti invierà un invito quando creerà una transazione.',
     'dashboard.newMessages': 'Nuovi Messaggi',
     'dashboard.viewAll': 'Vedi Tutto',
     'dashboard.quickActions': 'Azioni Rapide',
@@ -427,6 +494,7 @@ const translations = {
     'dashboard.milestoneCompleted': 'Traguardo completato: {{milestone}}',
     'dashboard.newMessageFrom': 'Nuovo messaggio da {{author}}',
     'dashboard.fileUploaded': 'File caricato: {{filename}}',
+    'dashboard.systemAnnouncement': 'Annuncio di Sistema',
     
     // Transactions
     'transactions.title': 'Transazioni',
@@ -497,6 +565,58 @@ const translations = {
     'transaction.editTitle': 'Modifica Titolo Transazione',
     'transaction.editTitleDescription': 'Aggiorna il titolo della transazione in più lingue. Le traduzioni vengono visualizzate in base alla preferenza linguistica dell\'utente.',
     'transaction.emailProgress': 'Invia progressi via email',
+    'transaction.emailSentSuccess': 'Email inviata con successo',
+    'transaction.emailSentDescription': 'Aggiornamento progressi inviato a {{email}}',
+    'transaction.emailFailed': 'Impossibile inviare l\'email',
+    'transaction.milestoneUpdateFailed': 'Impossibile aggiornare il traguardo',
+    
+    // Email Content
+    'email.progressReport': 'Report Progressi Transazione',
+    'email.transactionProgressFor': 'Progressi Transazione per {{title}}',
+    'email.viewPropertyListing': 'Visualizza Annuncio Immobiliare',
+    'email.milestones': 'Traguardi',
+    'email.completedOn': 'Completato il {{date}}',
+    'email.recentMessages': 'Messaggi Recenti',
+    'email.noMessages': 'Nessun messaggio ancora.',
+    'email.files': 'File',
+    'email.noFiles': 'Nessun file caricato ancora.',
+    'email.attachmentNote': 'Nota: Tutti i file sono allegati a questa email.',
+    'email.viewTransaction': 'Visualizza Transazione sul Sito',
+    'email.viewDetails': 'Puoi visualizzare i dettagli completi e continuare la conversazione sul portale:',
+    'email.sentFrom': 'Inviato da',
+    
+    // Milestone Update Email
+    'email.milestoneUpdate.title': 'Aggiornamento Transazione',
+    'email.milestoneUpdate.preview': 'Aggiornamento Traguardo: {{milestone}} è stato {{status}}',
+    'email.milestoneUpdate.milestoneUpdated': 'Un traguardo è stato aggiornato da {{updater}}.',
+    'email.milestoneUpdate.nowCompleted': 'Ora COMPLETATO',
+    'email.milestoneUpdate.nowPending': 'Ora IN ATTESA',
+    'email.milestoneUpdate.viewDetails': 'Visualizza Dettagli Transazione',
+    'email.milestoneUpdate.subject': 'Aggiornamento: {{title}}',
+    'email.milestoneUpdate.completed': 'completato',
+    'email.milestoneUpdate.markedPending': 'segnato come in attesa',
+    'email.milestoneUpdate.footer': 'Hai ricevuto questa email perché sei un partecipante a questa transazione e hai abilitato gli avvisi email.',
+    
+    // New Message Email
+    'email.newMessage.title': 'Nuovo Messaggio',
+    'email.newMessage.preview': 'Nuovo messaggio da {{author}} in {{transaction}}',
+    'email.newMessage.sentMessage': '{{author}} ha inviato un nuovo messaggio:',
+    'email.newMessage.reply': 'Rispondi nel Cruscotto',
+    'email.newMessage.subject': 'Nuovo Messaggio in {{title}}',
+    'email.newMessage.footer': 'Hai ricevuto questa email perché sei un partecipante a questa transazione e hai abilitato gli avvisi email.',
+    
+    // File Upload Email
+    'email.fileUpload.title': 'Nuovo File Caricato',
+    'email.fileUpload.preview': '{{uploader}} ha caricato "{{fileName}}" in {{transaction}}',
+    'email.fileUpload.uploadedFile': '{{uploader}} ha caricato un nuovo file:',
+    'email.fileUpload.viewDashboard': 'Visualizza nel Cruscotto',
+    'email.fileUpload.subject': 'Nuovo File in {{title}}',
+    'email.fileUpload.footer': 'Hai ricevuto questa email perché sei un partecipante a questa transazione e hai abilitato gli avvisi email.',
+    
+    // SMS Messages
+    'sms.milestoneUpdate': 'Aggiornamento: {{milestone}} è ora {{status}} nella transazione "{{transaction}}". Visualizza su: {{url}}',
+    'sms.newMessage': 'Nuovo messaggio da {{author}} in "{{transaction}}". Rispondi su: {{url}}',
+    'sms.fileUpload': 'Nuovo file "{{fileName}}" caricato da {{uploader}} in "{{transaction}}". Visualizza su: {{url}}',
     
     // Messages
     'messages.title': 'Messaggi',
@@ -511,6 +631,10 @@ const translations = {
     'messages.newMessage': 'Nuovo Messaggio',
     'messages.autoTranslate': 'I messaggi verranno tradotti automaticamente per i partecipanti con preferenze linguistiche diverse',
     'messages.description': 'Comunicazione tra i partecipanti alla transazione con traduzione automatica.',
+    'messages.sendFailed': 'Impossibile inviare il messaggio',
+    'messages.sendFailedDescription': 'Riprova',
+    'messages.translationFailed': 'Traduzione fallita',
+    'messages.translationFailedDescription': 'Riprova più tardi',
     
     // Milestones
     'milestones.title': 'Traguardi',
@@ -738,6 +862,8 @@ const translations = {
     'landing.featurePropertyLinksDesc': 'Collega le transazioni direttamente ai tuoi annunci immobiliari per un facile riferimento e accesso clienti',
     'landing.featureMultilingualTitle': 'Transazioni Multilingue',
     'landing.featureMultilingualDesc': 'I titoli e i contenuti delle transazioni si traducono automaticamente per supportare acquirenti e agenti internazionali',
+    'landing.featureCustomBrandingTitle': 'Branding Personalizzato',
+    'landing.featureCustomBrandingDesc': 'Personalizza il portale con il logo della tua agenzia e i colori del brand per un\'esperienza co-branded professionale',
   },
 
   pl: {
@@ -771,7 +897,11 @@ const translations = {
     'dashboard.recentActivity': 'Ostatnia aktywność',
     'dashboard.noActivity': 'Brak ostatnich aktywności',
     'dashboard.noTransactions': 'Brak transakcji',
+    'dashboard.noTransactionsAgent': 'Brak transakcji',
+    'dashboard.noTransactionsBuyer': 'Brak zaproszeń',
     'dashboard.createFirst': 'Utwórz pierwszą transakcję, aby rozpocząć',
+    'dashboard.createFirstButton': 'Utwórz pierwszą transakcję',
+    'dashboard.noInvitationsYet': 'Nie zostałeś jeszcze zaproszony do żadnej transakcji. Twój agent wyśle Ci zaproszenie, gdy utworzy transakcję.',
     'dashboard.newMessages': 'Nowe wiadomości',
     'dashboard.viewAll': 'Wyświetl wszystko',
     'dashboard.quickActions': 'Szybkie akcje',
@@ -779,6 +909,7 @@ const translations = {
     'dashboard.milestoneCompleted': 'Kamień milowy ukończony: {{milestone}}',
     'dashboard.newMessageFrom': 'Nowa wiadomość od {{autor}}',
     'dashboard.fileUploaded': 'Przesłany plik: {{filename}}',
+    'dashboard.systemAnnouncement': 'Ogłoszenie systemowe',
     'transactions.title': 'Transakcje',
     'transactions.my': 'Moje transakcje',
     'transactions.create': 'Utwórz transakcję',
@@ -845,6 +976,58 @@ const translations = {
     'transaction.editTitle': 'Edytuj tytuł transakcji',
     'transaction.editTitleDescription': 'Aktualizacja tytułu transakcji w wielu językach. Tłumaczenia są wyświetlane na podstawie preferencji językowych użytkownika.',
     'transaction.emailProgress': 'Wyślij postęp e-mailem',
+    'transaction.emailSentSuccess': 'E-mail wysłany pomyślnie',
+    'transaction.emailSentDescription': 'Aktualizacja postępu wysłana do {{email}}',
+    'transaction.emailFailed': 'Nie udało się wysłać e-maila',
+    'transaction.milestoneUpdateFailed': 'Nie udało się zaktualizować kamienia milowego',
+    
+    // Email Content
+    'email.progressReport': 'Raport postępu transakcji',
+    'email.transactionProgressFor': 'Postęp transakcji dla {{title}}',
+    'email.viewPropertyListing': 'Wyświetl listę nieruchomości',
+    'email.milestones': 'Kamienie milowe',
+    'email.completedOn': 'Ukończono dnia {{date}}',
+    'email.recentMessages': 'Ostatnie wiadomości',
+    'email.noMessages': 'Brak wiadomości.',
+    'email.files': 'Pliki',
+    'email.noFiles': 'Nie przesłano jeszcze żadnych plików.',
+    'email.attachmentNote': 'Uwaga: Wszystkie pliki są dołączone do tej wiadomości e-mail.',
+    'email.viewTransaction': 'Wyświetl transakcję na stronie',
+    'email.viewDetails': 'Możesz wyświetlić pełne szczegóły i kontynuować rozmowę na portalu:',
+    'email.sentFrom': 'Wysłano z',
+    
+    // Milestone Update Email
+    'email.milestoneUpdate.title': 'Aktualizacja transakcji',
+    'email.milestoneUpdate.preview': 'Aktualizacja kamienia milowego: {{milestone}} został {{status}}',
+    'email.milestoneUpdate.milestoneUpdated': 'Kamień milowy został zaktualizowany przez {{updater}}.',
+    'email.milestoneUpdate.nowCompleted': 'Teraz UKOŃCZONO',
+    'email.milestoneUpdate.nowPending': 'Teraz W TOCKU',
+    'email.milestoneUpdate.viewDetails': 'Wyświetl szczegóły transakcji',
+    'email.milestoneUpdate.subject': 'Aktualizacja: {{title}}',
+    'email.milestoneUpdate.completed': 'ukończony',
+    'email.milestoneUpdate.markedPending': 'oznaczony jako w toku',
+    'email.milestoneUpdate.footer': 'Otrzymałeś tę wiadomość e-mail, ponieważ jesteś uczestnikiem tej transakcji i włączyłeś alerty e-mailowe.',
+    
+    // New Message Email
+    'email.newMessage.title': 'Nowa wiadomość',
+    'email.newMessage.preview': 'Nowa wiadomość od {{author}} w {{transaction}}',
+    'email.newMessage.sentMessage': '{{author}} wysłał nową wiadomość:',
+    'email.newMessage.reply': 'Odpowiedz na pulpicie nawigacyjnym',
+    'email.newMessage.subject': 'Nowa wiadomość w {{title}}',
+    'email.newMessage.footer': 'Otrzymałeś tę wiadomość e-mail, ponieważ jesteś uczestnikiem tej transakcji i włączyłeś alerty e-mailowe.',
+    
+    // File Upload Email
+    'email.fileUpload.title': 'Przesłano nowy plik',
+    'email.fileUpload.preview': '{{uploader}} przesłał "{{fileName}}" do {{transaction}}',
+    'email.fileUpload.uploadedFile': '{{uploader}} przesłał nowy plik:',
+    'email.fileUpload.viewDashboard': 'Wyświetl na pulpicie nawigacyjnym',
+    'email.fileUpload.subject': 'Nowy plik w {{title}}',
+    'email.fileUpload.footer': 'Otrzymałeś tę wiadomość e-mail, ponieważ jesteś uczestnikiem tej transakcji i włączyłeś alerty e-mailowe.',
+    
+    // SMS Messages
+    'sms.milestoneUpdate': 'Aktualizacja: {{milestone}} jest teraz {{status}} w transakcji "{{transaction}}". Wyświetl na: {{url}}',
+    'sms.newMessage': 'Nowa wiadomość od {{author}} w "{{transaction}}". Odpowiedz na: {{url}}',
+    'sms.fileUpload': 'Nowy plik "{{fileName}}" przesłany przez {{uploader}} do "{{transaction}}". Wyświetl na: {{url}}',
     'messages.title': 'Wiadomości',
     'messages.send': 'Wyślij wiadomość',
     'messages.typeMessage': 'Wpisz wiadomość...',
@@ -857,6 +1040,10 @@ const translations = {
     'messages.newMessage': 'Nowa wiadomość',
     'messages.autoTranslate': 'Wiadomości będą automatycznie tłumaczone dla uczestników z różnymi preferencjami językowymi.',
     'messages.description': 'Komunikacja między uczestnikami transakcji z automatycznym tłumaczeniem.',
+    'messages.sendFailed': 'Nie udało się wysłać wiadomości',
+    'messages.sendFailedDescription': 'Spróbuj ponownie',
+    'messages.translationFailed': 'Tłumaczenie nie powiodło się',
+    'messages.translationFailedDescription': 'Spróbuj ponownie później',
     'milestones.title': 'Kamienie milowe',
     'milestones.completed': 'Zakończono',
     'milestones.pending': 'W toku',
@@ -1054,6 +1241,8 @@ const translations = {
     'landing.featurePropertyLinksDesc': 'Połącz transakcje bezpośrednio z ofertami nieruchomości, aby ułatwić klientom dostęp do nich.',
     'landing.featureMultilingualTitle': 'Transakcje wielojęzyczne',
     'landing.featureMultilingualDesc': 'Tytuły i treści transakcji są automatycznie tłumaczone, aby wspierać międzynarodowych nabywców i agentów.',
+    'landing.featureCustomBrandingTitle': 'Niestandardowe znakowanie',
+    'landing.featureCustomBrandingDesc': 'Dostosuj portal za pomocą logo agencji i kolorów marki, aby zapewnić profesjonalne współdzielone doświadczenie.',
   },
 } as const;
 

@@ -143,17 +143,19 @@ export const ProgressTracker: React.FC<ProgressTrackerProps> = ({
                       )}
                     </div>
                   </div>
-                  <p
-                    className={`mt-1 text-sm ${
-                      status === 'completed'
-                        ? 'text-success/90'
-                        : status === 'current'
-                        ? 'text-info/90'
-                        : 'text-gray-600'
-                    }`}
-                  >
-                    {milestone.description}
-                  </p>
+                  {milestone.description && (
+                    <p
+                      className={`mt-1 text-sm ${
+                        status === 'completed'
+                          ? 'text-success/90'
+                          : status === 'current'
+                          ? 'text-info/90'
+                          : 'text-gray-600'
+                      }`}
+                    >
+                      {milestone.description}
+                    </p>
+                  )}
                   {milestone.isCompleted && milestone.completedAt && (
                     <p className="mt-1 text-xs text-success">
                       {t('milestones.completedOnLabel')}{' '}

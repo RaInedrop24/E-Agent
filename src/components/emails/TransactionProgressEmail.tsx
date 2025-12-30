@@ -30,6 +30,22 @@ interface FileAttachment {
   size: string;
 }
 
+interface Translations {
+  progressReport: string;
+  transactionProgressFor: string;
+  viewPropertyListing: string;
+  milestones: string;
+  completedOn: (date: string) => string;
+  recentMessages: string;
+  noMessages: string;
+  files: string;
+  noFiles: string;
+  attachmentNote: string;
+  viewTransaction: string;
+  viewDetails: string;
+  sentFrom: string;
+}
+
 interface TransactionProgressEmailProps {
   transactionTitle: string;
   propertyAddress?: string | null;
@@ -41,6 +57,8 @@ interface TransactionProgressEmailProps {
   transactionUrl: string;
   brandLogoUrl?: string | null;
   brandColor?: string | null;
+  language?: string;
+  translations?: Translations;
 }
 
 export const TransactionProgressEmail = ({
@@ -54,8 +72,9 @@ export const TransactionProgressEmail = ({
   transactionUrl,
   brandLogoUrl,
   brandColor,
+  translations,
 }: TransactionProgressEmailProps) => {
-  const previewText = `Transaction Progress for ${transactionTitle}`;
+  const previewText = translations?.transactionProgressFor || `Transaction Progress for ${transactionTitle}`;
   const primaryColor = brandColor || "#2563eb";
 
   return (
@@ -74,7 +93,7 @@ export const TransactionProgressEmail = ({
               />
             </Section>
           ) : (
-             <Heading style={h1}>Transaction Progress Report</Heading>
+             <Heading style={h1}>{translations?.progressReport || 'Transaction Progress Report'}</Heading>
           )}
           
           <Section style={headerSection}>
@@ -84,7 +103,7 @@ export const TransactionProgressEmail = ({
             )}
             {propertyUrl && (
               <Link href={propertyUrl} style={{ ...link, color: primaryColor }}>
-                View Property Listing
+                {translations?.viewPropertyListing || 'View Property Listing'}
               </Link>
             )}
           </Section>
@@ -92,16 +111,16 @@ export const TransactionProgressEmail = ({
           <Hr style={hr} />
 
           <Section>
-            <Heading as="h2" style={h2}>Milestones</Heading>
+            <Heading as="h2" style={h2}>{translations?.milestones || 'Milestones'}</Heading>
             {milestones.map((m, i) => (
               <div key={i} style={milestoneRow}>
-                <span style={m.completed ? { ...completedDot, backgroundColor: primaryColor } : pendingDot}>
-                  {m.completed ? "✓" : "○"}
+                <span style={m.completed ? completedIcon : pendingIcon}>
+                  {m.completed ? "✓" : ""}
                 </span>
                 <span style={m.completed ? completedText : pendingText}>
                   {m.label}
                   {m.completed && m.completedAt && (
-                    <span style={dateText}> - Completed on {new Date(m.completedAt).toLocaleDateString()}</span>
+                    <span style={dateText}> - {translations?.completedOn(new Date(m.completedAt).toLocaleDateString()) || `Completed on ${new Date(m.completedAt).toLocaleDateString()}`}</span>
                   )}
                 </span>
               </div>
@@ -111,9 +130,9 @@ export const TransactionProgressEmail = ({
           <Hr style={hr} />
 
           <Section>
-            <Heading as="h2" style={h2}>Recent Messages</Heading>
+            <Heading as="h2" style={h2}>{translations?.recentMessages || 'Recent Messages'}</Heading>
             {messages.length === 0 ? (
-              <Text style={secondary}>No messages yet.</Text>
+              <Text style={secondary}>{translations?.noMessages || 'No messages yet.'}</Text>
             ) : (
               messages.map((msg, i) => (
                 <div key={i} style={messageBox}>
@@ -127,9 +146,9 @@ export const TransactionProgressEmail = ({
           <Hr style={hr} />
 
           <Section>
-            <Heading as="h2" style={h2}>Files</Heading>
+            <Heading as="h2" style={h2}>{translations?.files || 'Files'}</Heading>
             {files.length === 0 ? (
-              <Text style={secondary}>No files uploaded yet.</Text>
+              <Text style={secondary}>{translations?.noFiles || 'No files uploaded yet.'}</Text>
             ) : (
               <div style={fileList}>
                 {files.map((file, i) => (
@@ -137,7 +156,7 @@ export const TransactionProgressEmail = ({
                     📎 {file.name} ({file.size})
                   </Text>
                 ))}
-                <Text style={attachmentNote}>Note: All files are attached to this email.</Text>
+                <Text style={attachmentNote}>{translations?.attachmentNote || 'Note: All files are attached to this email.'}</Text>
               </div>
             )}
           </Section>
@@ -146,13 +165,13 @@ export const TransactionProgressEmail = ({
 
           <Section style={footer}>
             <Text style={footerText}>
-              You can view the full details and continue the conversation on the portal:
+              {translations?.viewDetails || 'You can view the full details and continue the conversation on the portal:'}
             </Text>
             <Link href={transactionUrl} style={{ ...button, backgroundColor: primaryColor }}>
-              View Transaction on Site
+              {translations?.viewTransaction || 'View Transaction on Site'}
             </Link>
             <Text style={footerSecondary}>
-              Sent from <Link href={siteUrl} style={footerLink}>The Property Gateway</Link>
+              {translations?.sentFrom || 'Sent from'} <Link href={siteUrl} style={footerLink}>The Property Gateway</Link>
             </Text>
           </Section>
         </Container>
@@ -215,32 +234,35 @@ const link = {
 };
 
 const milestoneRow = {
-  display: "flex",
-  alignItems: "center",
-  marginBottom: "10px",
+  marginBottom: "12px",
   fontSize: "15px",
+  lineHeight: "1.5",
 };
 
-const completedDot = {
+const completedIcon = {
   display: "inline-block",
   width: "20px",
   height: "20px",
   backgroundColor: "#10b981",
-  color: "white",
+  color: "#ffffff",
   borderRadius: "50%",
   textAlign: "center" as const,
   lineHeight: "20px",
-  marginRight: "10px",
-  fontSize: "12px",
+  marginRight: "12px",
+  fontSize: "14px",
+  fontWeight: "bold" as const,
+  verticalAlign: "middle",
 };
 
-const pendingDot = {
+const pendingIcon = {
   display: "inline-block",
   width: "20px",
   height: "20px",
   border: "2px solid #cbd5e1",
   borderRadius: "50%",
-  marginRight: "10px",
+  marginRight: "12px",
+  backgroundColor: "#ffffff",
+  verticalAlign: "middle",
 };
 
 const completedText = {

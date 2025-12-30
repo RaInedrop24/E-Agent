@@ -196,8 +196,8 @@ export function MessagingPanel({ transactionId, messages: initialMessages, onRef
       onRefresh();
     } catch (error: any) {
       logger.error('Failed to send message', { transactionId, error: error.message });
-      toast.error('Failed to send message', {
-        description: 'Please try again'
+      toast.error(t('messages.sendFailed'), {
+        description: t('messages.sendFailedDescription')
       });
     } finally {
       setSending(false);
@@ -250,8 +250,8 @@ export function MessagingPanel({ transactionId, messages: initialMessages, onRef
       onRefresh();
     } catch (error: any) {
       logger.error('Translation failed', { messageId, error: error.message });
-      toast.error('Translation failed', {
-        description: 'Please try again later'
+      toast.error(t('messages.translationFailed'), {
+        description: t('messages.translationFailedDescription')
       });
     } finally {
       setTranslating({ ...translating, [messageId]: false });

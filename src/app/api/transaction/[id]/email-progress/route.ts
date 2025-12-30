@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { TransactionProgressEmail } from '@/components/emails/TransactionProgressEmail';
 import * as React from 'react';
+import { t, tVar, type TranslationKey } from '@/lib/ui-translations';
+import { SupportedLanguage, translateText } from '@/lib/translation';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -37,6 +39,15 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Get user's profile to determine preferred language
+    const { data: userProfile } = await supabaseAdmin
+      .from('profiles')
+      .select('preferred_language')
+      .eq('id', user.id)
+      .single();
+
+    const userLanguage: SupportedLanguage = (userProfile?.preferred_language as SupportedLanguage) || 'en';
+
     // Check if user is a participant or creator
     const { data: tx, error: txError } = await supabaseAdmin
       .from('transactions')
@@ -70,7 +81,7 @@ export async function POST(
     // Fetch all data
     const [milestonesRes, messagesRes, filesRes] = await Promise.all([
       supabaseAdmin.from('milestones').select('*').eq('transaction_id', transactionId).order('order_index'),
-      supabaseAdmin.from('messages').select('*, profiles!messages_author_profile_id_fkey(full_name)').eq('transaction_id', transactionId).order('created_at'),
+      supabaseAdmin.from('messages').select('*, profiles!messages_author_profile_id_fkey(full_name)').eq('transaction_id', transactionId).order('created_at', { ascending: false }).limit(10),
       supabaseAdmin.from('files').select('*').eq('transaction_id', transactionId),
     ]);
 
@@ -105,24 +116,78 @@ export async function POST(
 
     const validAttachments = attachments.filter(a => a !== null) as Array<{ filename: string; content: Buffer }>;
 
-    // Prepare email data
+    // Get translated transaction title
+    const langKey = `title_${userLanguage}` as keyof typeof tx;
+    const transactionTitle = (tx[langKey] as string) || tx.title_en || tx.title || 'Untitled Transaction';
+
+    // Get translated milestone labels
+    const translatedMilestones = milestones.map(m => {
+      const milestoneLangKey = `label_${userLanguage}` as keyof typeof m;
+      const label = (m[milestoneLangKey] as string) || m.label_en || m.label_it || 'Milestone';
+      return {
+        label,
+        completed: m.completed,
+        completedAt: m.completed_at,
+      };
+    });
+
+    // Reverse messages to show oldest first (typical email thread order)
+    const reversedMessages = [...messages].reverse();
+    
+    // Translate messages to user's language
+    const translatedMessages = await Promise.all(
+      reversedMessages.map(async (m) => {
+        const originalContent = m.content_original;
+        let translatedContent = originalContent;
+
+        // Check if message needs translation (if it has translated_text cache)
+        if (m.translated_text && typeof m.translated_text === 'object') {
+          const cachedTranslation = (m.translated_text as Record<string, string>)[userLanguage];
+          if (cachedTranslation) {
+            translatedContent = cachedTranslation;
+          } else {
+            // Try to translate using DeepL
+            try {
+              const messageLanguage = m.original_language as SupportedLanguage || 'en';
+              if (messageLanguage !== userLanguage) {
+                const translation = await translateText(originalContent, userLanguage, messageLanguage);
+                translatedContent = translation.translatedText;
+              }
+            } catch (error) {
+              console.error('Error translating message:', error);
+              // Fall back to original if translation fails
+              translatedContent = originalContent;
+            }
+          }
+        } else if (m.original_language && m.original_language !== userLanguage) {
+          // Translate if original language differs from user language
+          try {
+            const translation = await translateText(originalContent, userLanguage, m.original_language as SupportedLanguage);
+            translatedContent = translation.translatedText;
+          } catch (error) {
+            console.error('Error translating message:', error);
+            translatedContent = originalContent;
+          }
+        }
+
+        return {
+          author: (m.profiles as any)?.full_name || 'Unknown',
+          content: translatedContent,
+          createdAt: m.created_at,
+        };
+      })
+    );
+
+    // Prepare email data with translations
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://thepropertygateway.com';
     const transactionUrl = `${siteUrl}/transaction/${transactionId}`;
 
     const emailProps = {
-      transactionTitle: tx.title_en || tx.title || 'Untitled Transaction',
+      transactionTitle,
       propertyAddress: tx.property_address,
       propertyUrl: tx.property_url,
-      milestones: milestones.map(m => ({
-        label: m.label_en || m.label_it || 'Milestone',
-        completed: m.completed,
-        completedAt: m.completed_at,
-      })),
-      messages: messages.map(m => ({
-        author: (m.profiles as any)?.full_name || 'Unknown',
-        content: m.content_original,
-        createdAt: m.created_at,
-      })),
+      milestones: translatedMilestones,
+      messages: translatedMessages,
       files: files.map(f => ({
         name: f.file_name,
         size: formatBytes(f.file_size || 0),
@@ -131,13 +196,29 @@ export async function POST(
       transactionUrl,
       brandLogoUrl,
       brandColor,
+      language: userLanguage,
+      translations: {
+        progressReport: t('email.progressReport' as TranslationKey, userLanguage),
+        transactionProgressFor: tVar('email.transactionProgressFor' as TranslationKey, userLanguage, { title: transactionTitle }),
+        viewPropertyListing: t('email.viewPropertyListing' as TranslationKey, userLanguage),
+        milestones: t('email.milestones' as TranslationKey, userLanguage),
+        completedOn: (date: string) => tVar('email.completedOn' as TranslationKey, userLanguage, { date }),
+        recentMessages: t('email.recentMessages' as TranslationKey, userLanguage),
+        noMessages: t('email.noMessages' as TranslationKey, userLanguage),
+        files: t('email.files' as TranslationKey, userLanguage),
+        noFiles: t('email.noFiles' as TranslationKey, userLanguage),
+        attachmentNote: t('email.attachmentNote' as TranslationKey, userLanguage),
+        viewTransaction: t('email.viewTransaction' as TranslationKey, userLanguage),
+        viewDetails: t('email.viewDetails' as TranslationKey, userLanguage),
+        sentFrom: t('email.sentFrom' as TranslationKey, userLanguage),
+      },
     };
 
     // Send email
     const { data: emailData, error: emailError } = await resend.emails.send({
       from: 'The Property Gateway <noreply@mail.thepropertygateway.com>',
       to: [user.email!],
-      subject: `Transaction Progress: ${emailProps.transactionTitle}`,
+      subject: emailProps.translations.transactionProgressFor,
       react: React.createElement(TransactionProgressEmail, emailProps) as React.ReactElement,
       attachments: validAttachments,
     });

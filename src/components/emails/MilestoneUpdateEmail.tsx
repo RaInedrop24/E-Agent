@@ -13,6 +13,16 @@ import {
 } from "@react-email/components";
 import * as React from "react";
 
+interface Translations {
+  title: string;
+  preview: string;
+  milestoneUpdated: string;
+  nowCompleted: string;
+  nowPending: string;
+  viewDetails: string;
+  footer: string;
+}
+
 interface MilestoneUpdateEmailProps {
   transactionTitle: string;
   milestoneTitle: string;
@@ -21,6 +31,7 @@ interface MilestoneUpdateEmailProps {
   transactionUrl: string;
   brandLogoUrl?: string | null;
   brandColor?: string | null;
+  translations?: Translations;
 }
 
 export const MilestoneUpdateEmail = ({
@@ -31,10 +42,15 @@ export const MilestoneUpdateEmail = ({
   transactionUrl,
   brandLogoUrl,
   brandColor,
+  translations,
 }: MilestoneUpdateEmailProps) => {
   const primaryColor = brandColor || "#2563eb";
-  const actionText = status === "completed" ? "completed" : "marked as pending";
-  const previewText = `Milestone Update: ${milestoneTitle} was ${actionText}`;
+  const actionText = status === "completed" 
+    ? (translations?.nowCompleted ? translations.nowCompleted.replace('Now ', '').toLowerCase() : "completed")
+    : (translations?.nowPending ? translations.nowPending.replace('Now ', '').toLowerCase() : "marked as pending");
+  const previewText = translations?.preview 
+    ? translations.preview.replace('{{milestone}}', milestoneTitle).replace('{{status}}', actionText)
+    : `Milestone Update: ${milestoneTitle} was ${actionText}`;
 
   return (
     <Html>
@@ -56,13 +72,13 @@ export const MilestoneUpdateEmail = ({
           )}
 
           <Section style={headerSection}>
-             <Heading as="h2" style={h2}>Transaction Update</Heading>
+             <Heading as="h2" style={h2}>{translations?.title || 'Transaction Update'}</Heading>
              <Text style={subheading}>{transactionTitle}</Text>
           </Section>
           
           <Section style={contentSection}>
             <Text style={text}>
-              A milestone has been updated by <strong>{updatedBy}</strong>.
+              {translations?.milestoneUpdated?.replace('{{updater}}', updatedBy) || `A milestone has been updated by ${updatedBy}.`}
             </Text>
 
             <div style={milestoneBox}>
@@ -71,19 +87,21 @@ export const MilestoneUpdateEmail = ({
                  ...statusText, 
                  color: status === "completed" ? "#10b981" : "#f59e0b" 
                }}>
-                 Now {status === "completed" ? "COMPLETED" : "PENDING"}
+                 {status === "completed" 
+                   ? (translations?.nowCompleted || "Now COMPLETED")
+                   : (translations?.nowPending || "Now PENDING")}
                </Text>
             </div>
 
             <Hr style={hr} />
 
             <Link href={transactionUrl} style={{ ...button, backgroundColor: primaryColor }}>
-              View Transaction Details
+              {translations?.viewDetails || 'View Transaction Details'}
             </Link>
           </Section>
 
           <Text style={footer}>
-            You received this email because you are a participant in this transaction and have enabled email alerts.
+            {translations?.footer || 'You received this email because you are a participant in this transaction and have enabled email alerts.'}
           </Text>
         </Container>
       </Body>

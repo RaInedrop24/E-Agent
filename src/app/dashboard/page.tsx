@@ -216,7 +216,7 @@ export default function DashboardPage() {
             id: n.id,
             type: 'notification',
             description: n.subject, // Already translated via API
-            transaction_title: 'System Announcement', // Not tied to a transaction
+            transaction_title: t('dashboard.systemAnnouncement'), // Not tied to a transaction
             transaction_id: '', // No transaction ID for system notifications
             created_at: n.created_at,
             // Store full notification data for modal
@@ -324,12 +324,12 @@ export default function DashboardPage() {
             {transactions.length === 0 ? (
               <EmptyState
                 icon={Receipt}
-                title={profile?.role === 'agent' ? 'No transactions yet' : 'No invitations yet'}
+                title={profile?.role === 'agent' ? t('dashboard.noTransactionsAgent') : t('dashboard.noTransactionsBuyer')}
                 description={profile?.role === 'agent'
                   ? t('dashboard.createFirst')
-                  : "You haven't been invited to any transactions yet. Your agent will send you an invitation when they create a transaction."}
+                  : t('dashboard.noInvitationsYet')}
                 action={profile?.role === 'agent' ? {
-                  label: 'Create your first transaction',
+                  label: t('dashboard.createFirstButton'),
                   onClick: () => router.push('/transactions/create')
                 } : undefined}
               />
