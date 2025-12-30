@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
+import { translateText, SupportedLanguage } from '@/lib/translation';
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -27,10 +28,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get user's profile to determine role
+    // Get user's profile to determine role and preferred language
     const { data: profile, error: profileError } = await supabaseAdmin
       .from('profiles')
-      .select('role')
+      .select('role, preferred_language')
       .eq('id', user.id)
       .single();
 
@@ -51,6 +52,62 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch notifications' }, { status: 500 });
     }
 
+    // Translate notifications if user's preferred language is not English
+    const userLanguage = (profile.preferred_language as SupportedLanguage) || 'en';
+    const translatedNotifications = await Promise.all(
+      (notifications || []).map(async (notification: any) => {
+        // If user's language is English, return original
+        if (userLanguage === 'en') {
+          return notification;
+        }
+
+        // Check if translation already exists in database
+        if (notification.translated_subject && 
+            notification.translated_message && 
+            notification.translation_language === userLanguage) {
+          // Use cached translation
+          return {
+            ...notification,
+            subject: notification.translated_subject,
+            message: notification.translated_message,
+            original_subject: notification.subject,
+            original_message: notification.message,
+          };
+        }
+
+        // Translation doesn't exist or is for different language - translate and store
+        try {
+          // Translate subject and message
+          const [subjectTranslation, messageTranslation] = await Promise.all([
+            translateText(notification.subject, userLanguage, 'en'),
+            translateText(notification.message, userLanguage, 'en'),
+          ]);
+
+          // Store translations in database for future use
+          await supabaseAdmin
+            .from('user_notifications')
+            .update({
+              translated_subject: subjectTranslation.translatedText,
+              translated_message: messageTranslation.translatedText,
+              translation_language: userLanguage,
+            })
+            .eq('id', notification.id);
+
+          return {
+            ...notification,
+            subject: subjectTranslation.translatedText,
+            message: messageTranslation.translatedText,
+            original_subject: notification.subject,
+            original_message: notification.message,
+          };
+        } catch (translationError) {
+          console.error('Error translating notification:', translationError);
+          // Return original if translation fails
+          return notification;
+        }
+      })
+    );
+
     // Get unread count
     const { data: unreadCount, error: countError } = await supabaseAdmin
       .rpc('get_unread_notification_count', { user_uuid: user.id });
@@ -60,7 +117,7 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({
-      notifications: notifications || [],
+      notifications: translatedNotifications,
       unreadCount: unreadCount || 0,
     });
 

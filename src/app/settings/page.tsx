@@ -73,8 +73,14 @@ export default function SettingsPage() {
   const [originalEmailAlerts, setOriginalEmailAlerts] = useState(false);
   const [originalSmsAlerts, setOriginalSmsAlerts] = useState(false);
   const [originalFullPhone, setOriginalFullPhone] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
   
   const supportedLanguages = getSupportedLanguages();
+  
+  // Ensure component is mounted before rendering Select (fixes hydration mismatch)
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   
   // Check if profile has been modified
   const currentFullPhone = smsAlerts ? `${countryCode}${phoneNumber}` : null;
@@ -384,18 +390,24 @@ export default function SettingsPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="language">{translate('form.language')}</Label>
-                <Select value={preferredLanguage} onValueChange={(value) => setPreferredLanguage(value as SupportedLanguage)}>
-                  <SelectTrigger id="language">
-                    <SelectValue placeholder="Select language" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {supportedLanguages.map((lang) => (
-                      <SelectItem key={lang.code} value={lang.code}>
-                        {lang.nativeName} ({lang.name})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {mounted ? (
+                  <Select value={preferredLanguage} onValueChange={(value) => setPreferredLanguage(value as SupportedLanguage)}>
+                    <SelectTrigger id="language">
+                      <SelectValue placeholder="Select language" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {supportedLanguages.map((lang) => (
+                        <SelectItem key={lang.code} value={lang.code}>
+                          {lang.nativeName} ({lang.name})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <div className="h-9 w-full rounded-md border bg-transparent px-3 py-2 text-sm flex items-center">
+                    {supportedLanguages.find(l => l.code === preferredLanguage)?.nativeName || 'Select language'}
+                  </div>
+                )}
               </div>
             </div>
           </CardContent>
@@ -436,18 +448,24 @@ export default function SettingsPage() {
               {smsAlerts && (
                 <div className="grid grid-cols-3 gap-2 animate-in fade-in slide-in-from-top-1">
                    <div className="col-span-1">
-                     <Select value={countryCode} onValueChange={setCountryCode}>
-                        <SelectTrigger>
-                           <SelectValue placeholder="Code" />
-                        </SelectTrigger>
-                        <SelectContent>
-                           {COUNTRY_CODES.map((c) => (
-                              <SelectItem key={c.code} value={c.code}>
-                                 {c.country} ({c.code})
-                              </SelectItem>
-                           ))}
-                        </SelectContent>
-                     </Select>
+                     {mounted ? (
+                       <Select value={countryCode} onValueChange={setCountryCode}>
+                          <SelectTrigger>
+                             <SelectValue placeholder="Code" />
+                          </SelectTrigger>
+                          <SelectContent>
+                             {COUNTRY_CODES.map((c) => (
+                                <SelectItem key={c.code} value={c.code}>
+                                   {c.country} ({c.code})
+                                </SelectItem>
+                             ))}
+                          </SelectContent>
+                       </Select>
+                     ) : (
+                       <div className="h-9 w-full rounded-md border bg-transparent px-3 py-2 text-sm flex items-center">
+                         {COUNTRY_CODES.find(c => c.code === countryCode)?.code || 'Code'}
+                       </div>
+                     )}
                    </div>
                    <div className="col-span-2">
                      <Input 

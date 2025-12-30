@@ -11,22 +11,92 @@ import {
   Text,
 } from "@react-email/components";
 import * as React from "react";
+import { SupportedLanguage } from "@/lib/translation";
 
 interface SystemAnnouncementEmailProps {
   subject: string;
   message: string;
   recipientType: 'agent' | 'buyer';
   siteUrl?: string;
+  language?: SupportedLanguage;
 }
+
+// Translation map for email template strings
+const emailTranslations: Record<SupportedLanguage, {
+  systemAnnouncement: string;
+  dear: string;
+  agent: string;
+  buyer: string;
+  supportText: string;
+  goToDashboard: string;
+  footerText: (role: string) => string;
+}> = {
+  en: {
+    systemAnnouncement: 'System Announcement',
+    dear: 'Dear',
+    agent: 'Agent',
+    buyer: 'Buyer',
+    supportText: 'If you have any questions or concerns, please contact our support team.',
+    goToDashboard: 'Go to Dashboard',
+    footerText: (role) => `You received this system announcement because you are a registered ${role} on The Property Gateway platform.`,
+  },
+  it: {
+    systemAnnouncement: 'Annuncio di Sistema',
+    dear: 'Gentile',
+    agent: 'Agente',
+    buyer: 'Acquirente',
+    supportText: 'Se hai domande o dubbi, contatta il nostro team di supporto.',
+    goToDashboard: 'Vai alla Dashboard',
+    footerText: (role) => `Hai ricevuto questo annuncio di sistema perché sei un ${role} registrato sulla piattaforma The Property Gateway.`,
+  },
+  es: {
+    systemAnnouncement: 'Anuncio del Sistema',
+    dear: 'Estimado',
+    agent: 'Agente',
+    buyer: 'Comprador',
+    supportText: 'Si tiene alguna pregunta o inquietud, por favor contacte a nuestro equipo de soporte.',
+    goToDashboard: 'Ir al Panel',
+    footerText: (role) => `Recibió este anuncio del sistema porque es un ${role} registrado en la plataforma The Property Gateway.`,
+  },
+  fr: {
+    systemAnnouncement: 'Annonce Système',
+    dear: 'Cher',
+    agent: 'Agent',
+    buyer: 'Acheteur',
+    supportText: 'Si vous avez des questions ou des préoccupations, veuillez contacter notre équipe de support.',
+    goToDashboard: 'Aller au Tableau de Bord',
+    footerText: (role) => `Vous avez reçu cette annonce système car vous êtes un ${role} enregistré sur la plateforme The Property Gateway.`,
+  },
+  de: {
+    systemAnnouncement: 'Systemankündigung',
+    dear: 'Sehr geehrter',
+    agent: 'Makler',
+    buyer: 'Käufer',
+    supportText: 'Wenn Sie Fragen oder Bedenken haben, wenden Sie sich bitte an unser Support-Team.',
+    goToDashboard: 'Zum Dashboard gehen',
+    footerText: (role) => `Sie haben diese Systemankündigung erhalten, weil Sie ein registrierter ${role} auf der Plattform The Property Gateway sind.`,
+  },
+  pl: {
+    systemAnnouncement: 'Ogłoszenie Systemowe',
+    dear: 'Szanowny',
+    agent: 'Agent',
+    buyer: 'Kupujący',
+    supportText: 'Jeśli masz pytania lub wątpliwości, skontaktuj się z naszym zespołem wsparcia.',
+    goToDashboard: 'Przejdź do Panelu',
+    footerText: (role) => `Otrzymałeś to ogłoszenie systemowe, ponieważ jesteś zarejestrowanym ${role} na platformie The Property Gateway.`,
+  },
+};
 
 export const SystemAnnouncementEmail = ({
   subject,
   message,
   recipientType,
   siteUrl = 'https://thepropertygateway.com',
+  language = 'en',
 }: SystemAnnouncementEmailProps) => {
-  const previewText = `System Announcement: ${subject}`;
-  const roleText = recipientType === 'agent' ? 'Agent' : 'Buyer';
+  const t = emailTranslations[language] || emailTranslations.en;
+  const previewText = `${t.systemAnnouncement}: ${subject}`;
+  const roleText = recipientType === 'agent' ? t.agent : t.buyer;
 
   return (
     <Html>
@@ -38,13 +108,13 @@ export const SystemAnnouncementEmail = ({
 
           <Section style={headerSection}>
             <div style={alertBadge}>
-              System Announcement
+              {t.systemAnnouncement}
             </div>
             <Heading as="h2" style={h2}>{subject}</Heading>
           </Section>
           
           <Section style={contentSection}>
-            <Text style={greeting}>Dear {roleText},</Text>
+            <Text style={greeting}>{t.dear} {roleText},</Text>
             
             <Text style={text}>
               {message.split('\n').map((line, i) => (
@@ -58,16 +128,16 @@ export const SystemAnnouncementEmail = ({
             <Hr style={hr} />
 
             <Text style={footerText}>
-              If you have any questions or concerns, please contact our support team.
+              {t.supportText}
             </Text>
 
             <Link href={`${siteUrl}/dashboard`} style={button}>
-              Go to Dashboard
+              {t.goToDashboard}
             </Link>
           </Section>
 
           <Text style={footer}>
-            You received this system announcement because you are a registered {roleText.toLowerCase()} on The Property Gateway platform.
+            {t.footerText(roleText.toLowerCase())}
           </Text>
         </Container>
       </Body>

@@ -52,12 +52,51 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
               )
             `)
             .eq('profile_id', profile.id)
-            .order('created_at', { ascending: false })
+            .order('invited_at', { ascending: false })
             .limit(1)
             .maybeSingle();
 
           if (error) {
-            console.error('Error fetching agent branding:', error);
+            // Check if error object has any meaningful content
+            // Supabase sometimes returns empty error objects {} for expected cases (e.g., no rows found with maybeSingle)
+            // First check: if error is null, undefined, or not an object, return early
+            if (!error || typeof error !== 'object') {
+              return;
+            }
+            
+            // Second check: if error is an empty object (no enumerable keys), silently return
+            // This is expected for buyers with no transactions
+            const errorKeys = Object.keys(error);
+            if (errorKeys.length === 0) {
+              return;
+            }
+            
+            // Third check: verify if any error property has meaningful content
+            const hasMeaningfulError = errorKeys.some(key => {
+              try {
+                const value = (error as any)[key];
+                // Check if the value is a non-empty string
+                if (typeof value === 'string' && value.trim().length > 0) return true;
+                // Check if the value is a number (even 0 is meaningful for error codes)
+                if (typeof value === 'number') return true;
+                // Check if the value is a boolean
+                if (typeof value === 'boolean') return true;
+                // Check if the value is a non-empty object/array
+                if (value && typeof value === 'object') {
+                  if (Array.isArray(value) && value.length > 0) return true;
+                  if (Object.keys(value).length > 0) return true;
+                }
+                return false;
+              } catch {
+                return false;
+              }
+            });
+            
+            // Only log if there's actual error information
+            if (hasMeaningfulError) {
+              console.error('Error fetching agent branding:', error);
+            }
+            // Silently return for error objects without meaningful content (expected when buyer has no transactions)
             return;
           }
 

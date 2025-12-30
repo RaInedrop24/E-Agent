@@ -15,6 +15,7 @@ import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 import { logger } from '@/lib/logger';
 import { LIMITS } from '@/lib/constants';
+import { NotificationModal } from '@/components/features/NotificationModal';
 
 interface Transaction {
   id: string;
@@ -35,6 +36,13 @@ interface ActivityItem {
   transaction_title: string;
   transaction_id: string;
   created_at: string;
+  notification_data?: {
+    subject: string;
+    message: string;
+    original_subject?: string;
+    original_message?: string;
+    created_at: string;
+  };
 }
 
 export default function DashboardPage() {
@@ -44,6 +52,8 @@ export default function DashboardPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [recentActivity, setRecentActivity] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [notificationModalOpen, setNotificationModalOpen] = useState(false);
+  const [selectedNotification, setSelectedNotification] = useState<ActivityItem['notification_data'] | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -137,13 +147,25 @@ export default function DashboardPage() {
         .order('created_at', { ascending: false })
         .limit(5);
 
-      // Fetch recent system notifications (filtered by user role)
-      const { data: notificationsActivity, error: notificationsError } = await supabase
-        .from('user_notifications_with_details')
-        .select('*')
-        .eq('user_id', user?.id)
-        .order('created_at', { ascending: false })
-        .limit(5);
+      // Fetch recent system notifications via API (which handles translations)
+      let notificationsActivity: any[] = [];
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          const response = await fetch('/api/notifications', {
+            headers: {
+              'Authorization': `Bearer ${session.access_token}`,
+            },
+          });
+          if (response.ok) {
+            const data = await response.json();
+            // Get top 5 most recent notifications
+            notificationsActivity = (data.notifications || []).slice(0, 5);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching notifications for activity:', error);
+      }
 
       // Combine and sort all activity
       const allActivity: ActivityItem[] = [];
@@ -188,15 +210,23 @@ export default function DashboardPage() {
         });
       }
 
-      if (notificationsActivity) {
+      if (notificationsActivity && notificationsActivity.length > 0) {
         notificationsActivity.forEach((n: any) => {
           allActivity.push({
             id: n.id,
             type: 'notification',
-            description: `notification:${n.subject}`, // Will be translated in render
+            description: n.subject, // Already translated via API
             transaction_title: 'System Announcement', // Not tied to a transaction
             transaction_id: '', // No transaction ID for system notifications
             created_at: n.created_at,
+            // Store full notification data for modal
+            notification_data: {
+              subject: n.subject,
+              message: n.message,
+              original_subject: n.original_subject || n.subject,
+              original_message: n.original_message || n.message,
+              created_at: n.created_at,
+            },
           });
         });
       }
@@ -353,12 +383,21 @@ export default function DashboardPage() {
                 } else if (type === 'file') {
                   displayText = tVar('dashboard.fileUploaded', { filename: value });
                 } else if (type === 'notification') {
-                  displayText = `System: ${value}`;
+                  displayText = value; // Already translated via API
                 }
                 
-                // For system notifications, don't link to a transaction
+                // For system notifications, make them clickable to open modal
+                const isNotification = activity.type === 'notification' && activity.notification_data;
                 const activityElement = (
-                  <div className="flex items-start gap-3 text-sm hover:bg-gray-50 p-2 rounded-md transition-colors">
+                  <div 
+                    className={`flex items-start gap-3 text-sm hover:bg-gray-50 p-2 rounded-md transition-colors ${
+                      isNotification ? 'cursor-pointer' : ''
+                    }`}
+                    onClick={isNotification ? () => {
+                      setSelectedNotification(activity.notification_data!);
+                      setNotificationModalOpen(true);
+                    } : undefined}
+                  >
                     <div className="mt-0.5">
                       {getActivityIcon(activity.type)}
                     </div>
@@ -391,6 +430,12 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      <NotificationModal
+        open={notificationModalOpen}
+        onOpenChange={setNotificationModalOpen}
+        notification={selectedNotification || null}
+      />
     </div>
   );
 }

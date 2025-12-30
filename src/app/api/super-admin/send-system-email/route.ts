@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { SystemAnnouncementEmail } from '@/components/emails/SystemAnnouncementEmail';
+import { translateText, SupportedLanguage } from '@/lib/translation';
 import * as React from 'react';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -57,10 +58,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Fetch recipients based on type
+    // Fetch recipients based on type (including preferred_language)
     let query = supabaseAdmin
       .from('profiles')
-      .select('id, full_name, role');
+      .select('id, full_name, role, preferred_language');
 
     if (recipientType === 'agents') {
       query = query.eq('role', 'agent');
@@ -81,7 +82,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Fetch email addresses for all recipients
-    const recipientEmails: Array<{ email: string; role: string; name: string }> = [];
+    const recipientEmails: Array<{ 
+      email: string; 
+      role: string; 
+      name: string; 
+      preferred_language: string;
+    }> = [];
     
     for (const recipient of recipients) {
       const { data: userData, error: emailError } = await supabaseAdmin.auth.admin.getUserById(recipient.id);
@@ -91,6 +97,7 @@ export async function POST(request: NextRequest) {
           email: userData.user.email,
           role: recipient.role,
           name: recipient.full_name,
+          preferred_language: recipient.preferred_language || 'en',
         });
       }
     }
@@ -115,21 +122,41 @@ export async function POST(request: NextRequest) {
       
       const emailPromises = batch.map(async (recipient) => {
         try {
+          // Translate subject and message based on recipient's preferred language
+          const recipientLanguage = (recipient.preferred_language as SupportedLanguage) || 'en';
+          let translatedSubject = subject;
+          let translatedMessage = message;
+
+          if (recipientLanguage !== 'en') {
+            try {
+              const [subjectTranslation, messageTranslation] = await Promise.all([
+                translateText(subject, recipientLanguage, 'en'),
+                translateText(message, recipientLanguage, 'en'),
+              ]);
+              translatedSubject = subjectTranslation.translatedText;
+              translatedMessage = messageTranslation.translatedText;
+            } catch (translationError) {
+              console.error(`[System Email] Translation failed for ${recipient.email} (${recipientLanguage}):`, translationError);
+              // Continue with original English text if translation fails
+            }
+          }
+
           const emailComponent = React.createElement(SystemAnnouncementEmail, {
-            subject,
-            message,
+            subject: translatedSubject,
+            message: translatedMessage,
             recipientType: recipient.role === 'agent' ? 'agent' : 'buyer',
             siteUrl,
+            language: recipientLanguage,
           });
 
           await resend.emails.send({
             from: emailFrom,
             to: recipient.email,
-            subject: `System Announcement: ${subject}`,
+            subject: `System Announcement: ${translatedSubject}`,
             react: emailComponent,
           });
 
-          console.log(`[System Email] Sent to ${recipient.email} (${recipient.name})`);
+          console.log(`[System Email] Sent to ${recipient.email} (${recipient.name}) in ${recipientLanguage}`);
           return { success: true, email: recipient.email };
         } catch (sendError: any) {
           console.error(`[System Email] Failed to send to ${recipient.email}:`, sendError);

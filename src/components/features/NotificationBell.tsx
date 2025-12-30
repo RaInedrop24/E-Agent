@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/lib/supabase';
 import { formatRelativeTime } from '@/lib/date-utils';
 import { logger } from '@/lib/logger';
+import { NotificationModal } from './NotificationModal';
 
 interface Notification {
   id: string;
@@ -26,6 +27,8 @@ interface Notification {
   message: string;
   message_type: string;
   sent_at: string;
+  original_subject?: string;
+  original_message?: string;
 }
 
 export function NotificationBell() {
@@ -33,6 +36,8 @@ export function NotificationBell() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
+  const [notificationModalOpen, setNotificationModalOpen] = useState(false);
+  const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -241,6 +246,10 @@ export function NotificationBell() {
                   if (!notification.read) {
                     markAsRead(notification.id);
                   }
+                  // Open modal to view full message
+                  setSelectedNotification(notification);
+                  setNotificationModalOpen(true);
+                  setOpen(false); // Close dropdown
                 }}
               >
                 <div className="flex items-start justify-between w-full gap-2">
@@ -279,6 +288,18 @@ export function NotificationBell() {
           </div>
         )}
       </DropdownMenuContent>
+
+      <NotificationModal
+        open={notificationModalOpen}
+        onOpenChange={setNotificationModalOpen}
+        notification={selectedNotification ? {
+          subject: selectedNotification.subject,
+          message: selectedNotification.message,
+          original_subject: (selectedNotification as any).original_subject,
+          original_message: (selectedNotification as any).original_message,
+          created_at: selectedNotification.created_at,
+        } : null}
+      />
     </DropdownMenu>
   );
 }
