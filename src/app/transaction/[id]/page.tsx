@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, use } from 'react';
+import { useState, use, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
@@ -22,7 +22,7 @@ const EditTransactionTitleModal = dynamic(() => import('@/components/features/tr
 const TransactionFilesPanel = dynamic(() => import('@/components/features/transaction/TransactionFilesPanel').then(mod => ({ default: mod.TransactionFilesPanel })));
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import type { Milestone } from '@/types';
-import { toggleMilestone } from '@/app/actions/transaction';
+import { toggleMilestone, finalizeTransaction } from '@/app/actions/transaction';
 import { toast } from 'sonner';
 import { useEffect } from 'react';
 import { logger } from '@/lib/logger';
@@ -53,6 +53,8 @@ export default function TransactionDetailPage({ params }: PageProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [emailing, setEmailing] = useState(false);
+  const [showFinalizeDialog, setShowFinalizeDialog] = useState(false);
+  const [finalizing, setFinalizing] = useState(false);
 
   // Get translated title based on user's language preference
   const getTranslatedTitle = () => {
@@ -67,6 +69,12 @@ export default function TransactionDetailPage({ params }: PageProps) {
       router.push('/login');
     }
   }, [user, router]);
+
+  // Check if all milestones are complete
+  const allMilestonesComplete = useMemo(() => {
+    if (!milestones || milestones.length === 0) return false;
+    return milestones.every(m => m.completed);
+  }, [milestones]);
 
   const handleMilestoneToggle = async (milestoneId: string, currentlyCompleted: boolean) => {
     if (profile?.role !== 'agent') return; // Only agents can toggle (frontend check)
@@ -85,6 +93,32 @@ export default function TransactionDetailPage({ params }: PageProps) {
       toast.error(t('transaction.milestoneUpdateFailed'), {
         description: err.message
       });
+    }
+  };
+
+  const handleFinalize = async () => {
+    if (!transaction || profile?.role !== 'agent') return;
+
+    try {
+      setFinalizing(true);
+
+      const result = await finalizeTransaction(transaction.id);
+
+      if (result.error) {
+        throw new Error(result.error);
+      }
+
+      toast.success(t('transaction.finalizeSuccess'));
+      setShowFinalizeDialog(false);
+      await refetch(); // Refresh to show 'completed' status
+
+    } catch (err: any) {
+      logger.error('Error finalizing transaction', { transactionId: transaction.id, error: err.message });
+      toast.error(t('transaction.finalizeFailed'), {
+        description: err.message
+      });
+    } finally {
+      setFinalizing(false);
     }
   };
 
@@ -290,15 +324,50 @@ export default function TransactionDetailPage({ params }: PageProps) {
           </p>
         </div>
         <div className="flex gap-2 flex-wrap sm:flex-nowrap w-full sm:w-auto">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleEmailProgress} 
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleEmailProgress}
             disabled={emailing}
           >
             <Mail className="h-4 w-4 mr-2" />
             {emailing ? t('action.sending') || 'Sending...' : t('transaction.emailProgress') || 'Email Progress'}
           </Button>
+
+          {isAgent && transaction.created_by === user?.id && transaction.status === 'active' && allMilestonesComplete && (
+          <Dialog open={showFinalizeDialog} onOpenChange={setShowFinalizeDialog}>
+            <DialogTrigger asChild>
+              <Button variant="default" size="sm" className="bg-success hover:bg-success/90">
+                <Check className="h-4 w-4 mr-2" />
+                {t('transaction.finalize')}
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>{t('transaction.finalizeConfirm')}</DialogTitle>
+                <DialogDescription>
+                  {t('transaction.finalizeDescription')}
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowFinalizeDialog(false)}
+                  disabled={finalizing}
+                >
+                  {t('action.cancel')}
+                </Button>
+                <Button
+                  onClick={handleFinalize}
+                  disabled={finalizing}
+                  className="bg-success hover:bg-success/90"
+                >
+                  {finalizing ? t('action.processing') || 'Processing...' : t('transaction.finalize')}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+          )}
 
           {isAgent && transaction.created_by === user?.id && (
           <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>

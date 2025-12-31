@@ -21,6 +21,8 @@ interface Translations {
   nowPending: string;
   viewDetails: string;
   footer: string;
+  finalMilestoneMessage?: string;
+  portalAccessReminder?: string;
 }
 
 interface MilestoneUpdateEmailProps {
@@ -31,6 +33,7 @@ interface MilestoneUpdateEmailProps {
   transactionUrl: string;
   brandLogoUrl?: string | null;
   brandColor?: string | null;
+  isLastMilestone?: boolean;
   translations?: Translations;
 }
 
@@ -42,6 +45,7 @@ export const MilestoneUpdateEmail = ({
   transactionUrl,
   brandLogoUrl,
   brandColor,
+  isLastMilestone,
   translations,
 }: MilestoneUpdateEmailProps) => {
   const primaryColor = brandColor || "#2563eb";
@@ -83,15 +87,28 @@ export const MilestoneUpdateEmail = ({
 
             <div style={milestoneBox}>
                <Text style={milestoneName}>{milestoneTitle}</Text>
-               <Text style={{ 
-                 ...statusText, 
-                 color: status === "completed" ? "#10b981" : "#f59e0b" 
+               <Text style={{
+                 ...statusText,
+                 color: status === "completed" ? "#10b981" : "#f59e0b"
                }}>
-                 {status === "completed" 
+                 {status === "completed"
                    ? (translations?.nowCompleted || "Now COMPLETED")
                    : (translations?.nowPending || "Now PENDING")}
                </Text>
             </div>
+
+            {isLastMilestone && status === "completed" && (
+              <Section style={congratsSection}>
+                <Text style={congratsText}>
+                  {translations?.finalMilestoneMessage ||
+                    "Congratulations! This was the final milestone. We wish you all the best with your new property!"}
+                </Text>
+                <Text style={reminderText}>
+                  {translations?.portalAccessReminder ||
+                    "You can continue to access the portal for all your documents and message history."}
+                </Text>
+              </Section>
+            )}
 
             <Hr style={hr} />
 
@@ -211,4 +228,25 @@ const footer = {
   lineHeight: "16px",
   textAlign: "center" as const,
   marginTop: "20px",
+};
+
+const congratsSection = {
+  padding: "20px",
+  backgroundColor: "#f0fdf4",
+  borderLeft: "4px solid #10b981",
+  margin: "20px 0",
+  borderRadius: "4px",
+};
+
+const congratsText = {
+  fontSize: "16px",
+  fontWeight: "bold" as const,
+  color: "#065f46",
+  margin: "0 0 10px",
+};
+
+const reminderText = {
+  fontSize: "14px",
+  color: "#047857",
+  margin: "0",
 };

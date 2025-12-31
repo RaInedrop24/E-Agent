@@ -69,14 +69,27 @@ export async function toggleMilestone(
     return { error: updateError.message };
   }
 
-  // 3. Send Notification (Async - don't await strictly if you want fast UI, but here we await to log errors)
+  // 3. Check if this is the last uncompleted milestone
+  const { data: allMilestones } = await supabase
+    .from('milestones')
+    .select('id, completed')
+    .eq('transaction_id', transactionId);
+
+  const isLastMilestone = newStatus && allMilestones?.every(m => m.id === milestoneId || m.completed);
+
+  // 4. Update last_updated timestamp
+  await supabase.rpc('update_transaction_last_updated', {
+    p_transaction_id: transactionId
+  });
+
+  // 5. Send Notification (Async - don't await strictly if you want fast UI, but here we await to log errors)
   // We need the user's name for the "Updated by" field.
   const { data: profile } = await supabase.from('profiles').select('full_name').eq('id', user.id).single();
   const updatedByName = profile?.full_name || 'A user';
   const milestoneTitle = milestone.label_en || milestone.label_it || 'Milestone';
 
-  // We intentionally do not await this to return UI response faster, 
-  // BUT in Server Actions, Vercel/Next might kill the process if we don't await. 
+  // We intentionally do not await this to return UI response faster,
+  // BUT in Server Actions, Vercel/Next might kill the process if we don't await.
   // Best practice in Server Actions is to await or use `waitUntil` (if on Vercel Edge).
   // We'll await for safety.
   await sendNotifications({
@@ -88,6 +101,7 @@ export async function toggleMilestone(
       milestoneTitle: milestone.label_en || milestone.label_it || 'Milestone',
       status: newStatus ? 'completed' : 'pending',
       updatedByName,
+      isLastMilestone, // NEW: Flag for last milestone detection
     }
   });
 
@@ -128,6 +142,11 @@ export async function notifyFileUpload(
     // Fetch uploader's name
     const { data: profile } = await supabase.from('profiles').select('full_name').eq('id', uploaderId).single();
     const uploaderName = profile?.full_name || 'A user';
+
+    // Update last_updated timestamp
+    await supabase.rpc('update_transaction_last_updated', {
+      p_transaction_id: transactionId
+    });
 
     // Send notifications
     await sendNotifications({
@@ -182,6 +201,11 @@ export async function notifyNewMessage(
     const { data: profile } = await supabase.from('profiles').select('full_name').eq('id', authorId).single();
     const authorName = profile?.full_name || 'A user';
 
+    // Update last_updated timestamp
+    await supabase.rpc('update_transaction_last_updated', {
+      p_transaction_id: transactionId
+    });
+
     // Send notifications
     await sendNotifications({
       transactionId,
@@ -197,5 +221,107 @@ export async function notifyNewMessage(
   } catch (error: any) {
     console.error('[notifyNewMessage] Error:', error);
     return { error: error.message || 'Failed to send notifications' };
+  }
+}
+
+export async function finalizeTransaction(transactionId: string) {
+  // 1. Authenticate User
+  const cookieStore = await cookies();
+  const authCookie = cookieStore.get('sb-skvfgvlwccxetglmfhpm-auth-token');
+
+  if (!authCookie?.value) {
+    return { error: 'Unauthorized: No session' };
+  }
+
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      }
+    }
+  );
+
+  try {
+    const sessionData = JSON.parse(authCookie.value);
+    await supabase.auth.setSession({
+      access_token: sessionData.access_token,
+      refresh_token: sessionData.refresh_token,
+    });
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return { error: 'Unauthorized' };
+    }
+
+    // 2. Verify user is the transaction creator
+    const { data: transaction, error: txError } = await supabase
+      .from('transactions')
+      .select('created_by, status')
+      .eq('id', transactionId)
+      .single();
+
+    if (txError || !transaction) {
+      return { error: 'Transaction not found' };
+    }
+
+    if (transaction.created_by !== user.id) {
+      return { error: 'Only the transaction creator can finalize' };
+    }
+
+    if (transaction.status === 'completed') {
+      return { error: 'Transaction already finalized' };
+    }
+
+    // 3. Verify all milestones are complete
+    const { data: milestones, error: milestonesError } = await supabase
+      .from('milestones')
+      .select('completed')
+      .eq('transaction_id', transactionId);
+
+    if (milestonesError) {
+      return { error: 'Failed to check milestones' };
+    }
+
+    const allComplete = milestones?.every(m => m.completed) ?? false;
+    if (!allComplete) {
+      return { error: 'All milestones must be completed before finalizing' };
+    }
+
+    // 4. Update transaction status to 'completed'
+    const { error: updateError } = await supabase
+      .from('transactions')
+      .update({ status: 'completed' })
+      .eq('id', transactionId);
+
+    if (updateError) {
+      return { error: updateError.message };
+    }
+
+    // 5. Fetch user profile for name
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('full_name')
+      .eq('id', user.id)
+      .single();
+
+    const agentName = profile?.full_name || 'Your agent';
+
+    // 6. Send closing notifications
+    await sendNotifications({
+      transactionId,
+      triggerUserId: user.id, // Agent doesn't get notified
+      type: 'TRANSACTION_FINALIZED',
+      data: {
+        agentName,
+      }
+    });
+
+    return { success: true };
+  } catch (error: any) {
+    console.error('[finalizeTransaction] Error:', error);
+    return { error: error.message || 'Failed to finalize transaction' };
   }
 }

@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase";
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CheckCircle, MessageSquare, FileText, Clock, Bell, Receipt } from "lucide-react";
+import { CheckCircle, MessageSquare, FileText, Clock, Bell, Receipt, SlidersHorizontal } from "lucide-react";
 import { formatRelativeTime } from '@/lib/date-utils';
 import { EmptyState } from '@/components/ui/empty-state';
 import Skeleton from 'react-loading-skeleton';
@@ -16,12 +16,18 @@ import 'react-loading-skeleton/dist/skeleton.css';
 import { logger } from '@/lib/logger';
 import { LIMITS } from '@/lib/constants';
 import { NotificationModal } from '@/components/features/NotificationModal';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
 
 interface Transaction {
   id: string;
   title: string;
   status: string;
   created_at: string;
+  last_updated: string;
   milestones: Array<{
     id: string;
     completed: boolean;
@@ -54,12 +60,41 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [notificationModalOpen, setNotificationModalOpen] = useState(false);
   const [selectedNotification, setSelectedNotification] = useState<ActivityItem['notification_data'] | null>(null);
+  const [filterActiveOnly, setFilterActiveOnly] = useState(false);
+  const [sortBy, setSortBy] = useState<'last_updated' | 'created_at'>('last_updated');
+  const [showFilterModal, setShowFilterModal] = useState(false);
+
+  // Load preferences from profile on mount
+  useEffect(() => {
+    if (profile) {
+      setFilterActiveOnly(profile.dashboard_filter_active_only ?? false);
+      setSortBy((profile.dashboard_sort_by as 'last_updated' | 'created_at') ?? 'last_updated');
+    }
+  }, [profile]);
+
+  // Save preferences to database when they change
+  useEffect(() => {
+    if (!user || !profile) return;
+
+    const updatePreferences = async () => {
+      const supabase = createClient();
+      await supabase
+        .from('profiles')
+        .update({
+          dashboard_filter_active_only: filterActiveOnly,
+          dashboard_sort_by: sortBy,
+        })
+        .eq('id', user.id);
+    };
+
+    updatePreferences();
+  }, [filterActiveOnly, sortBy, user, profile]);
 
   useEffect(() => {
     if (user) {
       fetchDashboardData();
     }
-  }, [user]);
+  }, [user, filterActiveOnly, sortBy]);
 
   async function fetchDashboardData() {
     try {
@@ -90,6 +125,7 @@ export default function DashboardPage() {
           title,
           status,
           created_at,
+          last_updated,
           milestones (
             id,
             completed,
@@ -97,11 +133,17 @@ export default function DashboardPage() {
           )
         `)
         .in('id', transactionIds)
-        .order('created_at', { ascending: false });
+        .order(sortBy, { ascending: false });
 
       if (transactionsError) throw transactionsError;
 
-      setTransactions(transactionsData || []);
+      // Apply filtering
+      let filteredTransactions = transactionsData || [];
+      if (filterActiveOnly) {
+        filteredTransactions = filteredTransactions.filter(t => t.status === 'active');
+      }
+
+      setTransactions(filteredTransactions);
 
       // Fetch recent activity - milestones completed
       const { data: milestonesActivity, error: milestonesError } = await supabase
@@ -317,8 +359,64 @@ export default function DashboardPage() {
 
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
             <CardTitle>{t('transactions.my')}</CardTitle>
+            <Dialog open={showFilterModal} onOpenChange={setShowFilterModal}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2">
+                  <SlidersHorizontal className="h-4 w-4" />
+                  {t('dashboard.filterSort') || 'Filter & Sort'}
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>{t('dashboard.filterSort') || 'Filter & Sort Options'}</DialogTitle>
+                  <DialogDescription>
+                    {t('dashboard.filterSortDescription') || 'Customize how your transactions are displayed'}
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-6 py-4">
+                  {/* Sort Options */}
+                  <div className="space-y-3">
+                    <Label className="text-base font-semibold">{t('dashboard.sortBy')}</Label>
+                    <RadioGroup value={sortBy} onValueChange={(value: 'last_updated' | 'created_at') => setSortBy(value)}>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="last_updated" id="sort-last-updated" />
+                        <Label htmlFor="sort-last-updated" className="font-normal cursor-pointer">
+                          {t('dashboard.lastUpdated')} ({t('dashboard.newestFirst')})
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="created_at" id="sort-created" />
+                        <Label htmlFor="sort-created" className="font-normal cursor-pointer">
+                          {t('dashboard.createdDate') || 'Created Date'} ({t('dashboard.newestFirst')})
+                        </Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+
+                  {/* Filter Options */}
+                  <div className="space-y-3">
+                    <Label className="text-base font-semibold">{t('dashboard.filter') || 'Filter'}</Label>
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="filter-active-only" className="font-normal cursor-pointer">
+                        {t('dashboard.showActiveOnly')}
+                      </Label>
+                      <Switch
+                        id="filter-active-only"
+                        checked={filterActiveOnly}
+                        onCheckedChange={setFilterActiveOnly}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button onClick={() => setShowFilterModal(false)}>
+                    {t('action.done') || 'Done'}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </CardHeader>
           <CardContent className="space-y-3">
             {transactions.length === 0 ? (
@@ -350,8 +448,12 @@ export default function DashboardPage() {
                     </div>
                     <div className="mt-2 space-y-1">
                       <Progress value={progress} />
-                      <div className="text-xs text-muted-foreground">
-                        {progress}% {t('dashboard.complete')}
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <span>{progress}% {t('dashboard.complete')}</span>
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {formatRelativeTime(transaction.last_updated)}
+                        </span>
                       </div>
                     </div>
                   </Link>

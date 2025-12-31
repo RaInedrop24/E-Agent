@@ -5,6 +5,7 @@ import { Resend } from 'resend';
 import { MilestoneUpdateEmail } from '@/components/emails/MilestoneUpdateEmail';
 import { NewMessageEmail } from '@/components/emails/NewMessageEmail';
 import { FileUploadEmail } from '@/components/emails/FileUploadEmail';
+import { TransactionClosingEmail } from '@/components/emails/TransactionClosingEmail';
 import * as React from 'react';
 import twilio from 'twilio';
 import { t, tVar, type TranslationKey } from '@/lib/ui-translations';
@@ -41,7 +42,7 @@ const supabaseAdmin = createClient(
 interface NotificationPayload {
   transactionId: string;
   triggerUserId: string; // User who triggered the action (don't notify them)
-  type: 'MILESTONE_UPDATE' | 'NEW_MESSAGE' | 'FILE_UPLOAD';
+  type: 'MILESTONE_UPDATE' | 'NEW_MESSAGE' | 'FILE_UPLOAD' | 'TRANSACTION_FINALIZED';
   data: any;
 }
 
@@ -146,10 +147,26 @@ export async function sendNotifications({ transactionId, triggerUserId, type, da
           if (type === 'MILESTONE_UPDATE') {
             const milestoneLabel = await getTranslatedMilestoneLabel(data.milestoneId, data.milestoneTitle, userLanguage);
             const statusText = data.status === 'completed' ? t('email.milestoneUpdate.completed' as TranslationKey, userLanguage) : 'pending';
-            smsBody = tVar('sms.milestoneUpdate' as TranslationKey, userLanguage, {
-              milestone: milestoneLabel,
-              status: statusText,
+
+            // Check if this is the last milestone
+            if (data.isLastMilestone) {
+              smsBody = tVar('sms.finalMilestone' as TranslationKey, userLanguage, {
+                milestone: milestoneLabel,
+                transaction: translatedTransactionTitle,
+                url: `${siteUrl}/dashboard`,
+              });
+            } else {
+              smsBody = tVar('sms.milestoneUpdate' as TranslationKey, userLanguage, {
+                milestone: milestoneLabel,
+                status: statusText,
+                transaction: translatedTransactionTitle,
+                url: `${siteUrl}/dashboard`,
+              });
+            }
+          } else if (type === 'TRANSACTION_FINALIZED') {
+            smsBody = tVar('sms.closing' as TranslationKey, userLanguage, {
               transaction: translatedTransactionTitle,
+              agent: data.agentName,
               url: `${siteUrl}/dashboard`,
             });
           } else if (type === 'NEW_MESSAGE') {
@@ -227,6 +244,7 @@ export async function sendNotifications({ transactionId, triggerUserId, type, da
              transactionUrl: transactionUrl,
              brandLogoUrl: branding.logoUrl,
              brandColor: branding.color,
+             isLastMilestone: data.isLastMilestone || false,
              translations: {
                title: t('email.milestoneUpdate.title' as TranslationKey, userLanguage),
                preview: tVar('email.milestoneUpdate.preview' as TranslationKey, userLanguage, {
@@ -238,6 +256,32 @@ export async function sendNotifications({ transactionId, triggerUserId, type, da
                nowPending: t('email.milestoneUpdate.nowPending' as TranslationKey, userLanguage),
                viewDetails: t('email.milestoneUpdate.viewDetails' as TranslationKey, userLanguage),
                footer: t('email.milestoneUpdate.footer' as TranslationKey, userLanguage),
+               finalMilestoneMessage: t('email.milestoneUpdate.finalMilestoneMessage' as TranslationKey, userLanguage),
+               portalAccessReminder: t('email.milestoneUpdate.portalAccessReminder' as TranslationKey, userLanguage),
+             },
+           });
+        } else if (type === 'TRANSACTION_FINALIZED') {
+           emailSubject = tVar('email.closing.subject' as TranslationKey, userLanguage, {
+             title: translatedTransactionTitle,
+           });
+           emailComponent = React.createElement(TransactionClosingEmail, {
+             transactionTitle: translatedTransactionTitle,
+             agentName: data.agentName,
+             transactionUrl: transactionUrl,
+             brandLogoUrl: branding.logoUrl,
+             brandColor: branding.color,
+             translations: {
+               title: t('email.closing.title' as TranslationKey, userLanguage),
+               preview: tVar('email.closing.preview' as TranslationKey, userLanguage, {
+                 transaction: translatedTransactionTitle,
+               }),
+               congratulations: t('email.closing.congratulations' as TranslationKey, userLanguage),
+               thankYouMessage: tVar('email.closing.thankYouMessage' as TranslationKey, userLanguage, {
+                 agent: data.agentName,
+               }),
+               portalAccess: t('email.closing.portalAccess' as TranslationKey, userLanguage),
+               viewDashboard: t('email.closing.viewDashboard' as TranslationKey, userLanguage),
+               footer: t('email.closing.footer' as TranslationKey, userLanguage),
              },
            });
         } else if (type === 'NEW_MESSAGE') {

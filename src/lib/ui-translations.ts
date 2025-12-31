@@ -197,7 +197,42 @@ const translations = {
     'sms.milestoneUpdate': 'Update: {{milestone}} is now {{status}} in transaction "{{transaction}}". View at: {{url}}',
     'sms.newMessage': 'New message from {{author}} in "{{transaction}}". Reply at: {{url}}',
     'sms.fileUpload': 'New file "{{fileName}}" uploaded by {{uploader}} to "{{transaction}}". View at: {{url}}',
-    
+    'sms.finalMilestone': 'Final milestone "{{milestone}}" completed for {{transaction}}! Congratulations on your new property! Access portal: {{url}}',
+    'sms.closing': 'Your transaction "{{transaction}}" has been finalized by {{agent}}. Thank you and best wishes! View: {{url}}',
+
+    // Email - Last Milestone
+    'email.milestoneUpdate.finalMilestoneMessage': 'Congratulations! This was the final milestone. We wish you all the best with your new property!',
+    'email.milestoneUpdate.portalAccessReminder': 'You can continue to access the portal for all your documents and message history.',
+
+    // Email - Closing
+    'email.closing.subject': 'Transaction Complete: {{title}}',
+    'email.closing.title': 'Transaction Complete!',
+    'email.closing.preview': '{{transaction}} has been completed!',
+    'email.closing.congratulations': '🎉 Congratulations!',
+    'email.closing.thankYouMessage': '{{agent}} has finalized your property transaction. Thank you for trusting us with your property journey!',
+    'email.closing.portalAccess': 'You can continue to access the portal anytime to view all your documents, messages, and transaction history.',
+    'email.closing.viewDashboard': 'View Dashboard',
+    'email.closing.footer': 'Best wishes with your new property!',
+
+    // Dashboard UI
+    'dashboard.sortBy': 'Sort by',
+    'dashboard.lastUpdated': 'Last updated',
+    'dashboard.newestFirst': 'Newest first',
+    'dashboard.showActiveOnly': 'Show active only',
+    'dashboard.filterSort': 'Filter & Sort',
+    'dashboard.filterSortDescription': 'Customize how your transactions are displayed',
+    'dashboard.filter': 'Filter',
+    'dashboard.createdDate': 'Created Date',
+    'action.done': 'Done',
+
+    // Transaction
+    'transaction.finalize': 'Finalize Transaction',
+    'transaction.finalizeConfirm': 'Are you sure you want to finalize this transaction?',
+    'transaction.finalizeDescription': 'This will mark the transaction as completed and send closing notifications to all buyers. This action cannot be undone.',
+    'transaction.finalizeSuccess': 'Transaction finalized successfully!',
+    'transaction.finalizeFailed': 'Failed to finalize transaction',
+    'transaction.allMilestonesRequired': 'All milestones must be completed before finalizing',
+
     // Messages
     'messages.title': 'Messages',
     'messages.send': 'Send Message',
@@ -653,7 +688,42 @@ const translations = {
     'sms.milestoneUpdate': 'Aggiornamento: {{milestone}} è ora {{status}} nella transazione "{{transaction}}". Visualizza su: {{url}}',
     'sms.newMessage': 'Nuovo messaggio da {{author}} in "{{transaction}}". Rispondi su: {{url}}',
     'sms.fileUpload': 'Nuovo file "{{fileName}}" caricato da {{uploader}} in "{{transaction}}". Visualizza su: {{url}}',
-    
+    'sms.finalMilestone': 'Traguardo finale "{{milestone}}" completato per {{transaction}}! Congratulazioni per la tua nuova proprietà! Accedi al portale: {{url}}',
+    'sms.closing': 'La tua transazione "{{transaction}}" è stata finalizzata da {{agent}}. Grazie e auguri! Visualizza: {{url}}',
+
+    // Email - Last Milestone
+    'email.milestoneUpdate.finalMilestoneMessage': 'Congratulazioni! Questo era l\'ultimo traguardo. Ti auguriamo tutto il meglio con la tua nuova proprietà!',
+    'email.milestoneUpdate.portalAccessReminder': 'Puoi continuare ad accedere al portale per tutti i tuoi documenti e la cronologia dei messaggi.',
+
+    // Email - Closing
+    'email.closing.subject': 'Transazione Completata: {{title}}',
+    'email.closing.title': 'Transazione Completata!',
+    'email.closing.preview': '{{transaction}} è stata completata!',
+    'email.closing.congratulations': '🎉 Congratulazioni!',
+    'email.closing.thankYouMessage': '{{agent}} ha finalizzato la tua transazione immobiliare. Grazie per aver riposto fiducia in noi!',
+    'email.closing.portalAccess': 'Puoi continuare ad accedere al portale in qualsiasi momento per visualizzare tutti i tuoi documenti, messaggi e cronologia delle transazioni.',
+    'email.closing.viewDashboard': 'Visualizza Dashboard',
+    'email.closing.footer': 'Migliori auguri per la tua nuova proprietà!',
+
+    // Dashboard UI
+    'dashboard.sortBy': 'Ordina per',
+    'dashboard.lastUpdated': 'Ultimo aggiornamento',
+    'dashboard.newestFirst': 'Più recenti prima',
+    'dashboard.showActiveOnly': 'Mostra solo attivi',
+    'dashboard.filterSort': 'Filtra e Ordina',
+    'dashboard.filterSortDescription': 'Personalizza la visualizzazione delle tue transazioni',
+    'dashboard.filter': 'Filtro',
+    'dashboard.createdDate': 'Data di Creazione',
+    'action.done': 'Fatto',
+
+    // Transaction
+    'transaction.finalize': 'Finalizza Transazione',
+    'transaction.finalizeConfirm': 'Sei sicuro di voler finalizzare questa transazione?',
+    'transaction.finalizeDescription': 'Questo contrassegnerà la transazione come completata e invierà notifiche di chiusura a tutti gli acquirenti. Questa azione non può essere annullata.',
+    'transaction.finalizeSuccess': 'Transazione finalizzata con successo!',
+    'transaction.finalizeFailed': 'Impossibile finalizzare la transazione',
+    'transaction.allMilestonesRequired': 'Tutti i traguardi devono essere completati prima di finalizzare',
+
     // Messages
     'messages.title': 'Messaggi',
     'messages.send': 'Invia Messaggio',
@@ -1100,6 +1170,42 @@ const translations = {
     'sms.milestoneUpdate': 'Aktualizacja: {{milestone}} jest teraz {{status}} w transakcji "{{transaction}}". Wyświetl na: {{url}}',
     'sms.newMessage': 'Nowa wiadomość od {{author}} w "{{transaction}}". Odpowiedz na: {{url}}',
     'sms.fileUpload': 'Nowy plik "{{fileName}}" przesłany przez {{uploader}} do "{{transaction}}". Wyświetl na: {{url}}',
+    'sms.finalMilestone': 'Ostatni kamień milowy "{{milestone}}" zakończony dla {{transaction}}! Gratulacje z okazji nowej nieruchomości! Portal: {{url}}',
+    'sms.closing': 'Twoja transakcja "{{transaction}}" została sfinalizowana przez {{agent}}. Dziękujemy i życzenia! Zobacz: {{url}}',
+
+    // Email - Last Milestone
+    'email.milestoneUpdate.finalMilestoneMessage': 'Gratulacje! To był ostatni kamień milowy. Życzymy wszystkiego najlepszego z nową nieruchomością!',
+    'email.milestoneUpdate.portalAccessReminder': 'Możesz nadal uzyskiwać dostęp do portalu w celu uzyskania wszystkich dokumentów i historii wiadomości.',
+
+    // Email - Closing
+    'email.closing.subject': 'Transakcja zakończona: {{title}}',
+    'email.closing.title': 'Transakcja zakończona!',
+    'email.closing.preview': '{{transaction}} została zakończona!',
+    'email.closing.congratulations': '🎉 Gratulacje!',
+    'email.closing.thankYouMessage': '{{agent}} sfinalizował Twoją transakcję nieruchomości. Dziękujemy za zaufanie!',
+    'email.closing.portalAccess': 'Możesz nadal uzyskiwać dostęp do portalu w dowolnym momencie, aby wyświetlić wszystkie dokumenty, wiadomości i historię transakcji.',
+    'email.closing.viewDashboard': 'Zobacz panel',
+    'email.closing.footer': 'Najlepsze życzenia z nową nieruchomością!',
+
+    // Dashboard UI
+    'dashboard.sortBy': 'Sortuj według',
+    'dashboard.lastUpdated': 'Ostatnia aktualizacja',
+    'dashboard.newestFirst': 'Najnowsze pierwsze',
+    'dashboard.showActiveOnly': 'Pokaż tylko aktywne',
+    'dashboard.filterSort': 'Filtruj i Sortuj',
+    'dashboard.filterSortDescription': 'Dostosuj sposób wyświetlania transakcji',
+    'dashboard.filter': 'Filtr',
+    'dashboard.createdDate': 'Data utworzenia',
+    'action.done': 'Gotowe',
+
+    // Transaction
+    'transaction.finalize': 'Sfinalizuj transakcję',
+    'transaction.finalizeConfirm': 'Czy na pewno chcesz sfinalizować tę transakcję?',
+    'transaction.finalizeDescription': 'Spowoduje to oznaczenie transakcji jako zakończonej i wysłanie powiadomień zamknięcia do wszystkich kupujących. Tej czynności nie można cofnąć.',
+    'transaction.finalizeSuccess': 'Transakcja sfinalizowana pomyślnie!',
+    'transaction.finalizeFailed': 'Nie udało się sfinalizować transakcji',
+    'transaction.allMilestonesRequired': 'Wszystkie kamienie milowe muszą być ukończone przed finalizacją',
+
     'messages.title': 'Wiadomości',
     'messages.send': 'Wyślij wiadomość',
     'messages.typeMessage': 'Wpisz wiadomość...',
@@ -1505,6 +1611,42 @@ const translations = {
   'sms.milestoneUpdate': 'Actualización: {{milestone}} es ahora {{status}} en la transacción "{{transaction}}". Ver en: {{url}}',
   'sms.newMessage': 'Nuevo mensaje de {{autor}} en "{{transacción}}". Responder en: {{url}}',
   'sms.fileUpload': 'Nuevo archivo "{{fileName}}" subido por {{uploader}} a "{{transaction}}". Ver en: {{url}}',
+  'sms.finalMilestone': '¡Hito final "{{milestone}}" completado para {{transaction}}! ¡Felicitaciones por su nueva propiedad! Portal: {{url}}',
+  'sms.closing': 'Su transacción "{{transaction}}" ha sido finalizada por {{agent}}. ¡Gracias y mejores deseos! Ver: {{url}}',
+
+  // Email - Last Milestone
+  'email.milestoneUpdate.finalMilestoneMessage': '¡Felicitaciones! Este fue el hito final. ¡Te deseamos lo mejor con tu nueva propiedad!',
+  'email.milestoneUpdate.portalAccessReminder': 'Puede seguir accediendo al portal para todos sus documentos e historial de mensajes.',
+
+  // Email - Closing
+  'email.closing.subject': 'Transacción completada: {{title}}',
+  'email.closing.title': '¡Transacción completada!',
+  'email.closing.preview': '¡{{transaction}} se ha completado!',
+  'email.closing.congratulations': '🎉 ¡Felicitaciones!',
+  'email.closing.thankYouMessage': '{{agent}} ha finalizado su transacción inmobiliaria. ¡Gracias por confiar en nosotros!',
+  'email.closing.portalAccess': 'Puede seguir accediendo al portal en cualquier momento para ver todos sus documentos, mensajes e historial de transacciones.',
+  'email.closing.viewDashboard': 'Ver panel',
+  'email.closing.footer': '¡Mejores deseos con su nueva propiedad!',
+
+  // Dashboard UI
+  'dashboard.sortBy': 'Ordenar por',
+  'dashboard.lastUpdated': 'Última actualización',
+  'dashboard.newestFirst': 'Más recientes primero',
+  'dashboard.showActiveOnly': 'Mostrar solo activos',
+  'dashboard.filterSort': 'Filtrar y Ordenar',
+  'dashboard.filterSortDescription': 'Personaliza cómo se muestran tus transacciones',
+  'dashboard.filter': 'Filtro',
+  'dashboard.createdDate': 'Fecha de creación',
+  'action.done': 'Hecho',
+
+  // Transaction
+  'transaction.finalize': 'Finalizar transacción',
+  'transaction.finalizeConfirm': '¿Está seguro de que desea finalizar esta transacción?',
+  'transaction.finalizeDescription': 'Esto marcará la transacción como completada y enviará notificaciones de cierre a todos los compradores. Esta acción no se puede deshacer.',
+  'transaction.finalizeSuccess': '¡Transacción finalizada con éxito!',
+  'transaction.finalizeFailed': 'Error al finalizar la transacción',
+  'transaction.allMilestonesRequired': 'Todos los hitos deben completarse antes de finalizar',
+
   'messages.title': 'Mensajes',
   'messages.send': 'Enviar mensaje',
   'messages.typeMessage': 'Escribe tu mensaje...',
@@ -1908,6 +2050,42 @@ const translations = {
   'sms.milestoneUpdate': 'Mise à jour : {{jalon}} est maintenant {{état}} dans la transaction "{{transaction}}". Voir à l\'adresse suivante {{url}}',
   'sms.newMessage': 'Nouveau message de {{auteur}} dans "{{transaction}}". Réponse à : {{url}}',
   'sms.fileUpload': 'Nouveau fichier "{{fileName}}" chargé par {{uploader}} dans "{{transaction}}". Voir à l\'adresse suivante : {{url}}',
+  'sms.finalMilestone': 'Jalon final "{{milestone}}" terminé pour {{transaction}} ! Félicitations pour votre nouvelle propriété ! Portail : {{url}}',
+  'sms.closing': 'Votre transaction "{{transaction}}" a été finalisée par {{agent}}. Merci et meilleurs vœux ! Voir : {{url}}',
+
+  // Email - Last Milestone
+  'email.milestoneUpdate.finalMilestoneMessage': 'Félicitations ! C\'était le dernier jalon. Nous vous souhaitons tout le meilleur avec votre nouvelle propriété !',
+  'email.milestoneUpdate.portalAccessReminder': 'Vous pouvez continuer à accéder au portail pour tous vos documents et l\'historique des messages.',
+
+  // Email - Closing
+  'email.closing.subject': 'Transaction terminée : {{title}}',
+  'email.closing.title': 'Transaction terminée !',
+  'email.closing.preview': '{{transaction}} a été terminée !',
+  'email.closing.congratulations': '🎉 Félicitations !',
+  'email.closing.thankYouMessage': '{{agent}} a finalisé votre transaction immobilière. Merci de nous avoir fait confiance !',
+  'email.closing.portalAccess': 'Vous pouvez continuer à accéder au portail à tout moment pour voir tous vos documents, messages et historique des transactions.',
+  'email.closing.viewDashboard': 'Voir le tableau de bord',
+  'email.closing.footer': 'Meilleurs vœux avec votre nouvelle propriété !',
+
+  // Dashboard UI
+  'dashboard.sortBy': 'Trier par',
+  'dashboard.lastUpdated': 'Dernière mise à jour',
+  'dashboard.newestFirst': 'Plus récents en premier',
+  'dashboard.showActiveOnly': 'Afficher uniquement les actifs',
+  'dashboard.filterSort': 'Filtrer et Trier',
+  'dashboard.filterSortDescription': 'Personnalisez l\'affichage de vos transactions',
+  'dashboard.filter': 'Filtre',
+  'dashboard.createdDate': 'Date de création',
+  'action.done': 'Terminé',
+
+  // Transaction
+  'transaction.finalize': 'Finaliser la transaction',
+  'transaction.finalizeConfirm': 'Êtes-vous sûr de vouloir finaliser cette transaction ?',
+  'transaction.finalizeDescription': 'Cela marquera la transaction comme terminée et enverra des notifications de clôture à tous les acheteurs. Cette action ne peut pas être annulée.',
+  'transaction.finalizeSuccess': 'Transaction finalisée avec succès !',
+  'transaction.finalizeFailed': 'Échec de la finalisation de la transaction',
+  'transaction.allMilestonesRequired': 'Tous les jalons doivent être terminés avant la finalisation',
+
   'messages.title': 'Messages',
   'messages.send': 'Envoyer un message',
   'messages.typeMessage': 'Tapez votre message...',
@@ -2311,6 +2489,42 @@ const translations = {
   'sms.milestoneUpdate': 'Update: {{milestone}} is nu {{status}} in transactie "{{transactie}}". Bekijk op: {{url}}',
   'sms.newMessage': 'Nieuw bericht van {{author}} in "{{transaction}}". Antwoord op: {{url}}',
   'sms.fileUpload': 'Nieuw bestand "{{fileName}}" geüpload door {{uploader}} naar "{{transaction}}". Bekijk op: {{url}}',
+  'sms.finalMilestone': 'Laatste mijlpaal "{{milestone}}" voltooid voor {{transaction}}! Gefeliciteerd met uw nieuwe woning! Portal: {{url}}',
+  'sms.closing': 'Uw transactie "{{transaction}}" is afgerond door {{agent}}. Bedankt en het beste! Bekijk: {{url}}',
+
+  // Email - Last Milestone
+  'email.milestoneUpdate.finalMilestoneMessage': 'Gefeliciteerd! Dit was de laatste mijlpaal. We wensen u het beste met uw nieuwe woning!',
+  'email.milestoneUpdate.portalAccessReminder': 'U kunt het portaal blijven gebruiken voor al uw documenten en berichtgeschiedenis.',
+
+  // Email - Closing
+  'email.closing.subject': 'Transactie voltooid: {{title}}',
+  'email.closing.title': 'Transactie voltooid!',
+  'email.closing.preview': '{{transaction}} is voltooid!',
+  'email.closing.congratulations': '🎉 Gefeliciteerd!',
+  'email.closing.thankYouMessage': '{{agent}} heeft uw vastgoedtransactie afgerond. Bedankt voor uw vertrouwen!',
+  'email.closing.portalAccess': 'U kunt het portaal op elk moment blijven gebruiken om al uw documenten, berichten en transactiegeschiedenis te bekijken.',
+  'email.closing.viewDashboard': 'Bekijk Dashboard',
+  'email.closing.footer': 'Het beste met uw nieuwe woning!',
+
+  // Dashboard UI
+  'dashboard.sortBy': 'Sorteer op',
+  'dashboard.lastUpdated': 'Laatst bijgewerkt',
+  'dashboard.newestFirst': 'Nieuwste eerst',
+  'dashboard.showActiveOnly': 'Alleen actieve weergeven',
+  'dashboard.filterSort': 'Filter & Sorteer',
+  'dashboard.filterSortDescription': 'Pas aan hoe uw transacties worden weergegeven',
+  'dashboard.filter': 'Filter',
+  'dashboard.createdDate': 'Aanmaakdatum',
+  'action.done': 'Klaar',
+
+  // Transaction
+  'transaction.finalize': 'Transactie afronden',
+  'transaction.finalizeConfirm': 'Weet u zeker dat u deze transactie wilt afronden?',
+  'transaction.finalizeDescription': 'Dit markeert de transactie als voltooid en stuurt afsluitende meldingen naar alle kopers. Deze actie kan niet ongedaan worden gemaakt.',
+  'transaction.finalizeSuccess': 'Transactie succesvol afgerond!',
+  'transaction.finalizeFailed': 'Transactie afronden mislukt',
+  'transaction.allMilestonesRequired': 'Alle mijlpalen moeten voltooid zijn voordat u kunt afronden',
+
   'messages.title': 'Berichten',
   'messages.send': 'Verstuur bericht',
   'messages.typeMessage': 'Typ je bericht...',
@@ -2714,6 +2928,42 @@ const translations = {
   'sms.milestoneUpdate': 'Update: {{Meilenstein}} ist jetzt {{Status}} in Transaktion "{{Transaktion}}". Ansehen bei: {{url}}',
   'sms.newMessage': 'Neue Nachricht von {{author}} in "{{transaction}}". Antwort an: {{url}}',
   'sms.fileUpload': 'Neue Datei "{{Dateiname}}" hochgeladen von {{uploader}} zu "{{Transaktion}}". Ansehen bei: {{url}}',
+  'sms.finalMilestone': 'Letzter Meilenstein "{{milestone}}" für {{transaction}} abgeschlossen! Herzlichen Glückwunsch zu Ihrer neuen Immobilie! Portal: {{url}}',
+  'sms.closing': 'Ihre Transaktion "{{transaction}}" wurde von {{agent}} abgeschlossen. Vielen Dank und beste Wünsche! Ansehen: {{url}}',
+
+  // Email - Last Milestone
+  'email.milestoneUpdate.finalMilestoneMessage': 'Herzlichen Glückwunsch! Dies war der letzte Meilenstein. Wir wünschen Ihnen alles Gute mit Ihrer neuen Immobilie!',
+  'email.milestoneUpdate.portalAccessReminder': 'Sie können weiterhin auf das Portal zugreifen, um all Ihre Dokumente und Nachrichtenverlauf anzuzeigen.',
+
+  // Email - Closing
+  'email.closing.subject': 'Transaktion abgeschlossen: {{title}}',
+  'email.closing.title': 'Transaktion abgeschlossen!',
+  'email.closing.preview': '{{transaction}} wurde abgeschlossen!',
+  'email.closing.congratulations': '🎉 Herzlichen Glückwunsch!',
+  'email.closing.thankYouMessage': '{{agent}} hat Ihre Immobilientransaktion abgeschlossen. Vielen Dank für Ihr Vertrauen!',
+  'email.closing.portalAccess': 'Sie können jederzeit auf das Portal zugreifen, um alle Ihre Dokumente, Nachrichten und Transaktionsverlauf anzuzeigen.',
+  'email.closing.viewDashboard': 'Dashboard ansehen',
+  'email.closing.footer': 'Beste Wünsche mit Ihrer neuen Immobilie!',
+
+  // Dashboard UI
+  'dashboard.sortBy': 'Sortieren nach',
+  'dashboard.lastUpdated': 'Zuletzt aktualisiert',
+  'dashboard.newestFirst': 'Neueste zuerst',
+  'dashboard.showActiveOnly': 'Nur aktive anzeigen',
+  'dashboard.filterSort': 'Filtern & Sortieren',
+  'dashboard.filterSortDescription': 'Passen Sie die Anzeige Ihrer Transaktionen an',
+  'dashboard.filter': 'Filter',
+  'dashboard.createdDate': 'Erstellungsdatum',
+  'action.done': 'Fertig',
+
+  // Transaction
+  'transaction.finalize': 'Transaktion abschließen',
+  'transaction.finalizeConfirm': 'Sind Sie sicher, dass Sie diese Transaktion abschließen möchten?',
+  'transaction.finalizeDescription': 'Dies markiert die Transaktion als abgeschlossen und sendet Abschlussbenachrichtigungen an alle Käufer. Diese Aktion kann nicht rückgängig gemacht werden.',
+  'transaction.finalizeSuccess': 'Transaktion erfolgreich abgeschlossen!',
+  'transaction.finalizeFailed': 'Fehler beim Abschließen der Transaktion',
+  'transaction.allMilestonesRequired': 'Alle Meilensteine müssen vor dem Abschluss abgeschlossen sein',
+
   'messages.title': 'Nachrichten',
   'messages.send': 'Nachricht senden',
   'messages.typeMessage': 'Geben Sie Ihre Nachricht ein...',

@@ -20,6 +20,8 @@ interface Profile {
     background?: string;
     text?: string;
   } | null;
+  dashboard_filter_active_only?: boolean;
+  dashboard_sort_by?: string;
 }
 
 interface AuthContextType {

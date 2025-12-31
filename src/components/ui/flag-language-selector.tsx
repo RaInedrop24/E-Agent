@@ -30,29 +30,23 @@ export function FlagLanguageSelector() {
             key={lang.code}
             onClick={() => setLanguage(lang.code as typeof language)}
             className={`
-              relative flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all font-medium
+              flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all font-medium
               ${isActive
-                ? 'bg-blue-600 text-white shadow-lg scale-105'
+                ? 'bg-blue-600 text-white shadow-lg'
                 : 'bg-white text-gray-700 hover:bg-gray-100 hover:shadow-md'
               }
               border-2 ${isActive ? 'border-blue-700' : 'border-gray-200'}
             `}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
+            animate={{ scale: isActive ? 1.05 : 1 }}
+            transition={{ duration: 0.2 }}
             title={lang.name}
           >
             {FlagIcon && (
               <FlagIcon className="w-6 h-4 rounded-sm shadow-sm" title={lang.name} />
             )}
             <span className="text-sm font-semibold">{lang.code.toUpperCase()}</span>
-            {isActive && (
-              <motion.div
-                layoutId="activeLanguage"
-                className="absolute inset-0 bg-blue-600 rounded-lg -z-10"
-                initial={false}
-                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-              />
-            )}
           </motion.button>
         );
       })}
