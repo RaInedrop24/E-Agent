@@ -447,11 +447,13 @@ export default function BuyersPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="en">English</SelectItem>
-                    <SelectItem value="it">Italiano</SelectItem>
-                    <SelectItem value="de">Deutsch</SelectItem>
-                    <SelectItem value="fr">Français</SelectItem>
-                    <SelectItem value="es">Español</SelectItem>
+                    <SelectItem value="en">🇬🇧 English</SelectItem>
+                    <SelectItem value="it">🇮🇹 Italiano</SelectItem>
+                    <SelectItem value="es">🇪🇸 Español</SelectItem>
+                    <SelectItem value="fr">🇫🇷 Français</SelectItem>
+                    <SelectItem value="de">🇩🇪 Deutsch</SelectItem>
+                    <SelectItem value="pl">🇵🇱 Polski</SelectItem>
+                    <SelectItem value="nl">🇳🇱 Nederlands</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -508,11 +510,13 @@ export default function BuyersPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="en">English</SelectItem>
-                    <SelectItem value="it">Italiano</SelectItem>
-                    <SelectItem value="de">Deutsch</SelectItem>
-                    <SelectItem value="fr">Français</SelectItem>
-                    <SelectItem value="es">Español</SelectItem>
+                    <SelectItem value="en">🇬🇧 English</SelectItem>
+                    <SelectItem value="it">🇮🇹 Italiano</SelectItem>
+                    <SelectItem value="es">🇪🇸 Español</SelectItem>
+                    <SelectItem value="fr">🇫🇷 Français</SelectItem>
+                    <SelectItem value="de">🇩🇪 Deutsch</SelectItem>
+                    <SelectItem value="pl">🇵🇱 Polski</SelectItem>
+                    <SelectItem value="nl">🇳🇱 Nederlands</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

@@ -115,15 +115,17 @@ export default function RegisterPage() {
                 <SelectValue placeholder="Select language" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="en">English</SelectItem>
-                <SelectItem value="it">Italiano (Italian)</SelectItem>
-                <SelectItem value="de">Deutsch (German)</SelectItem>
-                <SelectItem value="fr">Français (French)</SelectItem>
-                <SelectItem value="es">Español (Spanish)</SelectItem>
+                <SelectItem value="en">🇬🇧 English</SelectItem>
+                <SelectItem value="it">🇮🇹 Italiano (Italian)</SelectItem>
+                <SelectItem value="es">🇪🇸 Español (Spanish)</SelectItem>
+                <SelectItem value="fr">🇫🇷 Français (French)</SelectItem>
+                <SelectItem value="de">🇩🇪 Deutsch (German)</SelectItem>
+                <SelectItem value="pl">🇵🇱 Polski (Polish)</SelectItem>
+                <SelectItem value="nl">🇳🇱 Nederlands (Dutch)</SelectItem>
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">
-              This will be used for UI and message translations (coming soon).
+              This will be used for UI and message translations.
             </p>
           </div>
           {error && <p className="text-sm text-red-600">{error}</p>}

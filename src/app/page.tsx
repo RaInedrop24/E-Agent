@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { CheckCircle, MessageSquare, Globe, Shield, Settings, Users, Link as LinkIcon, Languages, Palette, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { LanguageSelector } from '@/components/ui/language-selector';
+import { FlagLanguageSelector } from '@/components/ui/flag-language-selector';
 import { motion } from 'framer-motion';
 
 export default function Home() {
@@ -24,12 +24,10 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Top Bar with Language Selector */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
-          <div className="flex justify-end">
-            <LanguageSelector />
-          </div>
+      {/* Top Bar with Flag Language Selector */}
+      <div className="bg-white border-b border-gray-200 shadow-sm">
+        <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+          <FlagLanguageSelector />
         </div>
       </div>
 
