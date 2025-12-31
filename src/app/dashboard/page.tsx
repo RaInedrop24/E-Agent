@@ -138,9 +138,9 @@ export default function DashboardPage() {
       if (transactionsError) throw transactionsError;
 
       // Apply filtering
-      let filteredTransactions = transactionsData || [];
+      let filteredTransactions: Transaction[] = transactionsData || [];
       if (filterActiveOnly) {
-        filteredTransactions = filteredTransactions.filter(t => t.status === 'active');
+        filteredTransactions = filteredTransactions.filter((t: Transaction) => t.status === 'active');
       }
 
       setTransactions(filteredTransactions);
