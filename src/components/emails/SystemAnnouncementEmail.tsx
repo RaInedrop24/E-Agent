@@ -85,6 +85,15 @@ const emailTranslations: Record<SupportedLanguage, {
     goToDashboard: 'Przejdź do Panelu',
     footerText: (role) => `Otrzymałeś to ogłoszenie systemowe, ponieważ jesteś zarejestrowanym ${role} na platformie The Property Gateway.`,
   },
+  nl: {
+    systemAnnouncement: 'Systeemaankondiging',
+    dear: 'Beste',
+    agent: 'Makelaar',
+    buyer: 'Koper',
+    supportText: 'Als u vragen of zorgen heeft, neem dan contact op met ons ondersteuningsteam.',
+    goToDashboard: 'Ga naar Dashboard',
+    footerText: (role) => `U heeft deze systeemaankondiging ontvangen omdat u een geregistreerde ${role} bent op het The Property Gateway platform.`,
+  },
 };
 
 export const SystemAnnouncementEmail = ({
