@@ -300,6 +300,11 @@ export default function TransactionDetailPage({ params }: PageProps) {
               <EditTransactionTitleModal transaction={transaction} onSuccess={refetch} />
             )}
           </div>
+          {transaction.agent_reference && (
+            <p className="text-sm font-medium text-muted-foreground mt-1">
+              {t('transactions.reference')}: {transaction.agent_reference}
+            </p>
+          )}
           {transaction.property_address && (
             <p className="text-muted-foreground mt-1">{transaction.property_address}</p>
           )}
@@ -317,9 +322,9 @@ export default function TransactionDetailPage({ params }: PageProps) {
             </p>
           )}
           <p className="text-sm text-muted-foreground mt-2">
-            {tVar('transaction.createdByOn', { 
-              creator: transaction.creator_name, 
-              date: new Date(transaction.created_at).toLocaleDateString() 
+            {tVar('transaction.createdByOn', {
+              creator: transaction.creator_name,
+              date: new Date(transaction.created_at).toLocaleDateString()
             })}
           </p>
         </div>

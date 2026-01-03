@@ -25,6 +25,7 @@ interface Transaction {
   title_de?: string | null;
   title_fr?: string | null;
   title_es?: string | null;
+  agent_reference?: string | null;
 }
 
 interface EditTransactionTitleModalProps {
@@ -38,6 +39,7 @@ export function EditTransactionTitleModal({ transaction, onSuccess }: EditTransa
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
+  const [agentReference, setAgentReference] = useState('');
   const [titleEn, setTitleEn] = useState('');
   const [titleIt, setTitleIt] = useState('');
   const [titleDe, setTitleDe] = useState('');
@@ -47,21 +49,22 @@ export function EditTransactionTitleModal({ transaction, onSuccess }: EditTransa
   useEffect(() => {
     if (open) {
       // Initialize with current values
+      setAgentReference(transaction.agent_reference || '');
       // Each language field should only use its own value, don't fall back to the generic 'title'
       setTitleEn(transaction.title_en || '');
       setTitleIt(transaction.title_it || '');
       setTitleDe(transaction.title_de || '');
       setTitleFr(transaction.title_fr || '');
       setTitleEs(transaction.title_es || '');
-      
-      // If all translation fields are empty but main title exists, 
+
+      // If all translation fields are empty but main title exists,
       // try to detect which language it should be in (fallback to EN)
-      if (!transaction.title_en && !transaction.title_it && !transaction.title_de && 
+      if (!transaction.title_en && !transaction.title_it && !transaction.title_de &&
           !transaction.title_fr && !transaction.title_es && transaction.title) {
         // For backward compatibility, put it in EN field
         setTitleEn(transaction.title);
       }
-      
+
       setError(null);
     }
   }, [open, transaction]);
@@ -90,6 +93,7 @@ export function EditTransactionTitleModal({ transaction, onSuccess }: EditTransa
         .from('transactions')
         .update({
           title: userLangTitle, // Main title in user's language
+          agent_reference: agentReference.trim() || null,
           title_en: titleEn.trim(),
           title_it: titleIt.trim() || null,
           title_de: titleDe.trim() || null,
@@ -127,6 +131,21 @@ export function EditTransactionTitleModal({ transaction, onSuccess }: EditTransa
         </DialogHeader>
         <form onSubmit={handleSave}>
           <div className="grid gap-4 py-4">
+            {/* Agent Reference */}
+            <div className="space-y-2">
+              <Label htmlFor="agent_reference">{t('transactions.agentReference')}</Label>
+              <Input
+                id="agent_reference"
+                value={agentReference}
+                onChange={(e) => setAgentReference(e.target.value)}
+                disabled={isSaving}
+                placeholder={t('transactions.agentReferencePlaceholder')}
+              />
+              <p className="text-xs text-muted-foreground">
+                {t('transactions.agentReferenceHelp')}
+              </p>
+            </div>
+
             {/* English */}
             <div className="space-y-2">
               <Label htmlFor="title_en">

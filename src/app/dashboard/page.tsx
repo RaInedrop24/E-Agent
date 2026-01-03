@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase";
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CheckCircle, MessageSquare, FileText, Clock, Bell, Receipt, SlidersHorizontal } from "lucide-react";
+import { CheckCircle, MessageSquare, FileText, Clock, Bell, Receipt, SlidersHorizontal, Search } from "lucide-react";
 import { formatRelativeTime } from '@/lib/date-utils';
 import { EmptyState } from '@/components/ui/empty-state';
 import Skeleton from 'react-loading-skeleton';
@@ -18,13 +18,15 @@ import { LIMITS } from '@/lib/constants';
 import { NotificationModal } from '@/components/features/NotificationModal';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Transaction {
   id: string;
   title: string;
+  agent_reference: string | null;
   status: string;
   created_at: string;
   last_updated: string;
@@ -52,7 +54,7 @@ interface ActivityItem {
 }
 
 export default function DashboardPage() {
-  const { user, profile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const { t, tVar } = useLanguage();
   const router = useRouter();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -61,34 +63,82 @@ export default function DashboardPage() {
   const [notificationModalOpen, setNotificationModalOpen] = useState(false);
   const [selectedNotification, setSelectedNotification] = useState<ActivityItem['notification_data'] | null>(null);
   const [filterActiveOnly, setFilterActiveOnly] = useState(false);
-  const [sortBy, setSortBy] = useState<'last_updated' | 'created_at'>('last_updated');
+  const [sortBy, setSortBy] = useState<'last_updated' | 'created_at' | 'title' | 'agent_reference'>('last_updated');
   const [showFilterModal, setShowFilterModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [initialized, setInitialized] = useState(false);
+
+  // Activity feed filters
+  const [activityTypeFilters, setActivityTypeFilters] = useState({
+    milestone: true,
+    message: true,
+    file: true,
+    notification: true,
+  });
+  const [activityTimeRange, setActivityTimeRange] = useState<'24h' | '3d' | '7d' | '30d' | 'all'>('7d');
+  const [showActivityFilterModal, setShowActivityFilterModal] = useState(false);
 
   // Load preferences from profile on mount
   useEffect(() => {
     if (profile) {
       setFilterActiveOnly(profile.dashboard_filter_active_only ?? false);
-      setSortBy((profile.dashboard_sort_by as 'last_updated' | 'created_at') ?? 'last_updated');
+      setSortBy((profile.dashboard_sort_by as 'last_updated' | 'created_at' | 'title' | 'agent_reference') ?? 'last_updated');
+
+      // Load activity filter preferences
+      if (profile.activity_type_filters) {
+        setActivityTypeFilters(profile.activity_type_filters as any);
+      }
+      if (profile.activity_time_range) {
+        setActivityTimeRange(profile.activity_time_range as any);
+      }
+
+      setInitialized(true);
     }
   }, [profile]);
 
-  // Save preferences to database when they change
+  // Save preferences to database when they change (but not on initial load)
   useEffect(() => {
-    if (!user || !profile) return;
+    if (!user || !initialized) return;
+
+    let isActive = true; // Track if component is still mounted
 
     const updatePreferences = async () => {
-      const supabase = createClient();
-      await supabase
-        .from('profiles')
-        .update({
-          dashboard_filter_active_only: filterActiveOnly,
-          dashboard_sort_by: sortBy,
-        })
-        .eq('id', user.id);
+      try {
+        const supabase = createClient();
+        await supabase
+          .from('profiles')
+          .update({
+            dashboard_filter_active_only: filterActiveOnly,
+            dashboard_sort_by: sortBy,
+            activity_type_filters: activityTypeFilters,
+            activity_time_range: activityTimeRange,
+          })
+          .eq('id', user.id);
+
+        // Refresh profile after a small delay to ensure DB write completes
+        // This ensures other pages see the updated preferences
+        if (isActive) {
+          setTimeout(() => {
+            if (isActive) {
+              refreshProfile();
+            }
+          }, 500);
+        }
+      } catch (error) {
+        // Silently handle errors during cleanup
+        if (isActive) {
+          console.error('Error updating dashboard preferences:', error);
+        }
+      }
     };
 
     updatePreferences();
-  }, [filterActiveOnly, sortBy, user, profile]);
+
+    // Cleanup function to prevent updates after unmount
+    return () => {
+      isActive = false;
+    };
+  }, [filterActiveOnly, sortBy, activityTypeFilters, activityTimeRange, user, initialized, refreshProfile]);
 
   useEffect(() => {
     if (user) {
@@ -123,6 +173,7 @@ export default function DashboardPage() {
         .select(`
           id,
           title,
+          agent_reference,
           status,
           created_at,
           last_updated,
@@ -132,8 +183,7 @@ export default function DashboardPage() {
             order_index
           )
         `)
-        .in('id', transactionIds)
-        .order(sortBy, { ascending: false });
+        .in('id', transactionIds);
 
       if (transactionsError) throw transactionsError;
 
@@ -142,6 +192,25 @@ export default function DashboardPage() {
       if (filterActiveOnly) {
         filteredTransactions = filteredTransactions.filter((t: Transaction) => t.status === 'active');
       }
+
+      // Apply sorting
+      filteredTransactions.sort((a, b) => {
+        switch (sortBy) {
+          case 'last_updated':
+          case 'created_at':
+            return new Date(b[sortBy]).getTime() - new Date(a[sortBy]).getTime();
+          case 'title':
+            return a.title.localeCompare(b.title);
+          case 'agent_reference':
+            // Handle null values - put them at the end
+            if (!a.agent_reference && !b.agent_reference) return 0;
+            if (!a.agent_reference) return 1;
+            if (!b.agent_reference) return -1;
+            return a.agent_reference.localeCompare(b.agent_reference);
+          default:
+            return 0;
+        }
+      });
 
       setTransactions(filteredTransactions);
 
@@ -287,6 +356,55 @@ export default function DashboardPage() {
     }
   }
 
+  // Filter transactions based on search query
+  const filteredTransactions = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return transactions;
+    }
+    const query = searchQuery.toLowerCase();
+    return transactions.filter((transaction) =>
+      transaction.title.toLowerCase().includes(query) ||
+      (transaction.agent_reference && transaction.agent_reference.toLowerCase().includes(query))
+    );
+  }, [transactions, searchQuery]);
+
+  // Filter recent activity based on type and time range
+  const filteredActivity = useMemo(() => {
+    let filtered = recentActivity;
+
+    // Filter by type
+    filtered = filtered.filter((activity) => {
+      return activityTypeFilters[activity.type];
+    });
+
+    // Filter by time range
+    if (activityTimeRange !== 'all') {
+      const now = new Date();
+      const cutoffTime = new Date();
+
+      switch (activityTimeRange) {
+        case '24h':
+          cutoffTime.setHours(now.getHours() - 24);
+          break;
+        case '3d':
+          cutoffTime.setDate(now.getDate() - 3);
+          break;
+        case '7d':
+          cutoffTime.setDate(now.getDate() - 7);
+          break;
+        case '30d':
+          cutoffTime.setDate(now.getDate() - 30);
+          break;
+      }
+
+      filtered = filtered.filter((activity) => {
+        return new Date(activity.created_at) >= cutoffTime;
+      });
+    }
+
+    return filtered;
+  }, [recentActivity, activityTypeFilters, activityTimeRange]);
+
   const calculateProgress = useMemo(() => {
     return (transaction: Transaction): number => {
       if (!transaction.milestones || transaction.milestones.length === 0) {
@@ -379,20 +497,25 @@ export default function DashboardPage() {
                   {/* Sort Options */}
                   <div className="space-y-3">
                     <Label className="text-base font-semibold">{t('dashboard.sortBy')}</Label>
-                    <RadioGroup value={sortBy} onValueChange={(value: 'last_updated' | 'created_at') => setSortBy(value)}>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="last_updated" id="sort-last-updated" />
-                        <Label htmlFor="sort-last-updated" className="font-normal cursor-pointer">
+                    <Select value={sortBy} onValueChange={(value: 'last_updated' | 'created_at' | 'title' | 'agent_reference') => setSortBy(value)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="last_updated">
                           {t('dashboard.lastUpdated')} ({t('dashboard.newestFirst')})
-                        </Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="created_at" id="sort-created" />
-                        <Label htmlFor="sort-created" className="font-normal cursor-pointer">
-                          {t('dashboard.createdDate') || 'Created Date'} ({t('dashboard.newestFirst')})
-                        </Label>
-                      </div>
-                    </RadioGroup>
+                        </SelectItem>
+                        <SelectItem value="created_at">
+                          {t('dashboard.createdDate')} ({t('dashboard.newestFirst')})
+                        </SelectItem>
+                        <SelectItem value="title">
+                          {t('dashboard.sortByTitle')}
+                        </SelectItem>
+                        <SelectItem value="agent_reference">
+                          {t('dashboard.sortByAgentRef')}
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   {/* Filter Options */}
@@ -419,20 +542,38 @@ export default function DashboardPage() {
             </Dialog>
           </CardHeader>
           <CardContent className="space-y-3">
-            {transactions.length === 0 ? (
-              <EmptyState
-                icon={Receipt}
-                title={profile?.role === 'agent' ? t('dashboard.noTransactionsAgent') : t('dashboard.noTransactionsBuyer')}
-                description={profile?.role === 'agent'
-                  ? t('dashboard.createFirst')
-                  : t('dashboard.noInvitationsYet')}
-                action={profile?.role === 'agent' ? {
-                  label: t('dashboard.createFirstButton'),
-                  onClick: () => router.push('/transactions/create')
-                } : undefined}
+            {/* Search Input */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder={t('dashboard.searchPlaceholder')}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
               />
+            </div>
+
+            {filteredTransactions.length === 0 ? (
+              searchQuery ? (
+                <div className="text-sm text-muted-foreground py-4 text-center">
+                  {t('dashboard.noSearchResults')}
+                </div>
+              ) : (
+                <EmptyState
+                  icon={Receipt}
+                  title={profile?.role === 'agent' ? t('dashboard.noTransactionsAgent') : t('dashboard.noTransactionsBuyer')}
+                  description={profile?.role === 'agent'
+                    ? t('dashboard.createFirst')
+                    : t('dashboard.noInvitationsYet')}
+                  action={profile?.role === 'agent' ? {
+                    label: t('dashboard.createFirstButton'),
+                    onClick: () => router.push('/transactions/create')
+                  } : undefined}
+                />
+              )
             ) : (
-              transactions.map((transaction) => {
+              filteredTransactions.map((transaction) => {
                 const progress = calculateProgress(transaction);
                 return (
                   <Link
@@ -441,8 +582,15 @@ export default function DashboardPage() {
                     className="block rounded border p-3 hover:border-blue-500 transition-colors"
                   >
                     <div className="flex items-center justify-between">
-                      <span className="font-medium">{transaction.title}</span>
-                      <span className="text-xs px-2 py-1 rounded-full bg-success/10 text-success capitalize">
+                      <div className="flex-1 min-w-0">
+                        <span className="font-medium">{transaction.title}</span>
+                        {transaction.agent_reference && (
+                          <span className="block text-xs text-muted-foreground mt-0.5">
+                            {t('transactions.ref')}: {transaction.agent_reference}
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-xs px-2 py-1 rounded-full bg-success/10 text-success capitalize whitespace-nowrap ml-2">
                         {transaction.status === 'active' ? t('status.active') : transaction.status === 'completed' ? t('status.completed') : t('status.archived')}
                       </span>
                     </div>
@@ -464,16 +612,116 @@ export default function DashboardPage() {
         </Card>
 
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
             <CardTitle>{t('dashboard.recentActivity')}</CardTitle>
+            <Dialog open={showActivityFilterModal} onOpenChange={setShowActivityFilterModal}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2">
+                  <SlidersHorizontal className="h-4 w-4" />
+                  {t('dashboard.filterSort') || 'Filter & Sort'}
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>{t('dashboard.activityFilters') || 'Activity Filter Options'}</DialogTitle>
+                  <DialogDescription>
+                    {t('dashboard.activityFiltersDescription') || 'Customize which activities are displayed'}
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-6 py-4">
+                  {/* Time Range Filter */}
+                  <div className="space-y-3">
+                    <Label className="text-base font-semibold">{t('dashboard.timeRange') || 'Time Range'}</Label>
+                    <Select value={activityTimeRange} onValueChange={(value: '24h' | '3d' | '7d' | '30d' | 'all') => setActivityTimeRange(value)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="24h">
+                          {t('dashboard.last24Hours') || 'Last 24 hours'}
+                        </SelectItem>
+                        <SelectItem value="3d">
+                          {t('dashboard.last3Days') || 'Last 3 days'}
+                        </SelectItem>
+                        <SelectItem value="7d">
+                          {t('dashboard.last7Days') || 'Last 7 days'}
+                        </SelectItem>
+                        <SelectItem value="30d">
+                          {t('dashboard.last30Days') || 'Last 30 days'}
+                        </SelectItem>
+                        <SelectItem value="all">
+                          {t('dashboard.allTime') || 'All time'}
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Activity Type Filters */}
+                  <div className="space-y-3">
+                    <Label className="text-base font-semibold">{t('dashboard.activityTypes') || 'Activity Types'}</Label>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="filter-milestone" className="font-normal cursor-pointer flex items-center gap-2">
+                          <CheckCircle className="w-4 h-4 text-success" />
+                          {t('dashboard.milestones') || 'Milestones'}
+                        </Label>
+                        <Switch
+                          id="filter-milestone"
+                          checked={activityTypeFilters.milestone}
+                          onCheckedChange={(checked) => setActivityTypeFilters({ ...activityTypeFilters, milestone: checked })}
+                        />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="filter-message" className="font-normal cursor-pointer flex items-center gap-2">
+                          <MessageSquare className="w-4 h-4 text-info" />
+                          {t('dashboard.messages') || 'Messages'}
+                        </Label>
+                        <Switch
+                          id="filter-message"
+                          checked={activityTypeFilters.message}
+                          onCheckedChange={(checked) => setActivityTypeFilters({ ...activityTypeFilters, message: checked })}
+                        />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="filter-file" className="font-normal cursor-pointer flex items-center gap-2">
+                          <FileText className="w-4 h-4 text-info" />
+                          {t('dashboard.files') || 'Files'}
+                        </Label>
+                        <Switch
+                          id="filter-file"
+                          checked={activityTypeFilters.file}
+                          onCheckedChange={(checked) => setActivityTypeFilters({ ...activityTypeFilters, file: checked })}
+                        />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="filter-notification" className="font-normal cursor-pointer flex items-center gap-2">
+                          <Bell className="w-4 h-4 text-warning" />
+                          {t('dashboard.notifications') || 'Notifications'}
+                        </Label>
+                        <Switch
+                          id="filter-notification"
+                          checked={activityTypeFilters.notification}
+                          onCheckedChange={(checked) => setActivityTypeFilters({ ...activityTypeFilters, notification: checked })}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button onClick={() => setShowActivityFilterModal(false)}>
+                    {t('action.done') || 'Done'}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </CardHeader>
           <CardContent className="space-y-3">
-            {recentActivity.length === 0 ? (
+            {filteredActivity.length === 0 ? (
               <div className="text-sm text-muted-foreground py-4 text-center">
                 {t('dashboard.noActivity')}
               </div>
             ) : (
-              recentActivity.map((activity) => {
+              filteredActivity.map((activity) => {
                 // Parse description format: "type:value"
                 const [type, value] = activity.description.split(':');
                 let displayText = activity.description;

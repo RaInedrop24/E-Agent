@@ -1,15 +1,20 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useSuperAdmin } from '@/hooks/useSuperAdmin';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/lib/supabase';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, Shield } from 'lucide-react';
+import { Loader2, Shield, Search, SlidersHorizontal } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Switch } from '@/components/ui/switch';
 import {
   Select,
   SelectContent,
@@ -26,8 +31,10 @@ interface Transaction {
   title_de?: string | null;
   title_fr?: string | null;
   title_es?: string | null;
+  agent_reference?: string | null;
   status: string;
   created_at: string;
+  last_updated: string;
   created_by: string;
   agent_name?: string;
 }
@@ -39,7 +46,7 @@ interface Agent {
 }
 
 export default function TransactionsListPage() {
-  const { user, profile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const { t, tVar, language } = useLanguage();
   const { isSuperAdmin, loading: superAdminLoading } = useSuperAdmin();
 
@@ -51,24 +58,80 @@ export default function TransactionsListPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Filter and search state - persist to database via profile
+  const [filterActiveOnly, setFilterActiveOnly] = useState(false);
+  const [sortBy, setSortBy] = useState<'last_updated' | 'created_at' | 'title' | 'agent_reference'>('last_updated');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showFilterModal, setShowFilterModal] = useState(false);
+  const [initialized, setInitialized] = useState(false);
+
+  // Load preferences from profile on mount
+  useEffect(() => {
+    if (profile) {
+      setFilterActiveOnly(profile.dashboard_filter_active_only ?? false);
+      setSortBy((profile.dashboard_sort_by as 'last_updated' | 'created_at' | 'title' | 'agent_reference') ?? 'last_updated');
+      setInitialized(true);
+    }
+  }, [profile]);
+
   // Get translated title based on user's language preference
-  const getTranslatedTitle = (transaction: Transaction) => {
+  const getTranslatedTitle = useCallback((transaction: Transaction) => {
     const langKey = `title_${language}` as keyof Transaction;
     const translatedTitle = transaction[langKey] as string | null | undefined;
-    
+
     // If we have a translation for the user's language, use it
     if (translatedTitle && translatedTitle.trim()) {
       return translatedTitle;
     }
-    
+
     // Fallback: try English, then the main title field
     if (transaction.title_en && transaction.title_en.trim()) {
       return transaction.title_en;
     }
-    
+
     // Last resort: use the main title field
     return transaction.title || '';
-  };
+  }, [language]);
+
+  // Save preferences to database when they change (but not on initial load)
+  useEffect(() => {
+    if (!user || !initialized) return;
+
+    let isActive = true;
+
+    const updatePreferences = async () => {
+      try {
+        const supabase = createClient();
+        await supabase
+          .from('profiles')
+          .update({
+            dashboard_filter_active_only: filterActiveOnly,
+            dashboard_sort_by: sortBy,
+          })
+          .eq('id', user.id);
+
+        // Refresh profile after a small delay to ensure DB write completes
+        // This ensures other pages see the updated preferences
+        if (isActive) {
+          setTimeout(() => {
+            if (isActive) {
+              refreshProfile();
+            }
+          }, 500);
+        }
+      } catch (error) {
+        if (isActive) {
+          console.error('Error updating preferences:', error);
+        }
+      }
+    };
+
+    updatePreferences();
+
+    return () => {
+      isActive = false;
+    };
+  }, [filterActiveOnly, sortBy, user, initialized, refreshProfile]);
 
   useEffect(() => {
     console.log('[Transactions] useEffect triggered - user:', !!user, 'isSuperAdmin:', isSuperAdmin, 'superAdminLoading:', superAdminLoading);
@@ -80,21 +143,62 @@ export default function TransactionsListPage() {
     }
   }, [user, isSuperAdmin, superAdminLoading]);
 
-  useEffect(() => {
-    // Filter transactions when agent selection changes
-    if (selectedAgent === 'all') {
-      setTransactions(allTransactions);
-    } else {
-      const filtered = allTransactions.filter(tx => tx.created_by === selectedAgent);
-      setTransactions(filtered);
+  // Apply all filters, sorting, and search
+  const filteredAndSortedTransactions = useMemo(() => {
+    let result = [...allTransactions];
+
+    // Filter by agent (super admin only)
+    if (selectedAgent !== 'all') {
+      result = result.filter(tx => tx.created_by === selectedAgent);
     }
-  }, [selectedAgent, allTransactions]);
+
+    // Filter by status (active only)
+    if (filterActiveOnly) {
+      result = result.filter(tx => tx.status === 'active');
+    }
+
+    // Filter by search query (title or agent_reference)
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(tx =>
+        getTranslatedTitle(tx).toLowerCase().includes(query) ||
+        (tx.agent_reference && tx.agent_reference.toLowerCase().includes(query))
+      );
+    }
+
+    // Sort by selected field
+    result.sort((a, b) => {
+      switch (sortBy) {
+        case 'last_updated':
+        case 'created_at':
+          return new Date(b[sortBy]).getTime() - new Date(a[sortBy]).getTime();
+        case 'title':
+          return getTranslatedTitle(a).localeCompare(getTranslatedTitle(b));
+        case 'agent_reference':
+          // Handle null values - put them at the end
+          if (!a.agent_reference && !b.agent_reference) return 0;
+          if (!a.agent_reference) return 1;
+          if (!b.agent_reference) return -1;
+          return a.agent_reference.localeCompare(b.agent_reference);
+        default:
+          return 0;
+      }
+    });
+
+    return result;
+  }, [allTransactions, selectedAgent, filterActiveOnly, searchQuery, sortBy, getTranslatedTitle]);
+
+  // Update transactions when filtered results change
+  useEffect(() => {
+    setTransactions(filteredAndSortedTransactions);
+  }, [filteredAndSortedTransactions]);
 
   const fetchTransactions = async () => {
     try {
       setLoading(true);
-      if (!supabase || !user) return;
+      if (!user) return;
 
+      const supabase = createClient();
       console.log('[Transactions] isSuperAdmin:', isSuperAdmin);
 
       if (isSuperAdmin) {
@@ -224,34 +328,99 @@ export default function TransactionsListPage() {
 
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>{isSuperAdmin ? 'All Transactions' : t('transactions.my')}</CardTitle>
-              <CardDescription>
-                {tVar('transactions.found', { count: transactions.length })}
-                {isSuperAdmin && allTransactions.length !== transactions.length && (
-                  <span> (filtered from {allTransactions.length} total)</span>
-                )}
-              </CardDescription>
-            </div>
-            {isSuperAdmin && agents.length > 0 && (
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">Filter by agent:</span>
-                <Select value={selectedAgent} onValueChange={setSelectedAgent}>
-                  <SelectTrigger className="w-[200px]">
-                    <SelectValue placeholder="All Agents" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Agents ({allTransactions.length})</SelectItem>
-                    {agents.map((agent) => (
-                      <SelectItem key={agent.id} value={agent.id}>
-                        {agent.full_name} ({agent.transaction_count || 0})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>{isSuperAdmin ? 'All Transactions' : t('transactions.my')}</CardTitle>
+                <CardDescription>
+                  {tVar('transactions.found', { count: transactions.length })}
+                  {isSuperAdmin && allTransactions.length !== transactions.length && (
+                    <span> (filtered from {allTransactions.length} total)</span>
+                  )}
+                </CardDescription>
               </div>
-            )}
+              <div className="flex items-center gap-2">
+                {isSuperAdmin && agents.length > 0 && (
+                  <>
+                    <span className="text-sm text-muted-foreground">Agent:</span>
+                    <Select value={selectedAgent} onValueChange={setSelectedAgent}>
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="All Agents" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All ({allTransactions.length})</SelectItem>
+                        {agents.map((agent) => (
+                          <SelectItem key={agent.id} value={agent.id}>
+                            {agent.full_name} ({agent.transaction_count || 0})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </>
+                )}
+                <Dialog open={showFilterModal} onOpenChange={setShowFilterModal}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm" className="gap-2">
+                      <SlidersHorizontal className="h-4 w-4" />
+                      Filter & Sort
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Filter & Sort Options</DialogTitle>
+                      <DialogDescription>
+                        Customize how your transactions are displayed
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-6 py-4">
+                      {/* Sort Options */}
+                      <div className="space-y-3">
+                        <Label className="text-base font-semibold">{t('dashboard.sortBy')}</Label>
+                        <Select value={sortBy} onValueChange={(value: 'last_updated' | 'created_at' | 'title' | 'agent_reference') => setSortBy(value)}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="last_updated">
+                              {t('dashboard.lastUpdated')} ({t('dashboard.newestFirst')})
+                            </SelectItem>
+                            <SelectItem value="created_at">
+                              {t('dashboard.createdDate')} ({t('dashboard.newestFirst')})
+                            </SelectItem>
+                            <SelectItem value="title">
+                              {t('dashboard.sortByTitle')}
+                            </SelectItem>
+                            <SelectItem value="agent_reference">
+                              {t('dashboard.sortByAgentRef')}
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Filter Options */}
+                      <div className="space-y-3">
+                        <Label className="text-base font-semibold">{t('dashboard.filter')}</Label>
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="filter-active-only" className="font-normal cursor-pointer">
+                            {t('dashboard.showActiveOnly')}
+                          </Label>
+                          <Switch
+                            id="filter-active-only"
+                            checked={filterActiveOnly}
+                            onCheckedChange={setFilterActiveOnly}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button onClick={() => setShowFilterModal(false)}>
+                        {t('action.done')}
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -261,44 +430,72 @@ export default function TransactionsListPage() {
              </div>
           ) : error ? (
             <div className="text-red-500 py-4">Error: {error}</div>
-          ) : transactions.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <p>{t('transactions.noTransactions')}</p>
-              {isAgent && (
-                <p className="mt-2 text-sm">
-                  {t('dashboard.createFirst')}
-                </p>
-              )}
-            </div>
           ) : (
-            <div className="space-y-3">
-              {transactions.map((transaction) => (
-                <Link key={transaction.id} href={`/transaction/${transaction.id}`} className="block">
-                  <div className="flex items-center justify-between rounded-lg border p-4 hover:border-primary hover:bg-slate-50 transition-all cursor-pointer group">
-                    <div className="space-y-1 flex-1">
-                      <div className="font-medium flex items-center gap-2 group-hover:text-primary transition-colors">
-                          {getTranslatedTitle(transaction)}
-                      </div>
-                      <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                        <span>{t('transactions.createdOn')} {new Date(transaction.created_at).toLocaleDateString()}</span>
-                        {isSuperAdmin && transaction.agent_name && (
-                          <>
-                            <span>•</span>
-                            <span className="flex items-center gap-1">
-                              <Shield className="h-3 w-3" />
-                              {transaction.agent_name}
-                            </span>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                    <Badge variant={transaction.status === 'active' ? 'default' : 'secondary'} className="text-xs">
-                        {transaction.status}
-                    </Badge>
+            <>
+              {/* Search Input */}
+              <div className="relative mb-4">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder={t('dashboard.searchPlaceholder')}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+
+              {transactions.length === 0 ? (
+                searchQuery || filterActiveOnly ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <p>{t('dashboard.noSearchOrFilterResults')}</p>
                   </div>
-                </Link>
-              ))}
-            </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <p>{t('transactions.noTransactions')}</p>
+                    {isAgent && (
+                      <p className="mt-2 text-sm">
+                        {t('dashboard.createFirst')}
+                      </p>
+                    )}
+                  </div>
+                )
+              ) : (
+                <div className="space-y-3">
+                  {transactions.map((transaction) => (
+                    <Link key={transaction.id} href={`/transaction/${transaction.id}`} className="block">
+                      <div className="flex items-center justify-between rounded-lg border p-4 hover:border-primary hover:bg-slate-50 transition-all cursor-pointer group">
+                        <div className="space-y-1 flex-1">
+                          <div className="font-medium flex items-center gap-2 group-hover:text-primary transition-colors">
+                            {getTranslatedTitle(transaction)}
+                          </div>
+                          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                            {transaction.agent_reference && (
+                              <>
+                                <span className="font-medium">{t('transactions.ref')}: {transaction.agent_reference}</span>
+                                <span>•</span>
+                              </>
+                            )}
+                            <span>{t('transactions.createdOn')} {new Date(transaction.created_at).toLocaleDateString()}</span>
+                            {isSuperAdmin && transaction.agent_name && (
+                              <>
+                                <span>•</span>
+                                <span className="flex items-center gap-1">
+                                  <Shield className="h-3 w-3" />
+                                  {transaction.agent_name}
+                                </span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                        <Badge variant={transaction.status === 'active' ? 'default' : 'secondary'} className="text-xs">
+                          {transaction.status}
+                        </Badge>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>

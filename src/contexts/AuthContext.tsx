@@ -22,6 +22,13 @@ interface Profile {
   } | null;
   dashboard_filter_active_only?: boolean;
   dashboard_sort_by?: string;
+  activity_type_filters?: {
+    milestone: boolean;
+    message: boolean;
+    file: boolean;
+    notification: boolean;
+  };
+  activity_time_range?: '24h' | '3d' | '7d' | '30d' | 'all';
 }
 
 interface AuthContextType {
@@ -153,9 +160,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const refreshProfile = async () => {
-    if (user) {
-      await fetchProfile(user.id);
+    if (!user) {
+      console.log('[AuthContext] refreshProfile called but no user logged in');
+      return;
     }
+    await fetchProfile(user.id);
   };
 
   const signOut = async () => {

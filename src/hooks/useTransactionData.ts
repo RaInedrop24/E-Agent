@@ -13,6 +13,7 @@ interface Transaction {
   title_de?: string | null;
   title_fr?: string | null;
   title_es?: string | null;
+  agent_reference?: string | null;
   property_address: string | null;
   property_url: string | null;
   status: string;
@@ -120,6 +121,7 @@ export function useTransactionData(transactionId: string): UseTransactionDataRet
           title_de,
           title_fr,
           title_es,
+          agent_reference,
           property_address,
           property_url,
           status,

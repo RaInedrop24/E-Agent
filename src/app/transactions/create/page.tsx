@@ -32,6 +32,7 @@ export default function CreateTransactionPage() {
   const { user, profile } = useAuth();
   const { t } = useLanguage();
   const [title, setTitle] = useState('');
+  const [agentReference, setAgentReference] = useState('');
   const [propertyAddress, setPropertyAddress] = useState('');
   const [propertyUrl, setPropertyUrl] = useState('');
   const [buyers, setBuyers] = useState<Buyer[]>([]);
@@ -194,6 +195,7 @@ export default function CreateTransactionPage() {
         .insert({
           title: mainTitle, // Main title in user's language for backward compatibility
           ...titleTranslations,
+          agent_reference: agentReference.trim() || null,
           property_address: propertyAddress.trim() || null,
           property_url: propertyUrl.trim() || null,
           created_by: user.id,
@@ -338,6 +340,21 @@ export default function CreateTransactionPage() {
               />
               <p className="text-xs text-muted-foreground">
                 {t('transactions.transactionTitleHelp')}
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="agentReference">{t('transactions.agentReference')}</Label>
+              <Input
+                id="agentReference"
+                type="text"
+                placeholder={t('transactions.agentReferencePlaceholder')}
+                value={agentReference}
+                onChange={(e) => setAgentReference(e.target.value)}
+                disabled={loading}
+              />
+              <p className="text-xs text-muted-foreground">
+                {t('transactions.agentReferenceHelp')}
               </p>
             </div>
 
