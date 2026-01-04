@@ -32,13 +32,23 @@ function AuthCallbackContent() {
           return;
         }
 
-        // Handle email verification code parameter FIRST (PKCE flow for signup confirmation)
+        // Handle email verification code parameter (PKCE flow for signup confirmation)
         const code = searchParams?.get('code');
         if (code) {
           const { error } = await supabase.auth.exchangeCodeForSession(code);
 
           if (error) {
             console.error('Error exchanging code for session:', error);
+            
+            // PKCE flow requires code_verifier in sessionStorage, which may not be available
+            // if the email link opens in a different browser. In this case, the user needs
+            // to verify their email from the same browser they registered in, or we need
+            // to use a different flow (token-based instead of PKCE).
+            if (error.message?.includes('code verifier') || error.message?.includes('non-empty')) {
+              setStatus('Please open this link in the same browser you used to register. If you continue to have issues, please try signing in and we\'ll resend the verification email.');
+              return;
+            }
+            
             setStatus('Authentication failed. Please try again.');
             return;
           }
