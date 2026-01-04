@@ -355,6 +355,9 @@ const translations = {
     'form.transactionTitle': 'Transaction Title',
     'form.selectBuyers': 'Select Buyers',
     'form.notes': 'Notes',
+    'form.websiteUrl': 'Website URL (Optional)',
+    'form.websiteUrlPlaceholder': 'https://your-agency.com',
+    'form.websiteUrlHelp': 'We will analyze your website to automatically generate a matching color theme for your portal.',
     
     // Authentication
     'auth.registerAsAgent': 'Register as Estate Agent',
@@ -879,6 +882,9 @@ const translations = {
     'form.transactionTitle': 'Titolo Transazione',
     'form.selectBuyers': 'Seleziona Acquirenti',
     'form.notes': 'Note',
+    'form.websiteUrl': 'URL Sito Web (Opzionale)',
+    'form.websiteUrlPlaceholder': 'https://la-tua-agenzia.com',
+    'form.websiteUrlHelp': 'Analizzeremo il tuo sito web per generare automaticamente un tema colori corrispondente per il tuo portale.',
     
     // Authentication
     'auth.registerAsAgent': 'Registrati come Agente Immobiliare',
@@ -1383,6 +1389,9 @@ const translations = {
     'form.transactionTitle': 'Tytuł transakcji',
     'form.selectBuyers': 'Wybór kupujących',
     'form.notes': 'Uwagi',
+    'form.websiteUrl': 'Adres URL strony (Opcjonalnie)',
+    'form.websiteUrlPlaceholder': 'https://twoja-agencja.com',
+    'form.websiteUrlHelp': 'Przeanalizujemy Twoją stronę internetową, aby automatycznie wygenerować pasujący schemat kolorów dla Twojego portalu.',
     
     // Authentication
     'auth.registerAsAgent': 'Zarejestruj się jako Agent Nieruchomości',
@@ -1858,6 +1867,9 @@ const translations = {
   'form.transactionTitle': 'Título de la transacción',
   'form.selectBuyers': 'Seleccionar compradores',
   'form.notes': 'Notas',
+  'form.websiteUrl': 'URL del sitio web (Opcional)',
+  'form.websiteUrlPlaceholder': 'https://tu-agencia.com',
+  'form.websiteUrlHelp': 'Analizaremos su sitio web para generar automáticamente un esquema de colores coincidente para su portal.',
   
   // Authentication
   'auth.registerAsAgent': 'Registrarse como Agente Inmobiliario',
@@ -2331,6 +2343,9 @@ const translations = {
   'form.transactionTitle': 'Titre de la transaction',
   'form.selectBuyers': 'Sélectionner les acheteurs',
   'form.notes': 'Notes',
+  'form.websiteUrl': 'URL du site web (Optionnel)',
+  'form.websiteUrlPlaceholder': 'https://votre-agence.com',
+  'form.websiteUrlHelp': 'Nous analyserons votre site web pour générer automatiquement un schéma de couleurs correspondant pour votre portail.',
   
   // Authentication
   'auth.registerAsAgent': 'S\'inscrire en tant qu\'Agent Immobilier',
@@ -2804,6 +2819,9 @@ const translations = {
   'form.transactionTitle': 'Titel transactie',
   'form.selectBuyers': 'Selecteer kopers',
   'form.notes': 'Opmerkingen',
+  'form.websiteUrl': 'Website URL (Optioneel)',
+  'form.websiteUrlPlaceholder': 'https://uw-makelaarskantoor.com',
+  'form.websiteUrlHelp': 'We analyseren uw website om automatisch een bijpassend kleurenschema voor uw portaal te genereren.',
   
   // Authentication
   'auth.registerAsAgent': 'Registreer als Makelaar',
@@ -3277,6 +3295,9 @@ const translations = {
   'form.transactionTitle': 'Titel des Vorgangs',
   'form.selectBuyers': 'Käufer auswählen',
   'form.notes': 'Anmerkungen',
+  'form.websiteUrl': 'Website-URL (Optional)',
+  'form.websiteUrlPlaceholder': 'https://ihre-maklerfirma.com',
+  'form.websiteUrlHelp': 'Wir analysieren Ihre Website, um automatisch ein passendes Farbschema für Ihr Portal zu generieren.',
   
   // Authentication
   'auth.registerAsAgent': 'Als Immobilienmakler registrieren',

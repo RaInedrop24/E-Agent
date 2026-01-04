@@ -18,6 +18,7 @@ export default function RegisterPage() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [websiteUrl, setWebsiteUrl] = useState("");
   const role = "agent" as const; // Only agents can register via the site
   const [preferredLanguage, setPreferredLanguage] = useState<string>("en");
   const [loading, setLoading] = useState(false);
@@ -49,6 +50,21 @@ export default function RegisterPage() {
           ? `${window.location.origin}/auth/callback`
           : undefined;
 
+      // Validate website URL if provided
+      if (websiteUrl && websiteUrl.trim()) {
+        try {
+          const url = new URL(websiteUrl.trim());
+          if (!['http:', 'https:'].includes(url.protocol)) {
+            throw new Error("Website URL must start with http:// or https://");
+          }
+        } catch (e: any) {
+          if (e.message.includes('Invalid URL')) {
+            throw new Error("Please enter a valid website URL (e.g., https://example.com)");
+          }
+          throw e;
+        }
+      }
+
       const signUpOptions = {
         email,
         password,
@@ -58,6 +74,7 @@ export default function RegisterPage() {
             full_name: fullName,
             role,
             preferred_language: preferredLanguage,
+            website_url: websiteUrl.trim() || null,
           },
         },
       };
@@ -94,6 +111,19 @@ export default function RegisterPage() {
           <div className="space-y-2">
             <Label htmlFor="password">{t('form.password')}</Label>
             <Input id="password" type="password" placeholder="********" value={password} onChange={(e) => setPassword(e.target.value)} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="website_url">{t('form.websiteUrl')}</Label>
+            <Input 
+              id="website_url" 
+              type="url" 
+              placeholder={t('form.websiteUrlPlaceholder')} 
+              value={websiteUrl} 
+              onChange={(e) => setWebsiteUrl(e.target.value)} 
+            />
+            <p className="text-xs text-muted-foreground">
+              {t('form.websiteUrlHelp')}
+            </p>
           </div>
           <p className="text-sm text-muted-foreground mb-2">
             {t('auth.agentOnlyNotice')}

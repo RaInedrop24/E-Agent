@@ -223,6 +223,38 @@ function AuthCallbackContent() {
             if (data.user) {
               setEmail(data.user.email ?? null);
               setStatus('Email confirmed successfully!');
+              
+              // Ensure profile exists and has website_url
+              const websiteUrl = data.user.user_metadata?.website_url;
+              if (data.user.id) {
+                // Update profile with website_url if it exists in metadata but not in profile
+                if (websiteUrl) {
+                  const { data: profileData } = await supabase
+                    .from('profiles')
+                    .select('website_url')
+                    .eq('id', data.user.id)
+                    .single();
+                  
+                  // If profile doesn't have website_url, update it
+                  if (profileData && !profileData.website_url) {
+                    await supabase
+                      .from('profiles')
+                      .update({ website_url: websiteUrl })
+                      .eq('id', data.user.id);
+                  }
+                  
+                  // Trigger website color extraction in the background
+                  fetch('/api/analyze-website-colors', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ websiteUrl, userId: data.user.id }),
+                  }).catch(err => {
+                    console.error('Failed to extract website colors:', err);
+                    // Don't show error to user, this is a background process
+                  });
+                }
+              }
+              
               // Redirect to dashboard after a short delay
               setTimeout(() => {
                 router.push('/dashboard');
@@ -260,6 +292,37 @@ function AuthCallbackContent() {
             
             setEmail(data.user.email ?? null);
             setStatus('Your email has been confirmed.');
+            
+            // Ensure profile exists and has website_url, then trigger color extraction
+            const websiteUrl = data.user.user_metadata?.website_url;
+            if (data.user.id) {
+              if (websiteUrl) {
+                // Update profile with website_url if it exists in metadata but not in profile
+                const { data: profileData } = await supabase
+                  .from('profiles')
+                  .select('website_url')
+                  .eq('id', data.user.id)
+                  .single();
+                
+                // If profile doesn't have website_url, update it
+                if (profileData && !profileData.website_url) {
+                  await supabase
+                    .from('profiles')
+                    .update({ website_url: websiteUrl })
+                    .eq('id', data.user.id);
+                }
+                
+                // Trigger website color extraction in the background
+                fetch('/api/analyze-website-colors', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ websiteUrl, userId: data.user.id }),
+                }).catch(err => {
+                  console.error('Failed to extract website colors:', err);
+                  // Don't show error to user, this is a background process
+                });
+              }
+            }
           } else {
             setStatus('Email confirmation complete. Please sign in.');
           }
