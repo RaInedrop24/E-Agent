@@ -468,14 +468,14 @@ export default function SettingsPage() {
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="full_name">{translate('form.fullName')}</Label>
-                <Input id="full_name" placeholder="Your name" value={fullName} onChange={(e) => setFullName(e.target.value)} />
+                <Input id="full_name" placeholder={translate('form.namePlaceholder')} value={fullName} onChange={(e) => setFullName(e.target.value)} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="language">{translate('form.language')}</Label>
                 {mounted ? (
                   <Select value={preferredLanguage} onValueChange={(value) => setPreferredLanguage(value as SupportedLanguage)}>
                     <SelectTrigger id="language">
-                      <SelectValue placeholder="Select language" />
+                      <SelectValue placeholder={translate('form.selectLanguage')} />
                     </SelectTrigger>
                     <SelectContent>
                       {supportedLanguages.map((lang) => (
@@ -487,7 +487,7 @@ export default function SettingsPage() {
                   </Select>
                 ) : (
                   <div className="h-9 w-full rounded-md border bg-transparent px-3 py-2 text-sm flex items-center">
-                    {supportedLanguages.find(l => l.code === preferredLanguage)?.nativeName || 'Select language'}
+                    {supportedLanguages.find(l => l.code === preferredLanguage)?.nativeName || translate('form.selectLanguage')}
                   </div>
                 )}
               </div>
@@ -498,16 +498,16 @@ export default function SettingsPage() {
         {/* Notifications / Alerts Section */}
         <Card>
           <CardHeader>
-            <CardTitle>Alerts & Notifications</CardTitle>
+            <CardTitle>{translate('settings.alertsNotifications')}</CardTitle>
             <CardDescription>
-              Choose how you want to be notified about transaction updates (milestones, messages).
+              {translate('settings.alertsDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="flex items-center justify-between">
                <div className="space-y-0.5">
-                  <Label className="text-base">Email Alerts</Label>
-                  <p className="text-sm text-muted-foreground">Receive updates via email to {email}</p>
+                  <Label className="text-base">{translate('settings.emailAlerts')}</Label>
+                  <p className="text-sm text-muted-foreground">{tVar('settings.emailAlertsDescription', { email: email || '' })}</p>
                </div>
                <Switch 
                  checked={emailAlerts}
@@ -518,8 +518,8 @@ export default function SettingsPage() {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                  <div className="space-y-0.5">
-                    <Label className="text-base">SMS Alerts</Label>
-                    <p className="text-sm text-muted-foreground">Receive urgent updates via text message</p>
+                    <Label className="text-base">{translate('settings.smsAlerts')}</Label>
+                    <p className="text-sm text-muted-foreground">{translate('settings.smsAlertsDescription')}</p>
                  </div>
                  <Switch 
                    checked={smsAlerts}
@@ -533,7 +533,7 @@ export default function SettingsPage() {
                      {mounted ? (
                        <Select value={countryCode} onValueChange={setCountryCode}>
                           <SelectTrigger>
-                             <SelectValue placeholder="Code" />
+                             <SelectValue placeholder={translate('form.countryCode')} />
                           </SelectTrigger>
                           <SelectContent>
                              {COUNTRY_CODES.map((c) => (
@@ -545,13 +545,13 @@ export default function SettingsPage() {
                        </Select>
                      ) : (
                        <div className="h-9 w-full rounded-md border bg-transparent px-3 py-2 text-sm flex items-center">
-                         {COUNTRY_CODES.find(c => c.code === countryCode)?.code || 'Code'}
+                         {COUNTRY_CODES.find(c => c.code === countryCode)?.code || translate('form.countryCode')}
                        </div>
                      )}
                    </div>
                    <div className="col-span-2">
                      <Input 
-                        placeholder="Phone Number (e.g. 712345678)" 
+                        placeholder={translate('form.phoneNumberPlaceholder')}
                         value={phoneNumber}
                         onChange={(e) => setPhoneNumber(e.target.value.replace(/[^0-9]/g, ''))}
                         type="tel"
