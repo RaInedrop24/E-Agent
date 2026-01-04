@@ -32,7 +32,49 @@ function AuthCallbackContent() {
           return;
         }
 
-        // Handle email verification code parameter (PKCE flow for signup confirmation)
+        // First check if we already have a session (Supabase may have auto-verified)
+        // This handles token-based verification (without emailRedirectTo) which works cross-device
+        const { data: { session: initialSession } } = await supabase.auth.getSession();
+        if (initialSession?.user) {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!mounted) return;
+
+          if (user) {
+            setEmail(user.email ?? null);
+            setStatus('Email confirmed successfully!');
+            
+            // Ensure profile exists and has website_url
+            const websiteUrl = user.user_metadata?.website_url;
+            if (user.id) {
+              // Update profile with website_url if it exists in metadata but not in profile
+              if (websiteUrl) {
+                const { data: profileData } = await supabase
+                  .from('profiles')
+                  .select('website_url')
+                  .eq('id', user.id)
+                  .single();
+                
+                // If profile doesn't have website_url, update it
+                if (profileData && !profileData.website_url) {
+                  await supabase
+                    .from('profiles')
+                    .update({ website_url: websiteUrl })
+                    .eq('id', user.id);
+                }
+                
+                // Website URL saved - color extraction will be done manually from settings page
+              }
+            }
+            
+            // Redirect to dashboard after a short delay
+            setTimeout(() => {
+              router.push('/dashboard');
+            }, 1500);
+          }
+          return;
+        }
+
+        // Handle email verification code parameter (PKCE flow - only used if emailRedirectTo was set)
         const code = searchParams?.get('code');
         if (code) {
           const { error } = await supabase.auth.exchangeCodeForSession(code);
@@ -97,41 +139,6 @@ function AuthCallbackContent() {
         const token = searchParams?.get('token');
         const tokenHash = searchParams?.get('token_hash');
         const flow = searchParams?.get('flow');
-
-        // First, check if we have a session (Supabase may have already verified)
-        const { data: { session: initialSession } } = await supabase.auth.getSession();
-        
-        // If we have a session, force password setup immediately (covers invites and stripped params)
-        if (initialSession?.user) {
-          const { data: { user } } = await supabase.auth.getUser();
-          
-          if (!user) return;
-
-          // Resolve role from metadata, fallback to profiles table
-          let role = user.user_metadata?.role as string | undefined;
-          if (!role) {
-            const { data: profileData } = await supabase
-              .from('profiles')
-              .select('role')
-              .eq('id', user.id)
-              .single();
-            role = profileData?.role as string | undefined;
-          }
-          
-          // Minimal invite detection: any of these flags triggers password setup
-          const isBuyer = role === 'buyer';
-          const isInviteType = type === 'invite';
-          const isInviteFlow = flow === 'invite' || isInviteType || isBuyer;
-          
-          // Last-resort: if we came here without a code but already have a session,
-          // treat it as invite and send to password setup (Supabase stripped params).
-          const noCode = !searchParams?.get('code');
-
-          if (isInviteFlow || noCode) {
-            router.push('/auth/update-password');
-            return;
-          }
-        }
 
         // If no session yet but tokens are present, attempt to verify explicitly (handles cases where Supabase strips type)
         if (!initialSession?.user && (token || tokenHash)) {

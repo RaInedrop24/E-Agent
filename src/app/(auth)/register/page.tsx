@@ -46,11 +46,6 @@ export default function RegisterPage() {
         console.error("RegisterPage: Supabase is undefined");
         throw new Error("Supabase is not configured. Check your .env.local.");
       }
-      const redirectTo =
-        typeof window !== "undefined"
-          ? `${window.location.origin}/auth/callback`
-          : undefined;
-
       // Validate website URL if provided
       if (websiteUrl && websiteUrl.trim()) {
         try {
@@ -66,11 +61,15 @@ export default function RegisterPage() {
         }
       }
 
+      // Don't use emailRedirectTo - it forces PKCE flow which requires code_verifier in sessionStorage
+      // Without emailRedirectTo, Supabase uses token-based verification (token_hash) which works cross-device
+      // Configure Site URL in Supabase dashboard to point to /auth/callback for redirects
       const signUpOptions = {
         email,
         password,
         options: {
-          emailRedirectTo: redirectTo,
+          // emailRedirectTo removed to enable cross-device verification
+          // Supabase will use Site URL from dashboard settings for redirect
           data: {
             full_name: fullName,
             role,
