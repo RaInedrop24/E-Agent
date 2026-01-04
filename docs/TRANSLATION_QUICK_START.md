@@ -19,7 +19,7 @@ The translation system is **complete and working**. Here's everything you need t
 
 ### Test Messaging
 1. **Navigate to:** http://localhost:3001/login
-2. **Login with:** Eagent_Admin@rainedrop.co.uk / EA@l0u15e001
+2. **Login with:** Your test agent account (use TEST_AGENT_EMAIL/TEST_AGENT_PASSWORD env vars)
 3. **Click on:** Any transaction (e.g., "House in Celenza")
 4. **Go to:** Messages tab
 5. **Send a message** in English

@@ -367,6 +367,8 @@ const translations = {
     'auth.alreadyHaveAccount': 'Already have an account?',
     'auth.signIn': 'Sign in',
     'auth.registerAsAgentLink': 'Register as Estate Agent',
+    'auth.registrationSuccess': 'Registration successful!',
+    'auth.verificationEmailSent': 'A verification email has been sent to {{email}}. Please check your inbox and verify your email address, then log in to continue.',
     
     // Settings
     'settings.title': 'Settings',
@@ -894,6 +896,8 @@ const translations = {
     'auth.alreadyHaveAccount': 'Hai già un account?',
     'auth.signIn': 'Accedi',
     'auth.registerAsAgentLink': 'Registrati come Agente Immobiliare',
+    'auth.registrationSuccess': 'Registrazione completata!',
+    'auth.verificationEmailSent': 'È stata inviata un\'email di verifica a {{email}}. Controlla la tua casella di posta e verifica il tuo indirizzo email, quindi accedi per continuare.',
     
     // Settings
     'settings.title': 'Impostazioni',
@@ -1401,6 +1405,8 @@ const translations = {
     'auth.alreadyHaveAccount': 'Masz już konto?',
     'auth.signIn': 'Zaloguj się',
     'auth.registerAsAgentLink': 'Zarejestruj się jako Agent Nieruchomości',
+    'auth.registrationSuccess': 'Rejestracja zakończona sukcesem!',
+    'auth.verificationEmailSent': 'Wiadomość weryfikacyjna została wysłana na adres {{email}}. Sprawdź swoją skrzynkę pocztową i zweryfikuj swój adres e-mail, a następnie zaloguj się, aby kontynuować.',
     
     'settings.title': 'Ustawienia',
     'settings.profile': 'Profil',
@@ -1879,6 +1885,8 @@ const translations = {
   'auth.alreadyHaveAccount': '¿Ya tienes una cuenta?',
   'auth.signIn': 'Iniciar sesión',
   'auth.registerAsAgentLink': 'Registrarse como Agente Inmobiliario',
+  'auth.registrationSuccess': '¡Registro exitoso!',
+  'auth.verificationEmailSent': 'Se ha enviado un correo de verificación a {{email}}. Por favor, revisa tu bandeja de entrada y verifica tu dirección de correo electrónico, luego inicia sesión para continuar.',
   
   'settings.title': 'Ajustes',
   'settings.profile': 'Perfil',
@@ -2355,6 +2363,8 @@ const translations = {
   'auth.alreadyHaveAccount': 'Vous avez déjà un compte?',
   'auth.signIn': 'Se connecter',
   'auth.registerAsAgentLink': 'S\'inscrire en tant qu\'Agent Immobilier',
+  'auth.registrationSuccess': 'Inscription réussie!',
+  'auth.verificationEmailSent': 'Un e-mail de vérification a été envoyé à {{email}}. Veuillez vérifier votre boîte de réception et vérifier votre adresse e-mail, puis connectez-vous pour continuer.',
   
   'settings.title': 'Paramètres',
   'settings.profile': 'Profil',
@@ -2831,6 +2841,8 @@ const translations = {
   'auth.alreadyHaveAccount': 'Heeft u al een account?',
   'auth.signIn': 'Inloggen',
   'auth.registerAsAgentLink': 'Registreer als Makelaar',
+  'auth.registrationSuccess': 'Registratie succesvol!',
+  'auth.verificationEmailSent': 'Er is een verificatie-e-mail verzonden naar {{email}}. Controleer uw inbox en verifieer uw e-mailadres, log dan in om door te gaan.',
   
   'settings.title': 'Instellingen',
   'settings.profile': 'Profiel',
@@ -3307,6 +3319,8 @@ const translations = {
   'auth.alreadyHaveAccount': 'Haben Sie bereits ein Konto?',
   'auth.signIn': 'Anmelden',
   'auth.registerAsAgentLink': 'Als Immobilienmakler registrieren',
+  'auth.registrationSuccess': 'Registrierung erfolgreich!',
+  'auth.verificationEmailSent': 'Eine Bestätigungs-E-Mail wurde an {{email}} gesendet. Bitte überprüfen Sie Ihren Posteingang und bestätigen Sie Ihre E-Mail-Adresse, dann melden Sie sich an, um fortzufahren.',
   
   'settings.title': 'Einstellungen',
   'settings.profile': 'Profil',

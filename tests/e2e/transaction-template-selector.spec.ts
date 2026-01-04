@@ -13,8 +13,8 @@ const { test, expect } = require('@playwright/test');
  */
 
 const TEST_USER = {
-  email: 'Eagent_Admin@rainedrop.co.uk',
-  password: 'EA@l0u15e001',
+  email: process.env.TEST_AGENT_EMAIL || 'test@example.com',
+  password: process.env.TEST_AGENT_PASSWORD || 'test_password',
 };
 
 test.describe('Transaction Template Selector', () => {

@@ -59,9 +59,13 @@ Screenshots are saved to `test-results/`:
 
 ### Test Credentials
 ```
-Email: Eagent_Admin@rainedrop.co.uk
-Password: EA@l0u15e001
+Email: Use TEST_AGENT_EMAIL environment variable
+Password: Use TEST_AGENT_PASSWORD environment variable
 Role: Agent
+
+To set up test credentials:
+export TEST_AGENT_EMAIL="your-test-agent@example.com"
+export TEST_AGENT_PASSWORD="your-password"
 ```
 
 ### Test Sequence
@@ -88,8 +92,8 @@ URL: http://localhost:3001/login
 ```
 
 **Steps:**
-1. Enter email: `Eagent_Admin@rainedrop.co.uk`
-2. Enter password: `EA@l0u15e001`
+1. Enter email: (use your TEST_AGENT_EMAIL)
+2. Enter password: (use your TEST_AGENT_PASSWORD)
 3. Click "Sign In"
 
 **Expected:**

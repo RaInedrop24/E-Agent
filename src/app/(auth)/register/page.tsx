@@ -10,11 +10,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { toast } from "sonner";
 
 export default function RegisterPage() {
   const router = useRouter();
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, tVar } = useLanguage();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -83,8 +84,17 @@ export default function RegisterPage() {
       const { error: signUpError, data } = await supabase.auth.signUp(signUpOptions);
       console.log("RegisterPage: signUp returned", { signUpError, data });
       if (signUpError) throw signUpError;
-      console.log("RegisterPage: Redirecting to dashboard");
-      router.push("/dashboard");
+      
+      // Show success message
+      toast.success(t('auth.registrationSuccess'), {
+        description: tVar('auth.verificationEmailSent', { email }),
+        duration: 5000,
+      });
+      
+      // Redirect to login page after a short delay
+      setTimeout(() => {
+        router.push("/login");
+      }, 1500);
     } catch (e: any) {
       console.error("RegisterPage: Error", e);
       setError(e?.message || "Registration failed");
@@ -125,9 +135,6 @@ export default function RegisterPage() {
               {t('form.websiteUrlHelp')}
             </p>
           </div>
-          <p className="text-sm text-muted-foreground mb-2">
-            {t('auth.agentOnlyNotice')}
-          </p>
           <div className="space-y-2">
             <Label>{t('form.language')}</Label>
             <Select defaultValue="en" onValueChange={(v) => setPreferredLanguage(v)}>

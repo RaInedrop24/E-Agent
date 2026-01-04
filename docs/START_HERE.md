@@ -112,8 +112,8 @@ npx playwright test tests/e2e/fix-auth.spec.js --headed
 
 # 2. Manual testing
 # Open: http://localhost:3001/login
-# Login: Eagent_Admin@rainedrop.co.uk
-# Password: EA@l0u15e001
+# Login: Use your test agent account
+# Password: (see environment variables)
 # Should redirect to dashboard (no loop!)
 
 # 3. Create a transaction

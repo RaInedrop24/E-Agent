@@ -93,10 +93,10 @@ FROM pg_trigger
 WHERE tgname = 'set_updated_at'
   AND tgrelid = 'public.profiles'::regclass;
 
--- Test an update (replace with your user ID)
-UPDATE public.profiles 
-SET preferred_language = 'it' 
-WHERE id = (SELECT id FROM auth.users WHERE email = 'eagent_admin@rainedrop.co.uk')
+-- Test an update (replace with your user email)
+UPDATE public.profiles
+SET preferred_language = 'it'
+WHERE id = (SELECT id FROM auth.users WHERE email = 'your-agent-email@example.com')
 RETURNING id, preferred_language, updated_at;
 ```
 
