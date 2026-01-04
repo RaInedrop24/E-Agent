@@ -353,10 +353,30 @@ export default function SettingsPage() {
     
     try {
       if (!supabase) throw new Error("Supabase not configured");
-      if (!websiteUrl) throw new Error("No website URL found. Please ensure your website URL was saved during registration.");
+      if (!websiteUrl) throw new Error("No website URL found. Please enter your website URL first.");
       
       const { data: session } = await supabase.auth.getUser();
       if (!session.user) throw new Error("Not authenticated");
+      
+      // If website URL has changed, save the profile first to ensure it's in the database
+      // This prevents 403 errors when the color extraction API tries to update the profile
+      if (websiteUrl !== originalWebsiteUrl) {
+        setStatus("Saving website URL...");
+        const { error: profileErr } = await supabase
+          .from('profiles')
+          .update({
+            website_url: websiteUrl || null
+          })
+          .eq('id', session.user.id);
+        
+        if (profileErr) {
+          throw new Error(`Failed to save website URL: ${profileErr.message}`);
+        }
+        
+        // Update original value so we don't save again
+        setOriginalWebsiteUrl(websiteUrl);
+        setStatus("Extracting colors...");
+      }
       
       const response = await fetch('/api/analyze-website-colors', {
         method: 'POST',
