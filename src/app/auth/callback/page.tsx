@@ -24,55 +24,62 @@ function AuthCallbackContent() {
           return;
         }
 
-        // 0) Handle URL hash tokens/errors explicitly (Supabase may place tokens in fragment)
-        if (typeof window !== 'undefined') {
-          const hashParams = new URLSearchParams(window.location.hash.slice(1));
+        // Check for errors in query params first
+        const errorParam = searchParams?.get('error');
+        const errorDescription = searchParams?.get('error_description');
+        if (errorParam) {
+          setStatus(`Authentication error: ${errorDescription || errorParam}. Please try again.`);
+          return;
+        }
 
-          // If Supabase sent back an error in hash, show it clearly
-          const hashError = hashParams.get('error');
-          const hashErrorDesc = hashParams.get('error_description');
-          if (hashError) {
-            setStatus(`Invite link error: ${hashErrorDesc || hashError}. Please request a new invitation.`);
+        // Handle email verification code parameter FIRST (PKCE flow for signup confirmation)
+        const code = searchParams?.get('code');
+        if (code) {
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
+
+          if (error) {
+            console.error('Error exchanging code for session:', error);
+            setStatus('Authentication failed. Please try again.');
             return;
           }
 
-          // Happy path: hash contains tokens — consume them manually, then via helper
-          const accessToken = hashParams.get('access_token');
-          const refreshToken = hashParams.get('refresh_token');
-          if (accessToken && refreshToken) {
-            const { data: setData, error: setError } = await supabase.auth.setSession({
-              access_token: accessToken,
-              refresh_token: refreshToken,
-            });
-            if (setError) {
-              console.error('Error setting session from hash tokens:', setError);
-              setStatus(`Invalid or expired link: ${setError.message}. Please request a new invitation.`);
-              return;
-            }
-            if (setData.session) {
-              router.push('/auth/update-password');
-              return;
-            }
-          }
+          // Get user data after successful verification
+          const { data } = await supabase.auth.getUser();
+          if (!mounted) return;
 
-          // Fallback: let Supabase try to consume the hash (covers other flows)
-          try {
-            const { data: hashSession, error: hashSessionError } = await supabase.auth.getSessionFromUrl();
-            if (hashSessionError) {
-              // If tokens were present but expired/invalid, surface a clearer message
-              if (hashSessionError.message?.toLowerCase().includes('expired')) {
-                setStatus('Invite link has expired. Please request a new invitation.');
-                return;
+          if (data.user) {
+            setEmail(data.user.email ?? null);
+            setStatus('Email confirmed successfully!');
+            
+            // Ensure profile exists and has website_url
+            const websiteUrl = data.user.user_metadata?.website_url;
+            if (data.user.id) {
+              // Update profile with website_url if it exists in metadata but not in profile
+              if (websiteUrl) {
+                const { data: profileData } = await supabase
+                  .from('profiles')
+                  .select('website_url')
+                  .eq('id', data.user.id)
+                  .single();
+                
+                // If profile doesn't have website_url, update it
+                if (profileData && !profileData.website_url) {
+                  await supabase
+                    .from('profiles')
+                    .update({ website_url: websiteUrl })
+                    .eq('id', data.user.id);
+                }
+                
+                // Website URL saved - color extraction will be done manually from settings page
               }
-              console.warn('hash session error', hashSessionError);
             }
-            if (hashSession?.session) {
-              router.push('/auth/update-password');
-              return;
-            }
-          } catch (err: any) {
-            console.warn('hash session exception', err);
+            
+            // Redirect to dashboard after a short delay
+            setTimeout(() => {
+              router.push('/dashboard');
+            }, 1500);
           }
+          return;
         }
 
         // Check if this is a password recovery or invite flow
@@ -206,110 +213,16 @@ function AuthCallbackContent() {
           return;
         }
 
-        // Regular auth callback
-        const code = searchParams?.get('code');
+        // If we reach here, there's no code parameter and it's not a type/token flow
+        // Check if user is authenticated (fallback case)
+        const { data } = await supabase.auth.getUser();
+        if (!mounted) return;
 
-        if (code) {
-          const { error } = await supabase.auth.exchangeCodeForSession(code);
-
-          if (error) {
-            console.error('Error exchanging code for session:', error);
-            setStatus('Authentication failed. Please try again.');
-          } else {
-            // Get user data
-            const { data } = await supabase.auth.getUser();
-            if (!mounted) return;
-
-            if (data.user) {
-              setEmail(data.user.email ?? null);
-              setStatus('Email confirmed successfully!');
-              
-              // Ensure profile exists and has website_url
-              const websiteUrl = data.user.user_metadata?.website_url;
-              if (data.user.id) {
-                // Update profile with website_url if it exists in metadata but not in profile
-                if (websiteUrl) {
-                  const { data: profileData } = await supabase
-                    .from('profiles')
-                    .select('website_url')
-                    .eq('id', data.user.id)
-                    .single();
-                  
-                  // If profile doesn't have website_url, update it
-                  if (profileData && !profileData.website_url) {
-                    await supabase
-                      .from('profiles')
-                      .update({ website_url: websiteUrl })
-                      .eq('id', data.user.id);
-                  }
-                  
-                  // Website URL saved - color extraction will be done manually from settings page
-                }
-              }
-              
-              // Redirect to dashboard after a short delay
-              setTimeout(() => {
-                router.push('/dashboard');
-              }, 1500);
-            }
-          }
+        if (data.user) {
+          setEmail(data.user.email ?? null);
+          setStatus('Your email has been confirmed.');
         } else {
-          // No code, check if user is authenticated
-          const { data } = await supabase.auth.getUser();
-          if (!mounted) return;
-
-          if (data.user) {
-            // Resolve role from metadata, fallback to profiles table
-            let role = data.user.user_metadata?.role as string | undefined;
-            if (!role) {
-              const { data: profileData } = await supabase
-                .from('profiles')
-                .select('role')
-                .eq('id', data.user.id)
-                .single();
-              role = profileData?.role as string | undefined;
-            }
-
-            const isBuyer = role === 'buyer';
-            const isInviteType = type === 'invite';
-            const isInviteFlow = flow === 'invite' || isInviteType || isBuyer;
-
-            // Last-resort: if we arrived without code but have a session, treat as invite
-            const noCode = !searchParams?.get('code');
-
-            if (isInviteFlow || noCode) {
-              router.push('/auth/update-password');
-              return;
-            }
-            
-            setEmail(data.user.email ?? null);
-            setStatus('Your email has been confirmed.');
-            
-            // Ensure profile exists and has website_url, then trigger color extraction
-            const websiteUrl = data.user.user_metadata?.website_url;
-            if (data.user.id) {
-              if (websiteUrl) {
-                // Update profile with website_url if it exists in metadata but not in profile
-                const { data: profileData } = await supabase
-                  .from('profiles')
-                  .select('website_url')
-                  .eq('id', data.user.id)
-                  .single();
-                
-                // If profile doesn't have website_url, update it
-                if (profileData && !profileData.website_url) {
-                  await supabase
-                    .from('profiles')
-                    .update({ website_url: websiteUrl })
-                    .eq('id', data.user.id);
-                }
-                
-                // Website URL saved - color extraction will be done manually from settings page
-              }
-            }
-          } else {
-            setStatus('Email confirmation complete. Please sign in.');
-          }
+          setStatus('Email confirmation complete. Please sign in.');
         }
       } catch (err) {
         console.error('Error in auth callback:', err);
