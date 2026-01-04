@@ -58,6 +58,8 @@ export default function SettingsPage() {
   const [brandLogoUrl, setBrandLogoUrl] = useState<string | null>(null);
   const [brandColors, setBrandColors] = useState<BrandColors>(DEFAULT_COLORS);
   const [isGeneratingTheme, setIsGeneratingTheme] = useState(false);
+  const [websiteUrl, setWebsiteUrl] = useState<string | null>(null);
+  const [isExtractingColors, setIsExtractingColors] = useState(false);
 
   // Alerts State
   const [emailAlerts, setEmailAlerts] = useState(false);
@@ -73,6 +75,7 @@ export default function SettingsPage() {
   const [originalEmailAlerts, setOriginalEmailAlerts] = useState(false);
   const [originalSmsAlerts, setOriginalSmsAlerts] = useState(false);
   const [originalFullPhone, setOriginalFullPhone] = useState<string | null>(null);
+  const [originalWebsiteUrl, setOriginalWebsiteUrl] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
   
   const supportedLanguages = getSupportedLanguages();
@@ -92,7 +95,8 @@ export default function SettingsPage() {
     brandLogoUrl !== originalBrandLogoUrl ||
     emailAlerts !== originalEmailAlerts ||
     smsAlerts !== originalSmsAlerts ||
-    (smsAlerts && currentFullPhone !== originalFullPhone);
+    (smsAlerts && currentFullPhone !== originalFullPhone) ||
+    websiteUrl !== originalWebsiteUrl;
 
   // Load current profile data
   useEffect(() => {
@@ -104,7 +108,11 @@ export default function SettingsPage() {
         const u = auth.user;
         if (!u || !mounted) return;
         setEmail(u.email ?? null);
-        const { data: profile } = await supabase.from('profiles').select('*').eq('id', u.id).maybeSingle();
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*, website_url')
+          .eq('id', u.id)
+          .maybeSingle();
         if (profile) {
           setRole(profile.role);
           const name = profile.full_name || "";
@@ -127,6 +135,15 @@ export default function SettingsPage() {
             const colors = { ...DEFAULT_COLORS, ...profile.branding_settings };
             setBrandColors(colors);
             setOriginalBrandColors(colors);
+          }
+          // Load website URL from profile, or fallback to user_metadata
+          if (profile.website_url) {
+            setWebsiteUrl(profile.website_url);
+            setOriginalWebsiteUrl(profile.website_url);
+          } else if (u.user_metadata?.website_url) {
+            // Fallback: if website_url is in metadata but not in profile, use it
+            setWebsiteUrl(u.user_metadata.website_url);
+            setOriginalWebsiteUrl(u.user_metadata.website_url);
           }
 
           // Load alerts
@@ -194,7 +211,8 @@ export default function SettingsPage() {
           branding_settings: brandColors,
           email_alerts_enabled: emailAlerts,
           sms_alerts_enabled: smsAlerts,
-          phone_number: finalPhone
+          phone_number: finalPhone,
+          website_url: websiteUrl || null
         })
         .eq('id', session.user.id);
       
@@ -214,6 +232,7 @@ export default function SettingsPage() {
       setOriginalEmailAlerts(emailAlerts);
       setOriginalSmsAlerts(smsAlerts);
       setOriginalFullPhone(finalPhone);
+      setOriginalWebsiteUrl(websiteUrl);
       
       // Update global branding context
       setBranding(brandLogoUrl, brandColors);
@@ -324,6 +343,49 @@ export default function SettingsPage() {
       setError(e?.message || "Failed to upload brand logo");
     } finally {
       setIsGeneratingTheme(false);
+    }
+  };
+
+  const onExtractColors = async () => {
+    setStatus(null);
+    setError(null);
+    setIsExtractingColors(true);
+    
+    try {
+      if (!supabase) throw new Error("Supabase not configured");
+      if (!websiteUrl) throw new Error("No website URL found. Please ensure your website URL was saved during registration.");
+      
+      const { data: session } = await supabase.auth.getUser();
+      if (!session.user) throw new Error("Not authenticated");
+      
+      const response = await fetch('/api/analyze-website-colors', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          websiteUrl, 
+          userId: session.user.id 
+        }),
+      });
+      
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to extract colors');
+      }
+      
+      if (result.colors) {
+        setBrandColors(result.colors);
+        // Update original colors so the save button is enabled
+        setOriginalBrandColors(result.colors);
+        setStatus("Colors extracted successfully! Review and save to apply.");
+      } else {
+        throw new Error('No colors returned from extraction');
+      }
+      
+    } catch (e: any) {
+      setError(e?.message || "Failed to extract colors from website");
+    } finally {
+      setIsExtractingColors(false);
     }
   };
 
@@ -487,12 +549,46 @@ export default function SettingsPage() {
             <CardHeader>
               <CardTitle>Brand Identity</CardTitle>
               <CardDescription>
-                Upload your agency logo to automatically generate a matching theme for your client portals and emails.
+                Customize your branding by extracting colors from your website, uploading your agency logo, or manually setting your theme colors. These will be used in your client portals and emails.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="flex flex-col sm:flex-row gap-6">
                 <div className="flex-1 space-y-4">
+                  {/* Website URL Input */}
+                  <div className="space-y-2 p-4 bg-muted rounded-lg border">
+                    <Label htmlFor="website_url" className="text-sm font-medium">Website URL</Label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        id="website_url"
+                        type="url"
+                        placeholder="https://example.com"
+                        value={websiteUrl || ""}
+                        onChange={(e) => setWebsiteUrl(e.target.value || null)}
+                        className="flex-1"
+                      />
+                      {websiteUrl && (
+                        <Button 
+                          onClick={onExtractColors} 
+                          disabled={isExtractingColors || !websiteUrl}
+                          size="sm"
+                          variant="outline"
+                        >
+                          {isExtractingColors ? (
+                            <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Extracting...</>
+                          ) : (
+                            "Extract Colors"
+                          )}
+                        </Button>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {websiteUrl 
+                        ? "Enter your website URL and click 'Extract Colors' to analyze your website and automatically generate a matching color theme."
+                        : "Enter your website URL to extract brand colors automatically."}
+                    </p>
+                  </div>
+                  
                   <div className="space-y-2">
                     <Label>Agency Logo</Label>
                     <div className="flex gap-2">

@@ -140,6 +140,21 @@ export default function DashboardPage() {
     };
   }, [filterActiveOnly, sortBy, activityTypeFilters, activityTimeRange, user, initialized, refreshProfile]);
 
+  // Redirect agents to settings on first login if they haven't set up branding
+  useEffect(() => {
+    if (user && profile && profile.role === 'agent' && initialized) {
+      // Check if this is a first-time login (no branding settings and website_url exists)
+      const hasWebsiteUrl = profile.website_url;
+      const hasBranding = profile.branding_settings && Object.keys(profile.branding_settings).length > 0;
+      
+      // If they have a website URL but no branding colors extracted, redirect to settings
+      if (hasWebsiteUrl && !hasBranding) {
+        router.push('/settings');
+        return;
+      }
+    }
+  }, [user, profile, initialized, router]);
+
   useEffect(() => {
     if (user) {
       fetchDashboardData();

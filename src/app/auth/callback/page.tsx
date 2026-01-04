@@ -243,15 +243,7 @@ function AuthCallbackContent() {
                       .eq('id', data.user.id);
                   }
                   
-                  // Trigger website color extraction in the background
-                  fetch('/api/analyze-website-colors', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ websiteUrl, userId: data.user.id }),
-                  }).catch(err => {
-                    console.error('Failed to extract website colors:', err);
-                    // Don't show error to user, this is a background process
-                  });
+                  // Website URL saved - color extraction will be done manually from settings page
                 }
               }
               
@@ -312,15 +304,7 @@ function AuthCallbackContent() {
                     .eq('id', data.user.id);
                 }
                 
-                // Trigger website color extraction in the background
-                fetch('/api/analyze-website-colors', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ websiteUrl, userId: data.user.id }),
-                }).catch(err => {
-                  console.error('Failed to extract website colors:', err);
-                  // Don't show error to user, this is a background process
-                });
+                // Website URL saved - color extraction will be done manually from settings page
               }
             }
           } else {

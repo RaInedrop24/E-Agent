@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ if eq .Data.preferred_language "it" }}Verifica la tua email{{ else if eq .Data.preferred_language "pl" }}Zweryfikuj swój email{{ else if eq .Data.preferred_language "es" }}Verifica tu correo{{ else if eq .Data.preferred_language "fr" }}Vérifiez votre email{{ else if eq .Data.preferred_language "nl" }}Verifieer je e-mail{{ else if eq .Data.preferred_language "de" }}E-Mail bestätigen{{ else }}Verify Your Email{{ end }} - The Property Gateway</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f3f4f6;">
+  <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #f3f4f6; padding: 20px 0;">
+    <tr>
+      <td align="center" style="padding: 20px 0;">
+        <table role="presentation" style="width: 600px; max-width: 100%; border-collapse: collapse; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+          
+          <!-- Header -->
+          <tr>
+            <td style="padding: 40px 40px 30px; text-align: center; background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); border-radius: 8px 8px 0 0;">
+              <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700; letter-spacing: -0.5px;">
+                The Property Gateway
+              </h1>
+            </td>
+          </tr>
+          
+          <!-- Main Content -->
+          <tr>
+            <td style="padding: 40px;">
+              <!-- Title -->
+              <h2 style="margin: 0 0 20px; color: #1f2937; font-size: 24px; font-weight: 600;">
+                {{ if eq .Data.preferred_language "it" }}
+                  Benvenuto! Verifica la tua email
+                {{ else if eq .Data.preferred_language "pl" }}
+                  Witamy! Zweryfikuj swój email
+                {{ else if eq .Data.preferred_language "es" }}
+                  ¡Bienvenido! Verifica tu correo
+                {{ else if eq .Data.preferred_language "fr" }}
+                  Bienvenue ! Vérifiez votre email
+                {{ else if eq .Data.preferred_language "nl" }}
+                  Welkom! Verifieer je e-mail
+                {{ else if eq .Data.preferred_language "de" }}
+                  Willkommen! Bitte bestätigen Sie Ihre E-Mail
+                {{ else }}
+                  Welcome! Please Verify Your Email
+                {{ end }}
+              </h2>
+              
+              <!-- First paragraph -->
+              <p style="margin: 0 0 24px; color: #4b5563; font-size: 16px; line-height: 1.6;">
+                {{ if eq .Data.preferred_language "it" }}
+                  Grazie per esserti registrato su The Property Gateway. Siamo entusiasti di averti a bordo!
+                {{ else if eq .Data.preferred_language "pl" }}
+                  Dziękujemy za rejestrację w The Property Gateway. Cieszymy się, że jesteś z nami!
+                {{ else if eq .Data.preferred_language "es" }}
+                  Gracias por registrarte en The Property Gateway. ¡Estamos emocionados de tenerte a bordo!
+                {{ else if eq .Data.preferred_language "fr" }}
+                  Merci de vous être inscrit sur The Property Gateway. Nous sommes ravis de vous compter parmi nous !
+                {{ else if eq .Data.preferred_language "nl" }}
+                  Bedankt voor uw registratie bij The Property Gateway. We zijn blij u aan boord te hebben!
+                {{ else if eq .Data.preferred_language "de" }}
+                  Vielen Dank für Ihre Registrierung bei The Property Gateway. Wir freuen uns, Sie an Bord zu haben!
+                {{ else }}
+                  Thank you for registering with The Property Gateway. We're excited to have you on board!
+                {{ end }}
+              </p>
+              
+              <!-- Second paragraph -->
+              <p style="margin: 0 0 32px; color: #4b5563; font-size: 16px; line-height: 1.6;">
+                {{ if eq .Data.preferred_language "it" }}
+                  Per completare la registrazione e iniziare a gestire le tue transazioni immobiliari, verifica il tuo indirizzo email cliccando sul pulsante qui sotto:
+                {{ else if eq .Data.preferred_language "pl" }}
+                  Aby ukończyć rejestrację i rozpocząć zarządzanie transakcjami nieruchomości, zweryfikuj swój adres e-mail, klikając przycisk poniżej:
+                {{ else if eq .Data.preferred_language "es" }}
+                  Para completar tu registro y comenzar a gestionar tus transacciones inmobiliarias, verifica tu dirección de correo electrónico haciendo clic en el botón a continuación:
+                {{ else if eq .Data.preferred_language "fr" }}
+                  Pour finaliser votre inscription et commencer à gérer vos transactions immobilières, veuillez vérifier votre adresse e-mail en cliquant sur le bouton ci-dessous :
+                {{ else if eq .Data.preferred_language "nl" }}
+                  Om uw registratie te voltooien en te beginnen met het beheren van uw vastgoedtransacties, verifieer uw e-mailadres door op de onderstaande knop te klikken:
+                {{ else if eq .Data.preferred_language "de" }}
+                  Um Ihre Registrierung abzuschließen und mit der Verwaltung Ihrer Immobilientransaktionen zu beginnen, bestätigen Sie bitte Ihre E-Mail-Adresse, indem Sie auf die Schaltfläche unten klicken:
+                {{ else }}
+                  To complete your registration and start managing your property transactions, please verify your email address by clicking the button below:
+                {{ end }}
+              </p>
+              
+              <!-- CTA Button -->
+              <table role="presentation" style="width: 100%; border-collapse: collapse; margin: 0 0 32px;">
+                <tr>
+                  <td align="center" style="padding: 0;">
+                    <a href="{{ .ConfirmationURL }}" style="display: inline-block; padding: 14px 32px; background-color: #2563eb; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px; text-align: center;">
+                      {{ if eq .Data.preferred_language "it" }}
+                        Verifica indirizzo email
+                      {{ else if eq .Data.preferred_language "pl" }}
+                        Zweryfikuj adres e-mail
+                      {{ else if eq .Data.preferred_language "es" }}
+                        Verificar correo electrónico
+                      {{ else if eq .Data.preferred_language "fr" }}
+                        Vérifier l'adresse e-mail
+                      {{ else if eq .Data.preferred_language "nl" }}
+                        E-mailadres verifiëren
+                      {{ else if eq .Data.preferred_language "de" }}
+                        E-Mail-Adresse bestätigen
+                      {{ else }}
+                        Verify Email Address
+                      {{ end }}
+                    </a>
+                  </td>
+                </tr>
+              </table>
+              
+              <!-- Alternative Link -->
+              <p style="margin: 0 0 12px; color: #6b7280; font-size: 14px; line-height: 1.6;">
+                {{ if eq .Data.preferred_language "it" }}
+                  Se il pulsante non funziona, puoi copiare e incollare questo link nel tuo browser:
+                {{ else if eq .Data.preferred_language "pl" }}
+                  Jeśli przycisk nie działa, możesz skopiować i wkleić ten link do przeglądarki:
+                {{ else if eq .Data.preferred_language "es" }}
+                  Si el botón no funciona, puede copiar y pegar este enlace en su navegador:
+                {{ else if eq .Data.preferred_language "fr" }}
+                  Si le bouton ne fonctionne pas, vous pouvez copier et coller ce lien dans votre navigateur :
+                {{ else if eq .Data.preferred_language "nl" }}
+                  Als de knop niet werkt, kunt u deze link kopiëren en plakken in uw browser:
+                {{ else if eq .Data.preferred_language "de" }}
+                  Wenn die Schaltfläche nicht funktioniert, können Sie diesen Link kopieren und in Ihren Browser einfügen:
+                {{ else }}
+                  If the button doesn't work, you can copy and paste this link into your browser:
+                {{ end }}
+              </p>
+              <p style="margin: 0 0 32px; padding: 12px; background-color: #f9fafb; border-radius: 4px; word-break: break-all; color: #374151; font-size: 13px; font-family: monospace; line-height: 1.5;">
+                {{ .ConfirmationURL }}
+              </p>
+              
+              <!-- Next Steps -->
+              <div style="margin: 32px 0; padding: 20px; background-color: #eff6ff; border-left: 4px solid #2563eb; border-radius: 4px;">
+                <p style="margin: 0 0 12px; color: #1e40af; font-size: 15px; font-weight: 600;">
+                  {{ if eq .Data.preferred_language "it" }}
+                    Cosa succede dopo?
+                  {{ else if eq .Data.preferred_language "pl" }}
+                    Co dalej?
+                  {{ else if eq .Data.preferred_language "es" }}
+                    ¿Qué sigue?
+                  {{ else if eq .Data.preferred_language "fr" }}
+                    Que se passe-t-il ensuite ?
+                  {{ else if eq .Data.preferred_language "nl" }}
+                    Wat gebeurt er nu?
+                  {{ else if eq .Data.preferred_language "de" }}
+                    Was passiert als Nächstes?
+                  {{ else }}
+                    What happens next?
+                  {{ end }}
+                </p>
+                <ul style="margin: 0; padding-left: 20px; color: #1e3a8a; font-size: 14px; line-height: 1.8;">
+                  <li>
+                    {{ if eq .Data.preferred_language "it" }}
+                      Clicca sul link di verifica sopra
+                    {{ else if eq .Data.preferred_language "pl" }}
+                      Kliknij link weryfikacyjny powyżej
+                    {{ else if eq .Data.preferred_language "es" }}
+                      Haz clic en el enlace de verificación anterior
+                    {{ else if eq .Data.preferred_language "fr" }}
+                      Cliquez sur le lien de vérification ci-dessus
+                    {{ else if eq .Data.preferred_language "nl" }}
+                      Klik op de verificatielink hierboven
+                    {{ else if eq .Data.preferred_language "de" }}
+                      Klicken Sie auf den Bestätigungslink oben
+                    {{ else }}
+                      Click the verification link above
+                    {{ end }}
+                  </li>
+                  <li>
+                    {{ if eq .Data.preferred_language "it" }}
+                      Verrai reindirizzato per impostare la tua password
+                    {{ else if eq .Data.preferred_language "pl" }}
+                      Zostaniesz przekierowany, aby ustawić hasło
+                    {{ else if eq .Data.preferred_language "es" }}
+                      Serás redirigido para establecer tu contraseña
+                    {{ else if eq .Data.preferred_language "fr" }}
+                      Vous serez redirigé pour définir votre mot de passe
+                    {{ else if eq .Data.preferred_language "nl" }}
+                      U wordt doorgestuurd om uw wachtwoord in te stellen
+                    {{ else if eq .Data.preferred_language "de" }}
+                      Sie werden weitergeleitet, um Ihr Passwort festzulegen
+                    {{ else }}
+                      You'll be redirected to set your password
+                    {{ end }}
+                  </li>
+                  <li>
+                    {{ if eq .Data.preferred_language "it" }}
+                      Accedi e inizia a gestire le tue transazioni immobiliari
+                    {{ else if eq .Data.preferred_language "pl" }}
+                      Zaloguj się i zacznij zarządzać transakcjami nieruchomości
+                    {{ else if eq .Data.preferred_language "es" }}
+                      Inicia sesión y comienza a gestionar tus transacciones inmobiliarias
+                    {{ else if eq .Data.preferred_language "fr" }}
+                      Connectez-vous et commencez à gérer vos transactions immobilières
+                    {{ else if eq .Data.preferred_language "nl" }}
+                      Log in en begin met het beheren van uw vastgoedtransacties
+                    {{ else if eq .Data.preferred_language "de" }}
+                      Melden Sie sich an und beginnen Sie mit der Verwaltung Ihrer Immobilientransaktionen
+                    {{ else }}
+                      Log in and start managing your property transactions
+                    {{ end }}
+                  </li>
+                  <li>
+                    {{ if eq .Data.preferred_language "it" }}
+                      Se hai fornito un URL del sito web, estrarremo automaticamente i colori del tuo brand
+                    {{ else if eq .Data.preferred_language "pl" }}
+                      Jeśli podałeś adres URL strony internetowej, automatycznie wyodrębnimy kolory Twojej marki
+                    {{ else if eq .Data.preferred_language "es" }}
+                      Si proporcionaste una URL del sitio web, extraeremos automáticamente los colores de tu marca
+                    {{ else if eq .Data.preferred_language "fr" }}
+                      Si vous avez fourni une URL de site web, nous extrairons automatiquement les couleurs de votre marque
+                    {{ else if eq .Data.preferred_language "nl" }}
+                      Als u een website-URL heeft opgegeven, extraheren we automatisch uw merkkleuren
+                    {{ else if eq .Data.preferred_language "de" }}
+                      Wenn Sie eine Website-URL angegeben haben, extrahieren wir automatisch Ihre Markenfarben
+                    {{ else }}
+                      If you provided a website URL, we'll automatically extract your brand colors
+                    {{ end }}
+                  </li>
+                </ul>
+              </div>
+              
+              <!-- Security Note -->
+              <p style="margin: 32px 0 0; padding-top: 24px; border-top: 1px solid #e5e7eb; color: #6b7280; font-size: 13px; line-height: 1.6;">
+                <strong>
+                  {{ if eq .Data.preferred_language "it" }}
+                    Nota di sicurezza:
+                  {{ else if eq .Data.preferred_language "pl" }}
+                    Uwaga bezpieczeństwa:
+                  {{ else if eq .Data.preferred_language "es" }}
+                    Nota de seguridad:
+                  {{ else if eq .Data.preferred_language "fr" }}
+                    Note de sécurité :
+                  {{ else if eq .Data.preferred_language "nl" }}
+                    Beveiligingsopmerking:
+                  {{ else if eq .Data.preferred_language "de" }}
+                    Sicherheitshinweis:
+                  {{ else }}
+                    Security Note:
+                  {{ end }}
+                </strong>
+                {{ if eq .Data.preferred_language "it" }}
+                  Questo link di verifica scadrà tra 24 ore. Se non hai creato un account su The Property Gateway, ignora questa email.
+                {{ else if eq .Data.preferred_language "pl" }}
+                  Ten link weryfikacyjny wygaśnie za 24 godziny. Jeśli nie utworzyłeś konta w The Property Gateway, zignoruj tę wiadomość e-mail.
+                {{ else if eq .Data.preferred_language "es" }}
+                  Este enlace de verificación expirará en 24 horas. Si no creó una cuenta en The Property Gateway, ignore este correo electrónico.
+                {{ else if eq .Data.preferred_language "fr" }}
+                  Ce lien de vérification expirera dans 24 heures. Si vous n'avez pas créé de compte sur The Property Gateway, veuillez ignorer cet e-mail.
+                {{ else if eq .Data.preferred_language "nl" }}
+                  Deze verificatielink verloopt over 24 uur. Als u geen account heeft aangemaakt bij The Property Gateway, negeer dan deze e-mail.
+                {{ else if eq .Data.preferred_language "de" }}
+                  Dieser Bestätigungslink läuft in 24 Stunden ab. Wenn Sie kein Konto bei The Property Gateway erstellt haben, ignorieren Sie bitte diese E-Mail.
+                {{ else }}
+                  This verification link will expire in 24 hours. If you didn't create an account with The Property Gateway, please ignore this email.
+                {{ end }}
+              </p>
+            </td>
+          </tr>
+          
+          <!-- Footer -->
+          <tr>
+            <td style="padding: 30px 40px; background-color: #f9fafb; border-radius: 0 0 8px 8px; border-top: 1px solid #e5e7eb;">
+              <p style="margin: 0 0 12px; color: #6b7280; font-size: 14px; text-align: center;">
+                <strong>The Property Gateway</strong><br>
+                {{ if eq .Data.preferred_language "it" }}
+                  Portale Internazionale per Transazioni Immobiliari
+                {{ else if eq .Data.preferred_language "pl" }}
+                  Międzynarodowy Portal Transakcji Nieruchomości
+                {{ else if eq .Data.preferred_language "es" }}
+                  Portal Internacional de Transacciones Inmobiliarias
+                {{ else if eq .Data.preferred_language "fr" }}
+                  Portail International de Transactions Immobilières
+                {{ else if eq .Data.preferred_language "nl" }}
+                  Internationaal Portaal voor Vastgoedtransacties
+                {{ else if eq .Data.preferred_language "de" }}
+                  Internationales Immobilientransaktionsportal
+                {{ else }}
+                  International Property Transaction Portal
+                {{ end }}
+              </p>
+              <p style="margin: 0; color: #9ca3af; font-size: 12px; text-align: center; line-height: 1.6;">
+                {{ if eq .Data.preferred_language "it" }}
+                  Questa email è stata inviata per verificare la registrazione del tuo account.<br>
+                  Se hai domande, contatta il nostro team di supporto.
+                {{ else if eq .Data.preferred_language "pl" }}
+                  Ta wiadomość e-mail została wysłana w celu weryfikacji rejestracji konta.<br>
+                  Jeśli masz pytania, skontaktuj się z naszym zespołem wsparcia.
+                {{ else if eq .Data.preferred_language "es" }}
+                  Este correo electrónico se envió para verificar el registro de su cuenta.<br>
+                  Si tiene alguna pregunta, póngase en contacto con nuestro equipo de soporte.
+                {{ else if eq .Data.preferred_language "fr" }}
+                  Cet e-mail a été envoyé pour vérifier l'inscription de votre compte.<br>
+                  Si vous avez des questions, veuillez contacter notre équipe de support.
+                {{ else if eq .Data.preferred_language "nl" }}
+                  Deze e-mail is verzonden om uw accountregistratie te verifiëren.<br>
+                  Als u vragen heeft, neem dan contact op met ons ondersteuningsteam.
+                {{ else if eq .Data.preferred_language "de" }}
+                  Diese E-Mail wurde gesendet, um Ihre Kontoregistrierung zu überprüfen.<br>
+                  Wenn Sie Fragen haben, wenden Sie sich bitte an unser Support-Team.
+                {{ else }}
+                  This email was sent to verify your account registration.<br>
+                  If you have any questions, please contact our support team.
+                {{ end }}
+              </p>
+            </td>
+          </tr>
+          
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+
+
