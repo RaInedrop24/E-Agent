@@ -20,6 +20,7 @@ interface Profile {
     background?: string;
     text?: string;
   } | null;
+  website_url?: string | null;
   dashboard_filter_active_only?: boolean;
   dashboard_sort_by?: string;
   activity_type_filters?: {
