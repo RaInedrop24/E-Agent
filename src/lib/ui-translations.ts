@@ -356,6 +356,15 @@ const translations = {
     'form.selectBuyers': 'Select Buyers',
     'form.notes': 'Notes',
     
+    // Authentication
+    'auth.registerAsAgent': 'Register as Estate Agent',
+    'auth.registerAsAgentButton': 'Register as Agent',
+    'auth.creatingAccount': 'Creating account...',
+    'auth.agentOnlyNotice': 'This registration is for estate agents only. Buyers will be invited to join transactions by their agents.',
+    'auth.alreadyHaveAccount': 'Already have an account?',
+    'auth.signIn': 'Sign in',
+    'auth.registerAsAgentLink': 'Register as Estate Agent',
+    
     // Settings
     'settings.title': 'Settings',
     'settings.profile': 'Profile',
@@ -871,6 +880,15 @@ const translations = {
     'form.selectBuyers': 'Seleziona Acquirenti',
     'form.notes': 'Note',
     
+    // Authentication
+    'auth.registerAsAgent': 'Registrati come Agente Immobiliare',
+    'auth.registerAsAgentButton': 'Registrati come Agente',
+    'auth.creatingAccount': 'Creazione account...',
+    'auth.agentOnlyNotice': 'Questa registrazione è riservata agli agenti immobiliari. Gli acquirenti saranno invitati a partecipare alle transazioni dai loro agenti.',
+    'auth.alreadyHaveAccount': 'Hai già un account?',
+    'auth.signIn': 'Accedi',
+    'auth.registerAsAgentLink': 'Registrati come Agente Immobiliare',
+    
     // Settings
     'settings.title': 'Impostazioni',
     'settings.profile': 'Profilo',
@@ -1365,6 +1383,16 @@ const translations = {
     'form.transactionTitle': 'Tytuł transakcji',
     'form.selectBuyers': 'Wybór kupujących',
     'form.notes': 'Uwagi',
+    
+    // Authentication
+    'auth.registerAsAgent': 'Zarejestruj się jako Agent Nieruchomości',
+    'auth.registerAsAgentButton': 'Zarejestruj się jako Agent',
+    'auth.creatingAccount': 'Tworzenie konta...',
+    'auth.agentOnlyNotice': 'Ta rejestracja jest przeznaczona wyłącznie dla agentów nieruchomości. Kupujący będą zapraszani do transakcji przez swoich agentów.',
+    'auth.alreadyHaveAccount': 'Masz już konto?',
+    'auth.signIn': 'Zaloguj się',
+    'auth.registerAsAgentLink': 'Zarejestruj się jako Agent Nieruchomości',
+    
     'settings.title': 'Ustawienia',
     'settings.profile': 'Profil',
     'settings.security': 'Bezpieczeństwo',
@@ -1830,6 +1858,16 @@ const translations = {
   'form.transactionTitle': 'Título de la transacción',
   'form.selectBuyers': 'Seleccionar compradores',
   'form.notes': 'Notas',
+  
+  // Authentication
+  'auth.registerAsAgent': 'Registrarse como Agente Inmobiliario',
+  'auth.registerAsAgentButton': 'Registrarse como Agente',
+  'auth.creatingAccount': 'Creando cuenta...',
+  'auth.agentOnlyNotice': 'Este registro es solo para agentes inmobiliarios. Los compradores serán invitados a unirse a las transacciones por sus agentes.',
+  'auth.alreadyHaveAccount': '¿Ya tienes una cuenta?',
+  'auth.signIn': 'Iniciar sesión',
+  'auth.registerAsAgentLink': 'Registrarse como Agente Inmobiliario',
+  
   'settings.title': 'Ajustes',
   'settings.profile': 'Perfil',
   'settings.security': 'Seguridad',
@@ -2293,6 +2331,16 @@ const translations = {
   'form.transactionTitle': 'Titre de la transaction',
   'form.selectBuyers': 'Sélectionner les acheteurs',
   'form.notes': 'Notes',
+  
+  // Authentication
+  'auth.registerAsAgent': 'S\'inscrire en tant qu\'Agent Immobilier',
+  'auth.registerAsAgentButton': 'S\'inscrire en tant qu\'Agent',
+  'auth.creatingAccount': 'Création du compte...',
+  'auth.agentOnlyNotice': 'Cette inscription est réservée aux agents immobiliers. Les acheteurs seront invités à rejoindre les transactions par leurs agents.',
+  'auth.alreadyHaveAccount': 'Vous avez déjà un compte?',
+  'auth.signIn': 'Se connecter',
+  'auth.registerAsAgentLink': 'S\'inscrire en tant qu\'Agent Immobilier',
+  
   'settings.title': 'Paramètres',
   'settings.profile': 'Profil',
   'settings.security': 'Sécurité',
@@ -2756,6 +2804,16 @@ const translations = {
   'form.transactionTitle': 'Titel transactie',
   'form.selectBuyers': 'Selecteer kopers',
   'form.notes': 'Opmerkingen',
+  
+  // Authentication
+  'auth.registerAsAgent': 'Registreer als Makelaar',
+  'auth.registerAsAgentButton': 'Registreer als Makelaar',
+  'auth.creatingAccount': 'Account aanmaken...',
+  'auth.agentOnlyNotice': 'Deze registratie is alleen voor makelaars. Kopers worden door hun makelaars uitgenodigd om deel te nemen aan transacties.',
+  'auth.alreadyHaveAccount': 'Heeft u al een account?',
+  'auth.signIn': 'Inloggen',
+  'auth.registerAsAgentLink': 'Registreer als Makelaar',
+  
   'settings.title': 'Instellingen',
   'settings.profile': 'Profiel',
   'settings.security': 'Beveiliging',
@@ -3219,6 +3277,16 @@ const translations = {
   'form.transactionTitle': 'Titel des Vorgangs',
   'form.selectBuyers': 'Käufer auswählen',
   'form.notes': 'Anmerkungen',
+  
+  // Authentication
+  'auth.registerAsAgent': 'Als Immobilienmakler registrieren',
+  'auth.registerAsAgentButton': 'Als Makler registrieren',
+  'auth.creatingAccount': 'Konto wird erstellt...',
+  'auth.agentOnlyNotice': 'Diese Registrierung ist nur für Immobilienmakler. Käufer werden von ihren Maklern zu Transaktionen eingeladen.',
+  'auth.alreadyHaveAccount': 'Haben Sie bereits ein Konto?',
+  'auth.signIn': 'Anmelden',
+  'auth.registerAsAgentLink': 'Als Immobilienmakler registrieren',
+  
   'settings.title': 'Einstellungen',
   'settings.profile': 'Profil',
   'settings.security': 'Sicherheit',

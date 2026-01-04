@@ -2,13 +2,24 @@
 
 **🌍 The Property Gateway - Multi-Language Support**
 
+## 🌐 Supported Languages
+
+The site supports **7 languages**:
+- 🇬🇧 **English (en)** - Base language
+- 🇮🇹 **Italian (it)**
+- 🇵🇱 **Polish (pl)**
+- 🇪🇸 **Spanish (es)**
+- 🇫🇷 **French (fr)**
+- 🇳🇱 **Dutch (nl)**
+- 🇩🇪 **German (de)**
+
 ## 📋 Quick Checklist
 
 Before committing ANY UI changes:
-- [ ] Added translation keys to `src/lib/ui-translations.ts` (EN & IT)
+- [ ] Added translation keys to `src/lib/ui-translations.ts` for **ALL 7 languages** (en, it, pl, es, fr, nl, de)
 - [ ] Used `useLanguage()` hook in component
 - [ ] Replaced all hardcoded strings with `t()` or `tVar()`
-- [ ] Tested in both English and Italian
+- [ ] Tested in at least 2-3 languages (English + Italian recommended minimum)
 - [ ] No untranslated text remains
 
 ---
@@ -19,6 +30,17 @@ Before committing ANY UI changes:
 
 **File:** `src/lib/ui-translations.ts`
 
+**⚠️ CRITICAL: You MUST add translations for ALL 7 languages!**
+
+The file structure has 7 language sections in this order:
+1. `en` (English) - Base language
+2. `it` (Italian)
+3. `pl` (Polish)
+4. `es` (Spanish)
+5. `fr` (French)
+6. `nl` (Dutch)
+7. `de` (German)
+
 ```typescript
 const translations = {
   en: {
@@ -28,9 +50,31 @@ const translations = {
   it: {
     'category.myKey': 'Il Mio Testo Italiano',
     'category.withVar': 'Ciao {{name}}!',
+  },
+  pl: {
+    'category.myKey': 'Mój Tekst Polski',
+    'category.withVar': 'Cześć {{name}}!',
+  },
+  es: {
+    'category.myKey': 'Mi Texto Español',
+    'category.withVar': '¡Hola {{name}}!',
+  },
+  fr: {
+    'category.myKey': 'Mon Texte Français',
+    'category.withVar': 'Bonjour {{name}}!',
+  },
+  nl: {
+    'category.myKey': 'Mijn Nederlandse Tekst',
+    'category.withVar': 'Hallo {{name}}!',
+  },
+  de: {
+    'category.myKey': 'Mein Deutscher Text',
+    'category.withVar': 'Hallo {{name}}!',
   }
 };
 ```
+
+**💡 Tip:** Use DeepL (https://www.deepl.com/translator) for accurate translations. Start with English, translate to Italian, then use DeepL to translate from English to the remaining languages.
 
 ### 2️⃣ Import Hook
 
@@ -53,12 +97,13 @@ export default function MyComponent() {
 }
 ```
 
-### 4️⃣ Test Both Languages
+### 4️⃣ Test Multiple Languages
 
 1. Go to `/settings`
-2. Change language to Italian
+2. Change language to test different translations
 3. Save and navigate to your page
-4. Verify all text is Italian
+4. Verify all text is translated correctly
+5. **Recommended:** Test at least English and Italian (minimum), ideally test 2-3 languages
 
 ### 5️⃣ Done! ✅
 
@@ -110,6 +155,7 @@ Use these prefixes for your keys:
 | `transaction.*` | Transactions | `transaction.new`, `transaction.details` |
 | `buyer.*` | Buyers | `buyer.manage`, `buyer.create` |
 | `messaging.*` | Messages | `messaging.send`, `messaging.translate` |
+| `auth.*` | Authentication | `auth.registerAsAgent`, `auth.signIn` |
 
 ---
 
@@ -121,10 +167,11 @@ Use these prefixes for your keys:
 ✅ <Button>{t('action.save')}</Button>
 ```
 
-### 2. Missing Italian Translation
+### 2. Missing Translations for All Languages
 ```typescript
-❌ 'myKey': 'English only'
-✅ Add both EN and IT keys
+❌ 'myKey': 'English only'  // Only in 'en' section
+❌ 'myKey': 'English only'  // Only in 'en' and 'it' sections
+✅ Add the key to ALL 7 language sections (en, it, pl, es, fr, nl, de)
 ```
 
 ### 3. Wrong Function for Variables
@@ -166,10 +213,20 @@ npm run dev
 
 ## 🆘 Need Help?
 
-### Getting Italian Translations
-1. **Best:** Use DeepL - https://www.deepl.com/translator
-2. **Good:** Ask Italian-speaking colleague
-3. **OK:** Google Translate (less accurate)
+### Getting Translations for All Languages
+
+**Recommended Workflow:**
+1. **Write the English text** (base language)
+2. **Translate to Italian** using DeepL or native speaker
+3. **Use DeepL to translate from English** to the remaining languages (Polish, Spanish, French, Dutch, German)
+4. **Review translations** - DeepL is very accurate, but context matters
+
+**Translation Tools:**
+- **Best:** DeepL - https://www.deepl.com/translator (most accurate)
+- **Good:** Ask native speakers for review
+- **OK:** Google Translate (less accurate, use as last resort)
+
+**Pro Tip:** Keep translations consistent - if you use "Register" in one place, use the same translation pattern elsewhere.
 
 ### Common Issues
 
@@ -177,7 +234,7 @@ npm run dev
 - **Fix:** Make sure component is wrapped in `<LanguageProvider>` (already in `app/layout.tsx`)
 
 **Issue:** Translation key not found
-- **Fix:** Check spelling, ensure key exists in both `en` and `it` objects
+- **Fix:** Check spelling, ensure key exists in ALL 7 language objects (en, it, pl, es, fr, nl, de)
 
 **Issue:** Variables not replacing
 - **Fix:** Use `tVar()` instead of `t()` for text with `{{variables}}`
@@ -208,7 +265,7 @@ See `TRANSLATION_IMPLEMENTATION.md` for:
 ## 🌟 Example: Adding a New Feature
 
 ```typescript
-// 1. Add to ui-translations.ts
+// 1. Add to ui-translations.ts - ALL 7 languages required!
 const translations = {
   en: {
     'invoice.title': 'Invoices',
@@ -219,6 +276,31 @@ const translations = {
     'invoice.title': 'Fatture',
     'invoice.create': 'Crea Fattura',
     'invoice.total': 'Totale: €{{amount}}',
+  },
+  pl: {
+    'invoice.title': 'Faktury',
+    'invoice.create': 'Utwórz fakturę',
+    'invoice.total': 'Razem: €{{amount}}',
+  },
+  es: {
+    'invoice.title': 'Facturas',
+    'invoice.create': 'Crear factura',
+    'invoice.total': 'Total: €{{amount}}',
+  },
+  fr: {
+    'invoice.title': 'Factures',
+    'invoice.create': 'Créer une facture',
+    'invoice.total': 'Total: €{{amount}}',
+  },
+  nl: {
+    'invoice.title': 'Facturen',
+    'invoice.create': 'Factuur aanmaken',
+    'invoice.total': 'Totaal: €{{amount}}',
+  },
+  de: {
+    'invoice.title': 'Rechnungen',
+    'invoice.create': 'Rechnung erstellen',
+    'invoice.total': 'Gesamt: €{{amount}}',
   }
 };
 
@@ -238,8 +320,10 @@ export default function InvoicesPage() {
   );
 }
 
-// 3. Test in both languages
+// 3. Test in multiple languages (at least English and Italian)
 // 4. Done! ✅
+
+**Remember:** Always add translations to ALL 7 language sections, not just English and Italian!
 ```
 
 ---

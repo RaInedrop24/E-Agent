@@ -9,14 +9,16 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function RegisterPage() {
   const router = useRouter();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<"agent" | "buyer">("buyer");
+  const role = "agent" as const; // Only agents can register via the site
   const [preferredLanguage, setPreferredLanguage] = useState<string>("en");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -78,64 +80,52 @@ export default function RegisterPage() {
     <div className="min-h-screen flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Create account</CardTitle>
+          <CardTitle>{t('auth.registerAsAgent')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="full_name">Full name</Label>
+            <Label htmlFor="full_name">{t('form.fullName')}</Label>
             <Input id="full_name" type="text" placeholder="Alex Doe" value={fullName} onChange={(e) => setFullName(e.target.value)} />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">{t('form.email')}</Label>
             <Input id="email" type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">{t('form.password')}</Label>
             <Input id="password" type="password" placeholder="********" value={password} onChange={(e) => setPassword(e.target.value)} />
           </div>
+          <p className="text-sm text-muted-foreground mb-2">
+            {t('auth.agentOnlyNotice')}
+          </p>
           <div className="space-y-2">
-            <Label>Role</Label>
-            <Select defaultValue="buyer" onValueChange={(v) => setRole(v as "agent" | "buyer")}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select role" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="agent">Agent</SelectItem>
-                <SelectItem value="buyer">Buyer</SelectItem>
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-muted-foreground">
-              Agents create and manage transactions. Buyers view transactions they&apos;re invited to.
-            </p>
-          </div>
-          <div className="space-y-2">
-            <Label>Preferred Language</Label>
+            <Label>{t('form.language')}</Label>
             <Select defaultValue="en" onValueChange={(v) => setPreferredLanguage(v)}>
               <SelectTrigger>
-                <SelectValue placeholder="Select language" />
+                <SelectValue placeholder={t('landing.selectLanguage')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="en">🇬🇧 English</SelectItem>
-                <SelectItem value="it">🇮🇹 Italiano (Italian)</SelectItem>
-                <SelectItem value="es">🇪🇸 Español (Spanish)</SelectItem>
-                <SelectItem value="fr">🇫🇷 Français (French)</SelectItem>
-                <SelectItem value="de">🇩🇪 Deutsch (German)</SelectItem>
-                <SelectItem value="pl">🇵🇱 Polski (Polish)</SelectItem>
-                <SelectItem value="nl">🇳🇱 Nederlands (Dutch)</SelectItem>
+                <SelectItem value="en">🇬🇧 {t('lang.english')}</SelectItem>
+                <SelectItem value="it">🇮🇹 {t('lang.italian')}</SelectItem>
+                <SelectItem value="es">🇪🇸 {t('lang.spanish')}</SelectItem>
+                <SelectItem value="fr">🇫🇷 {t('lang.french')}</SelectItem>
+                <SelectItem value="de">🇩🇪 {t('lang.german')}</SelectItem>
+                <SelectItem value="pl">🇵🇱 {t('lang.polish')}</SelectItem>
+                <SelectItem value="nl">🇳🇱 Nederlands</SelectItem>
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">
-              This will be used for UI and message translations.
+              {t('settings.languageDescription')}
             </p>
           </div>
           {error && <p className="text-sm text-red-600">{error}</p>}
           <Button className="w-full" type="button" onClick={onSubmit} disabled={loading}>
-            {loading ? "Creating account..." : "Create account"}
+            {loading ? t('auth.creatingAccount') : t('auth.registerAsAgentButton')}
           </Button>
           <p className="text-sm text-muted-foreground">
-            Already have an account?{" "}
+            {t('auth.alreadyHaveAccount')}{" "}
             <Link className="underline" href="/login">
-              Sign in
+              {t('auth.signIn')}
             </Link>
           </p>
         </CardContent>
