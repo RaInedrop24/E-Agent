@@ -4,8 +4,6 @@
 import { Resend } from 'resend';
 import { generateBuyerWelcomeEmail } from './email-templates';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 type Language = 'en' | 'it' | 'pl' | 'es' | 'fr' | 'nl' | 'de';
 
 interface SendBuyerWelcomeEmailParams {
@@ -17,10 +15,21 @@ interface SendBuyerWelcomeEmailParams {
 
 export async function sendBuyerWelcomeEmail(params: SendBuyerWelcomeEmailParams): Promise<{ success: boolean; error?: string }> {
   try {
-    if (!process.env.RESEND_API_KEY) {
+    // Check for API key and log detailed info
+    const apiKey = process.env.RESEND_API_KEY;
+    console.log('[Email Service] API Key check:', {
+      exists: !!apiKey,
+      keyPrefix: apiKey ? apiKey.substring(0, 8) + '...' : 'MISSING',
+      envKeys: Object.keys(process.env).filter(k => k.includes('RESEND')),
+    });
+
+    if (!apiKey) {
       console.error('[Email Service] RESEND_API_KEY not configured');
-      return { success: false, error: 'Email service not configured' };
+      return { success: false, error: 'Email service not configured - RESEND_API_KEY missing' };
     }
+
+    // Initialize Resend client with API key
+    const resend = new Resend(apiKey);
 
     const loginUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://thepropertygateway.com'}/login`;
 
@@ -50,10 +59,17 @@ export async function sendBuyerWelcomeEmail(params: SendBuyerWelcomeEmailParams)
     });
 
     if (error) {
-      console.error('[Email Service] Failed to send email', { error });
+      console.error('[Email Service] Failed to send email', { 
+        error,
+        errorMessage: error.message,
+        errorName: error.name,
+        fullError: JSON.stringify(error, null, 2),
+        to: params.to,
+        from: emailFrom,
+      });
       return { 
         success: false, 
-        error: error.message || 'Failed to send email' 
+        error: `${error.name || 'Error'}: ${error.message || 'Failed to send email'}` 
       };
     }
 
