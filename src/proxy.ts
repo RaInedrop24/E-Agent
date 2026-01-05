@@ -14,6 +14,46 @@ const authRoutes = ['/login', '/register'];
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Set Content Security Policy headers
+  const response = NextResponse.next();
+  
+  // Only set CSP in production - in development, Next.js needs eval for HMR
+  if (process.env.NODE_ENV === 'production') {
+    // Strict CSP for production
+    const cspHeader = [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.supabase.co https://*.supabase.in",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "font-src 'self' https://fonts.gstatic.com data:",
+      "img-src 'self' data: https: blob:",
+      "connect-src 'self' https://*.supabase.co https://*.supabase.in https://api.deepl.com wss://*.supabase.co wss://*.supabase.in",
+      "frame-src 'self'",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "frame-ancestors 'none'",
+      "upgrade-insecure-requests",
+    ].join('; ');
+
+    response.headers.set('Content-Security-Policy', cspHeader);
+  } else {
+    // More permissive CSP for development (allows eval for HMR)
+    const cspHeader = [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.supabase.co https://*.supabase.in",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "font-src 'self' https://fonts.gstatic.com data:",
+      "img-src 'self' data: https: blob:",
+      "connect-src 'self' https://*.supabase.co https://*.supabase.in https://api.deepl.com wss://*.supabase.co wss://*.supabase.in ws://localhost:* http://localhost:*",
+      "frame-src 'self'",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+    ].join('; ');
+
+    response.headers.set('Content-Security-Policy', cspHeader);
+  }
+
   // Check if the route requires protection
   const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route));
   const isSuperAdminRoute = superAdminRoutes.some((route) => pathname.startsWith(route));
@@ -75,12 +115,26 @@ export async function proxy(request: NextRequest) {
   if (isProtectedRoute && !session) {
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('redirect', pathname);
-    return NextResponse.redirect(loginUrl);
+    const redirectResponse = NextResponse.redirect(loginUrl);
+    // Copy CSP headers to redirect response
+    response.headers.forEach((value, key) => {
+      if (key.toLowerCase() === 'content-security-policy') {
+        redirectResponse.headers.set(key, value);
+      }
+    });
+    return redirectResponse;
   }
 
   // If trying to access auth route while already authenticated
   if (isAuthRoute && session) {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+    const redirectResponse = NextResponse.redirect(new URL('/dashboard', request.url));
+    // Copy CSP headers to redirect response
+    response.headers.forEach((value, key) => {
+      if (key.toLowerCase() === 'content-security-policy') {
+        redirectResponse.headers.set(key, value);
+      }
+    });
+    return redirectResponse;
   }
 
   // If trying to access super admin route, check super admin status and MFA
@@ -113,7 +167,14 @@ export async function proxy(request: NextRequest) {
         // Redirect to dashboard with error message
         const redirectUrl = new URL('/dashboard', request.url);
         redirectUrl.searchParams.set('error', 'unauthorized');
-        return NextResponse.redirect(redirectUrl);
+        const redirectResponse = NextResponse.redirect(redirectUrl);
+        // Copy CSP headers to redirect response
+        response.headers.forEach((value, key) => {
+          if (key.toLowerCase() === 'content-security-policy') {
+            redirectResponse.headers.set(key, value);
+          }
+        });
+        return redirectResponse;
       }
 
       // Check MFA status for super admins
@@ -126,7 +187,14 @@ export async function proxy(request: NextRequest) {
         console.warn(`[Proxy] Super admin ${session.user.email} accessing without MFA`);
         const redirectUrl = new URL('/admin/mfa-setup', request.url);
         redirectUrl.searchParams.set('returnTo', pathname);
-        return NextResponse.redirect(redirectUrl);
+        const redirectResponse = NextResponse.redirect(redirectUrl);
+        // Copy CSP headers to redirect response
+        response.headers.forEach((value, key) => {
+          if (key.toLowerCase() === 'content-security-policy') {
+            redirectResponse.headers.set(key, value);
+          }
+        });
+        return redirectResponse;
       }
 
       // Log successful access
@@ -148,11 +216,18 @@ export async function proxy(request: NextRequest) {
       }
     } catch (err) {
       console.error('[Proxy] Error checking super admin status:', err);
-      return NextResponse.redirect(new URL('/dashboard', request.url));
+      const redirectResponse = NextResponse.redirect(new URL('/dashboard', request.url));
+      // Copy CSP headers to redirect response
+      response.headers.forEach((value, key) => {
+        if (key.toLowerCase() === 'content-security-policy') {
+          redirectResponse.headers.set(key, value);
+        }
+      });
+      return redirectResponse;
     }
   }
 
-  return NextResponse.next();
+  return response;
 }
 
 export const config = {
