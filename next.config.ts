@@ -20,6 +20,12 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // Suppress warnings about feature_collector.js (likely from browser extensions)
+  // This is not something we can fix in our codebase
+  onDemandEntries: {
+    maxInactiveAge: 60 * 1000,
+    pagesBufferLength: 5,
+  },
 };
 
 export default withBundleAnalyzer(nextConfig);
