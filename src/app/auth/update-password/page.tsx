@@ -27,10 +27,20 @@ function UpdatePasswordContent() {
           return;
         }
 
-        // First, check if we already have a session (from Supabase's verify redirect)
+        // Check if we're coming from an invite callback (session should already exist)
+        const fromInvite = searchParams?.get('from_invite');
+        
+        // First, check if we already have a session (from Supabase's verify redirect or callback)
         let { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
-        // If no session, check for tokens in URL (invite/recovery flow)
+        // If we have a session and came from invite, we're good to go
+        if (session && fromInvite) {
+          console.log('Session verified from invite callback');
+          setCheckingSession(false);
+          return;
+        }
+
+        // If no session, check for tokens in URL (direct link flow)
         if (!session) {
           const token = searchParams?.get('token');
           const tokenHash = searchParams?.get('token_hash');

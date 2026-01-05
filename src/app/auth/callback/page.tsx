@@ -41,19 +41,17 @@ function AuthCallbackContent() {
 
           if (user) {
             // Check if this is an invited user who hasn't set a password yet
-            // Invited users have invited_at set and no password yet
-            const isInvitedUser = user.invited_at && !user.email_confirmed_at;
+            // Invited users have invited_at set and confirmed_at is null
+            const isInvitedUser = user.invited_at && user.confirmed_at === null;
             const typeParam = searchParams?.get('type');
             const flowParam = searchParams?.get('flow');
             
             // If this is an invite flow or the user was invited, redirect to password setup
+            // The session is already established, so update-password just needs to know it's an invite
             if (typeParam === 'invite' || flowParam === 'invite' || isInvitedUser) {
               setStatus('Setting up your account...');
-              // Redirect to password update page
-              const params = new URLSearchParams();
-              params.set('type', 'invite');
-              if (user.email) params.set('email', user.email);
-              router.push(`/auth/update-password?${params.toString()}`);
+              // Session is already established, just redirect to password setup
+              router.push('/auth/update-password?from_invite=true');
               return;
             }
             
