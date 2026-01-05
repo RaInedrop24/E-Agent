@@ -456,9 +456,23 @@ export default function SettingsPage() {
                </div>
                <div className="space-y-2 flex-1">
                  <Label htmlFor="avatar">{translate('settings.avatar')}</Label>
-                 <div className="flex gap-2">
-                   <Input id="avatar" type="file" accept="image/*" onChange={onAvatarChange} className="max-w-xs" />
-                   <Button variant="outline" onClick={onUploadAvatar} disabled={!avatarFile}>
+                 <div className="flex gap-2 items-center">
+                   <div className="relative">
+                     <input
+                       id="avatar"
+                       type="file"
+                       accept="image/*"
+                       onChange={onAvatarChange}
+                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                     />
+                     <Button variant="outline" type="button" className="pointer-events-none">
+                       {translate('settings.chooseFile')}
+                     </Button>
+                   </div>
+                   <span className="text-sm text-muted-foreground">
+                     {avatarFile ? avatarFile.name : translate('settings.noFileChosen')}
+                   </span>
+                   <Button variant="default" onClick={onUploadAvatar} disabled={!avatarFile}>
                      {translate('settings.uploadAvatar')}
                    </Button>
                  </div>
@@ -611,8 +625,21 @@ export default function SettingsPage() {
                   
                   <div className="space-y-2">
                     <Label>Agency Logo</Label>
-                    <div className="flex gap-2">
-                      <Input type="file" accept="image/*" onChange={onBrandLogoChange} />
+                    <div className="flex gap-2 items-center flex-wrap">
+                      <div className="relative">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={onBrandLogoChange}
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        />
+                        <Button variant="outline" type="button" className="pointer-events-none">
+                          {translate('settings.chooseFile')}
+                        </Button>
+                      </div>
+                      <span className="text-sm text-muted-foreground">
+                        {brandLogoFile ? brandLogoFile.name : translate('settings.noFileChosen')}
+                      </span>
                       <Button 
                         onClick={onUploadBrandLogo} 
                         disabled={!brandLogoFile || isGeneratingTheme}

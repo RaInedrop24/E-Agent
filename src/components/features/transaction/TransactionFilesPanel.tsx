@@ -209,11 +209,20 @@ export function TransactionFilesPanel({
         <Card>
           <CardContent className="pt-6 space-y-4">
             <div className="flex flex-col gap-3 md:flex-row md:items-center">
-              <div className="flex-1">
-                <Input
-                  type="file"
-                  onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                />
+              <div className="flex-1 flex gap-2 items-center">
+                <div className="relative">
+                  <input
+                    type="file"
+                    onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+                  <Button variant="outline" type="button" className="pointer-events-none">
+                    {t('settings.chooseFile')}
+                  </Button>
+                </div>
+                <span className="text-sm text-muted-foreground truncate flex-1">
+                  {selectedFile ? selectedFile.name : t('settings.noFileChosen')}
+                </span>
               </div>
               <div className="w-full md:w-64">
                 <Select
