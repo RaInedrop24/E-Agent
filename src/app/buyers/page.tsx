@@ -147,10 +147,19 @@ export default function BuyersPage() {
         throw new Error(result.error || 'Failed to create buyer');
       }
 
-      // Show success message with default password
-      if (result.defaultPassword) {
+      // Show success message
+      if (result.emailSent) {
         alert(
           `✅ Buyer created successfully!\n\n` +
+          `📧 Welcome email sent to: ${newBuyerEmail}\n\n` +
+          `The buyer will receive an email with their login credentials and instructions.\n` +
+          `Default Password: ${result.defaultPassword}\n\n` +
+          `They will be required to change their password on first login.`
+        );
+      } else if (result.defaultPassword) {
+        alert(
+          `✅ Buyer created successfully!\n\n` +
+          `⚠️ Email failed to send - please share these credentials manually:\n\n` +
           `Email: ${newBuyerEmail}\n` +
           `Default Password: ${result.defaultPassword}\n\n` +
           `⚠️ IMPORTANT: Share these credentials with the buyer.\n` +

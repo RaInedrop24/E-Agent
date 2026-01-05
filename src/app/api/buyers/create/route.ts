@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
+import { sendBuyerWelcomeEmail } from '@/lib/email-service';
 
 // Create admin client with service role key (server-side only)
 const supabaseAdmin = createClient(
@@ -72,7 +73,7 @@ export async function POST(request: NextRequest) {
     console.log('[Buyer Creation] Step 1: Creating user account', { email, fullName, preferredLanguage });
     
     // Simple default password that buyer will change on first login
-    const defaultPassword = 'Welcome2024!';
+    const defaultPassword = 'Welcome2026!';
     
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email,
@@ -199,6 +200,22 @@ export async function POST(request: NextRequest) {
 
     console.log('[Buyer Creation] Step 6: Association created successfully');
 
+    // Step 7: Send welcome email with credentials
+    console.log('[Buyer Creation] Step 7: Sending welcome email');
+    const emailResult = await sendBuyerWelcomeEmail({
+      to: email,
+      fullName,
+      password: defaultPassword,
+      language: (preferredLanguage || 'en') as 'en' | 'it' | 'pl' | 'es' | 'fr' | 'nl' | 'de',
+    });
+
+    if (!emailResult.success) {
+      console.error('[Buyer Creation] Failed to send welcome email:', emailResult.error);
+      // Don't fail the whole operation if email fails - agent can manually share credentials
+    } else {
+      console.log('[Buyer Creation] Welcome email sent successfully');
+    }
+
     return NextResponse.json({
       success: true,
       buyer: {
@@ -208,7 +225,10 @@ export async function POST(request: NextRequest) {
         preferred_language: preferredLanguage || 'en',
       },
       defaultPassword: defaultPassword, // Return password so agent can communicate it to buyer
-      message: `Buyer created successfully. Default password: ${defaultPassword}. The buyer will be required to change this on first login.`,
+      emailSent: emailResult.success,
+      message: emailResult.success 
+        ? `Buyer created successfully! Welcome email sent to ${email} with login credentials.`
+        : `Buyer created successfully. Default password: ${defaultPassword}. (Email failed to send - please share credentials manually)`,
     });
 
   } catch (error: any) {
