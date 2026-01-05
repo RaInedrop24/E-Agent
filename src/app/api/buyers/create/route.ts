@@ -69,6 +69,7 @@ export async function POST(request: NextRequest) {
 
     // Create and invite the buyer user using admin API
     // Using inviteUserByEmail sends an invitation email automatically
+    // Redirect directly to update-password page (skip callback since no session exists yet)
     console.log('[Buyer Creation] Step 1: Inviting user via email', { email, fullName, preferredLanguage });
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
       email,
@@ -78,7 +79,7 @@ export async function POST(request: NextRequest) {
           preferred_language: preferredLanguage || 'en',
           role: 'buyer',
         },
-        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://thepropertygateway.com'}/auth/callback?flow=invite&type=invite`,
+        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://thepropertygateway.com'}/auth/update-password`,
       }
     );
 

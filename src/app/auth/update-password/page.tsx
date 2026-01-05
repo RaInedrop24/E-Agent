@@ -40,6 +40,31 @@ function UpdatePasswordContent() {
           return;
         }
 
+        // Check for access_token in URL hash (Supabase implicit flow)
+        // This happens when Supabase redirects after verifying invite
+        if (typeof window !== 'undefined' && window.location.hash) {
+          const hashParams = new URLSearchParams(window.location.hash.substring(1));
+          const accessToken = hashParams.get('access_token');
+          const refreshToken = hashParams.get('refresh_token');
+          const tokenType = hashParams.get('type');
+          
+          if (accessToken) {
+            console.log('Found access_token in URL hash, establishing session...');
+            // Supabase should auto-detect and set the session
+            // Wait a moment for it to process
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Get the session that Supabase should have set
+            const { data: { session: hashSession } } = await supabase.auth.getSession();
+            if (hashSession) {
+              session = hashSession;
+              console.log('Session established from hash params');
+              setCheckingSession(false);
+              return;
+            }
+          }
+        }
+
         // If no session, check for tokens in URL (direct link flow)
         if (!session) {
           const token = searchParams?.get('token');
