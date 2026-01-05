@@ -67,24 +67,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create and invite the buyer user using admin API
-    // Using inviteUserByEmail sends an invitation email automatically
-    // Redirect directly to update-password page (skip callback since no session exists yet)
-    console.log('[Buyer Creation] Step 1: Inviting user via email', { email, fullName, preferredLanguage });
-    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
+    // Create user account with a temporary password, then send password reset
+    // This is more reliable than inviteUserByEmail for cross-device flows
+    console.log('[Buyer Creation] Step 1: Creating user account', { email, fullName, preferredLanguage });
+    
+    // Generate a random temporary password (user will reset it)
+    const tempPassword = Math.random().toString(36).slice(-12) + Math.random().toString(36).slice(-12);
+    
+    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email,
-      {
-        data: {
-          full_name: fullName,
-          preferred_language: preferredLanguage || 'en',
-          role: 'buyer',
-        },
-        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://thepropertygateway.com'}/auth/update-password`,
-      }
-    );
+      password: tempPassword,
+      email_confirm: true, // Auto-confirm email so they can reset password
+      user_metadata: {
+        full_name: fullName,
+        preferred_language: preferredLanguage || 'en',
+        role: 'buyer',
+      },
+    });
 
     if (authError) {
-      console.error('Error inviting buyer:', {
+      console.error('Error creating buyer user:', {
         message: authError.message,
         status: authError.status,
         fullError: JSON.stringify(authError, null, 2)
@@ -97,12 +99,27 @@ export async function POST(request: NextRequest) {
 
     if (!authData.user) {
       return NextResponse.json(
-        { error: 'Failed to invite user' },
+        { error: 'Failed to create user' },
         { status: 500 }
       );
     }
 
     console.log('[Buyer Creation] Step 2: Auth user created successfully', { userId: authData.user.id });
+
+    // Send password reset email (this is the "invitation")
+    console.log('[Buyer Creation] Step 2.5: Sending password reset email');
+    const { error: resetError } = await supabaseAdmin.auth.resetPasswordForEmail(
+      email,
+      {
+        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://thepropertygateway.com'}/auth/update-password`,
+      }
+    );
+
+    if (resetError) {
+      console.error('Error sending password reset email:', resetError);
+      // Don't fail the whole operation if email fails
+      // The user account is created, admin can resend invite
+    }
 
     // Create profile for the buyer using RPC function
     // This function uses SECURITY DEFINER to bypass RLS policies
