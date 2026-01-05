@@ -103,25 +103,25 @@ export async function POST(request: NextRequest) {
 
     console.log('[Buyer Creation] Step 2: Auth user created successfully', { userId: authData.user.id });
 
-    // Create profile for the buyer using admin client
-    // The inviteUserByEmail creates the auth user but not the profile
-    console.log('[Buyer Creation] Step 3: Creating profile', { 
-      id: authData.user.id, 
+    // Create profile for the buyer using RPC function
+    // This function uses SECURITY DEFINER to bypass RLS policies
+    console.log('[Buyer Creation] Step 3: Creating profile via RPC', { 
+      user_id: authData.user.id, 
       full_name: fullName, 
       preferred_language: preferredLanguage || 'en',
       role: 'buyer'
     });
-    const { error: buyerProfileError } = await supabaseAdmin
-      .from('profiles')
-      .insert({
-        id: authData.user.id,
-        full_name: fullName,
-        preferred_language: preferredLanguage || 'en',
-        role: 'buyer',
+    
+    const { data: profileResult, error: buyerProfileError } = await supabaseAdmin
+      .rpc('create_profile_for_user', {
+        p_user_id: authData.user.id,
+        p_full_name: fullName,
+        p_role: 'buyer',
+        p_preferred_language: preferredLanguage || 'en',
       });
 
     if (buyerProfileError) {
-      console.error('Error creating buyer profile:', {
+      console.error('Error creating buyer profile via RPC:', {
         message: buyerProfileError.message,
         details: buyerProfileError.details,
         hint: buyerProfileError.hint,
@@ -141,7 +141,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('[Buyer Creation] Step 4: Profile created successfully');
+    // Check if profile creation was successful
+    if (!profileResult || !profileResult.success) {
+      console.error('Profile creation RPC returned error:', profileResult);
+      // Clean up: delete the auth user we just created
+      await supabaseAdmin.auth.admin.deleteUser(authData.user.id);
+      return NextResponse.json(
+        { 
+          error: 'Database error saving new user',
+          details: profileResult?.error || 'Unknown error from profile creation function'
+        },
+        { status: 400 }
+      );
+    }
+
+    console.log('[Buyer Creation] Step 4: Profile created successfully', { profile: profileResult.profile });
 
     // Create buyer-agent association using admin client
     console.log('[Buyer Creation] Step 5: Creating buyer-agent association', {
