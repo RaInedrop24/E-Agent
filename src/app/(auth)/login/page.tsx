@@ -50,7 +50,8 @@ export default function LoginPage() {
     return null;
   }
 
-  const onSubmit = async () => {
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setError(null);
     setLoading(true);
     try {
@@ -63,8 +64,8 @@ export default function LoginPage() {
       });
       if (signInError) throw signInError;
       router.push("/dashboard");
-    } catch (e: any) {
-      setError(e?.message || "Login failed");
+    } catch (err: any) {
+      setError(err?.message || "Login failed");
     } finally {
       setLoading(false);
     }
@@ -76,25 +77,43 @@ export default function LoginPage() {
         <CardHeader>
           <CardTitle>Login</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <Input id="password" type="password" placeholder="********" value={password} onChange={(e) => setPassword(e.target.value)} />
-          </div>
-          {error && <p className="text-sm text-red-600">{error}</p>}
-          <Button className="w-full" type="button" onClick={onSubmit} disabled={loading}>
-            {loading ? "Signing in..." : "Sign in"}
-          </Button>
-          <p className="text-sm text-muted-foreground">
-            Don&apos;t have an account?{" "}
-            <Link className="underline" href="/register">
-              {t('auth.registerAsAgentLink')}
-            </Link>
-          </p>
+        <CardContent>
+          <form onSubmit={onSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input 
+                id="email" 
+                type="email" 
+                placeholder="you@example.com" 
+                value={email} 
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete="email"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input 
+                id="password" 
+                type="password" 
+                placeholder="********" 
+                value={password} 
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                autoComplete="current-password"
+              />
+            </div>
+            {error && <p className="text-sm text-red-600">{error}</p>}
+            <Button className="w-full" type="submit" disabled={loading}>
+              {loading ? "Signing in..." : "Sign in"}
+            </Button>
+            <p className="text-sm text-muted-foreground">
+              Don&apos;t have an account?{" "}
+              <Link className="underline" href="/register">
+                {t('auth.registerAsAgentLink')}
+              </Link>
+            </p>
+          </form>
         </CardContent>
       </Card>
     </div>

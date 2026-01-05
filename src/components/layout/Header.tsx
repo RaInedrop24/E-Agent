@@ -40,6 +40,7 @@ export const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
                     width={120}
                     height={40}
                     className="max-h-full w-auto object-contain"
+                    style={{ height: 'auto' }}
                     priority
                   />
                 </div>

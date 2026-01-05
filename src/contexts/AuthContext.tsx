@@ -60,6 +60,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Get initial session
     supabase.auth.getSession().then((response: AuthResponse) => {
       const initialSession = response.data.session;
+      const sessionError = response.error;
+      
+      // Handle refresh token errors silently - just clear the session
+      if (sessionError) {
+        if (sessionError.message?.includes('Refresh Token') || sessionError.message?.includes('refresh_token')) {
+          // Silently clear invalid session
+          if (typeof document !== 'undefined') {
+            document.cookie = 'sb-skvfgvlwccxetglmfhpm-auth-token=; path=/; max-age=0';
+          }
+          setSession(null);
+          setUser(null);
+          setLoading(false);
+          return;
+        }
+        // Log other errors
+        console.error('[AuthContext] Session error:', sessionError.message);
+      }
+      
       setSession(initialSession);
       setUser(initialSession?.user ?? null);
 
@@ -77,6 +95,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
         setLoading(false);
       }
+    }).catch((err) => {
+      // Catch any unexpected errors
+      console.error('[AuthContext] Unexpected error getting session:', err);
+      setLoading(false);
     });
 
     // Listen for auth state changes
