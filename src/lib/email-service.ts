@@ -1,7 +1,10 @@
-// Email service using Resend API
+// Email service using Resend (matching existing notification setup)
 // Docs: https://resend.com/docs/send-with-nodejs
 
+import { Resend } from 'resend';
 import { generateBuyerWelcomeEmail } from './email-templates';
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 type Language = 'en' | 'it' | 'pl' | 'es' | 'fr' | 'nl' | 'de';
 
@@ -14,9 +17,7 @@ interface SendBuyerWelcomeEmailParams {
 
 export async function sendBuyerWelcomeEmail(params: SendBuyerWelcomeEmailParams): Promise<{ success: boolean; error?: string }> {
   try {
-    const apiKey = process.env.RESEND_API_KEY;
-    
-    if (!apiKey) {
+    if (!process.env.RESEND_API_KEY) {
       console.error('[Email Service] RESEND_API_KEY not configured');
       return { success: false, error: 'Email service not configured' };
     }
@@ -38,36 +39,26 @@ export async function sendBuyerWelcomeEmail(params: SendBuyerWelcomeEmailParams)
       subject,
     });
 
-    // Send email via Resend API
-    const response = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: process.env.EMAIL_FROM || 'The Property Gateway <noreply@thepropertygateway.com>',
-        to: params.to,
-        subject,
-        html,
-      }),
+    // Send email via Resend (matching existing notification pattern)
+    const emailFrom = 'Welcome <Welcome@mail.thepropertygateway.com>';
+    
+    const { data, error } = await resend.emails.send({
+      from: emailFrom,
+      to: params.to,
+      subject,
+      html,
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      console.error('[Email Service] Failed to send email', { 
-        status: response.status, 
-        error: data 
-      });
+    if (error) {
+      console.error('[Email Service] Failed to send email', { error });
       return { 
         success: false, 
-        error: data.message || 'Failed to send email' 
+        error: error.message || 'Failed to send email' 
       };
     }
 
     console.log('[Email Service] Email sent successfully', { 
-      id: data.id,
+      id: data?.id,
       to: params.to,
     });
 
