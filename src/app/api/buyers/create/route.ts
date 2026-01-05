@@ -67,21 +67,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create user account with a temporary password, then send password reset
-    // This is more reliable than inviteUserByEmail for cross-device flows
+    // Create user account with a default temporary password
+    // User will login with this password and be forced to change it
     console.log('[Buyer Creation] Step 1: Creating user account', { email, fullName, preferredLanguage });
     
-    // Generate a random temporary password (user will reset it)
-    const tempPassword = Math.random().toString(36).slice(-12) + Math.random().toString(36).slice(-12);
+    // Simple default password that buyer will change on first login
+    const defaultPassword = 'Welcome2024!';
     
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email,
-      password: tempPassword,
-      email_confirm: true, // Auto-confirm email so they can reset password
+      password: defaultPassword,
+      email_confirm: true, // Auto-confirm email so they can login immediately
       user_metadata: {
         full_name: fullName,
         preferred_language: preferredLanguage || 'en',
         role: 'buyer',
+        must_change_password: true, // Flag to force password change on first login
+        first_login: true,
       },
     });
 
@@ -106,20 +108,8 @@ export async function POST(request: NextRequest) {
 
     console.log('[Buyer Creation] Step 2: Auth user created successfully', { userId: authData.user.id });
 
-    // Send password reset email (this is the "invitation")
-    console.log('[Buyer Creation] Step 2.5: Sending password reset email');
-    const { error: resetError } = await supabaseAdmin.auth.resetPasswordForEmail(
-      email,
-      {
-        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://thepropertygateway.com'}/auth/update-password`,
-      }
-    );
-
-    if (resetError) {
-      console.error('Error sending password reset email:', resetError);
-      // Don't fail the whole operation if email fails
-      // The user account is created, admin can resend invite
-    }
+    // Note: Email will be sent separately with login credentials
+    // TODO: Implement custom email with default password and login instructions
 
     // Create profile for the buyer using RPC function
     // This function uses SECURITY DEFINER to bypass RLS policies
@@ -217,6 +207,8 @@ export async function POST(request: NextRequest) {
         full_name: fullName,
         preferred_language: preferredLanguage || 'en',
       },
+      defaultPassword: defaultPassword, // Return password so agent can communicate it to buyer
+      message: `Buyer created successfully. Default password: ${defaultPassword}. The buyer will be required to change this on first login.`,
     });
 
   } catch (error: any) {

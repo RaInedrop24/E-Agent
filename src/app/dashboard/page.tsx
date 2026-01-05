@@ -133,6 +133,20 @@ export default function DashboardPage() {
     };
   }, [filterActiveOnly, sortBy, activityTypeFilters, activityTimeRange, user, initialized]);
 
+  // Force password change for first-time users
+  useEffect(() => {
+    if (user && initialized) {
+      const mustChangePassword = user.user_metadata?.must_change_password === true;
+      const firstLogin = user.user_metadata?.first_login === true;
+      
+      if (mustChangePassword || firstLogin) {
+        console.log('[Dashboard] First login detected - redirecting to password change');
+        router.push('/auth/update-password?force=true');
+        return;
+      }
+    }
+  }, [user, initialized, router]);
+
   // Redirect agents to settings on first login if they haven't set up branding
   useEffect(() => {
     if (user && profile && profile.role === 'agent' && initialized) {

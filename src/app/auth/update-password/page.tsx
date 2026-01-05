@@ -16,8 +16,9 @@ function UpdatePasswordContent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [checkingSession, setCheckingSession] = useState(true);
+  const [isForced, setIsForced] = useState(false);
 
-  // Check for token in URL and exchange it for a session
+  // Check if user is authenticated (must be logged in to change password)
   useEffect(() => {
     async function checkSession() {
       try {
@@ -27,100 +28,20 @@ function UpdatePasswordContent() {
           return;
         }
 
-        // Check if we're coming from an invite callback (session should already exist)
-        const fromInvite = searchParams?.get('from_invite');
-        
-        // First, check if we already have a session (from Supabase's verify redirect or callback)
-        let { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        const { data: { session } } = await supabase.auth.getSession();
 
-        // If we have a session and came from invite, we're good to go
-        if (session && fromInvite) {
-          console.log('Session verified from invite callback');
-          setCheckingSession(false);
+        if (!session) {
+          // No session - redirect to login
+          console.error('No active session - redirecting to login');
+          router.push('/login?error=Please login with your credentials to change your password');
           return;
         }
 
-        // Check for access_token in URL hash (Supabase implicit flow)
-        // This happens when Supabase redirects after verifying invite
-        if (typeof window !== 'undefined' && window.location.hash) {
-          const hashParams = new URLSearchParams(window.location.hash.substring(1));
-          const accessToken = hashParams.get('access_token');
-          const refreshToken = hashParams.get('refresh_token');
-          const tokenType = hashParams.get('type');
-          
-          if (accessToken) {
-            console.log('Found access_token in URL hash, establishing session...');
-            // Supabase should auto-detect and set the session
-            // Wait a moment for it to process
-            await new Promise(resolve => setTimeout(resolve, 500));
-            
-            // Get the session that Supabase should have set
-            const { data: { session: hashSession } } = await supabase.auth.getSession();
-            if (hashSession) {
-              session = hashSession;
-              console.log('Session established from hash params');
-              setCheckingSession(false);
-              return;
-            }
-          }
-        }
+        // Check if this is a forced password change
+        const force = searchParams?.get('force');
+        setIsForced(force === 'true');
 
-        // If no session, check for tokens in URL (direct link flow)
-        if (!session) {
-          const token = searchParams?.get('token');
-          const tokenHash = searchParams?.get('token_hash');
-          const type = searchParams?.get('type');
-
-          console.log('No session found, checking for tokens:', { token: !!token, tokenHash: !!tokenHash, type });
-
-          if (token && (type === 'invite' || type === 'recovery')) {
-            // Exchange token for session
-            console.log('Verifying OTP token...');
-            const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
-              token,
-              type: type === 'invite' ? 'invite' : 'recovery',
-            });
-
-            if (verifyError) {
-              console.error('Token verification error:', verifyError);
-              setError(`Invalid or expired link: ${verifyError.message}. Please request a new invitation.`);
-              setCheckingSession(false);
-              return;
-            }
-
-            // Get session after verification
-            const { data: { session: newSession } } = await supabase.auth.getSession();
-            session = newSession;
-          } else if (tokenHash) {
-            // Handle token_hash format (PKCE flow)
-            console.log('Exchanging token_hash for session...');
-            const { error: exchangeError } = await supabase.auth.verifyOtp({
-              token_hash: tokenHash,
-              type: type === 'invite' ? 'invite' : 'recovery',
-            });
-
-            if (exchangeError) {
-              console.error('Token hash exchange error:', exchangeError);
-              setError(`Invalid or expired link: ${exchangeError.message}. Please request a new invitation.`);
-              setCheckingSession(false);
-              return;
-            }
-
-            // Get session after exchange
-            const { data: { session: newSession } } = await supabase.auth.getSession();
-            session = newSession;
-          }
-        }
-
-        // Final check - verify we have a session
-        if (!session) {
-          console.error('No session available after token verification');
-          setError('Auth session missing! Please use the link from your invitation email. If you copied the link, make sure to use the complete URL from the email.');
-          setCheckingSession(false);
-          return;
-        }
-
-        console.log('Session verified successfully');
+        console.log('Session verified - ready to change password');
         setCheckingSession(false);
       } catch (err: any) {
         console.error('Error checking session:', err);
@@ -130,7 +51,7 @@ function UpdatePasswordContent() {
     }
 
     checkSession();
-  }, [searchParams]);
+  }, [searchParams, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -153,34 +74,29 @@ function UpdatePasswordContent() {
         throw new Error('Supabase not configured');
       }
 
+      // Get current user metadata
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error('No authenticated user found');
+      }
+
+      // Update password AND clear first-login flags
       const { error: updateError } = await supabase.auth.updateUser({
         password: newPassword,
+        data: {
+          ...user.user_metadata,
+          must_change_password: false,
+          first_login: false,
+        },
       });
 
       if (updateError) throw updateError;
 
-      // Password updated successfully - get user email and auto-login
-      const { data: { user } } = await supabase.auth.getUser();
-      const userEmail = user?.email;
-
-      if (userEmail) {
-        // Auto-login with the new password
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          email: userEmail,
-          password: newPassword,
-        });
-
-        if (signInError) {
-          // If auto-login fails, redirect to login with pre-filled email
-          router.push(`/login?email=${encodeURIComponent(userEmail)}&password-set=true`);
-        } else {
-          // Successfully logged in, redirect to dashboard
-          router.push('/dashboard?password-updated=true');
-        }
-      } else {
-        // No email available, redirect to login
-        router.push('/login?password-set=true');
-      }
+      console.log('Password updated successfully, redirecting to dashboard');
+      
+      // Redirect to dashboard - they're already logged in
+      router.push('/dashboard?password-updated=true');
     } catch (err: any) {
       console.error('Error updating password:', err);
       setError(err.message || 'Failed to update password');
@@ -212,9 +128,11 @@ function UpdatePasswordContent() {
     <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Set Your Password</CardTitle>
+          <CardTitle>{isForced ? '⚠️ Password Change Required' : 'Set Your Password'}</CardTitle>
           <CardDescription>
-            Create a secure password for your account
+            {isForced 
+              ? 'For security, you must change your default password before continuing.' 
+              : 'Create a secure password for your account'}
           </CardDescription>
         </CardHeader>
         <CardContent>
