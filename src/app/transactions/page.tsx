@@ -110,15 +110,8 @@ export default function TransactionsListPage() {
           })
           .eq('id', user.id);
 
-        // Refresh profile after a small delay to ensure DB write completes
-        // This ensures other pages see the updated preferences
-        if (isActive) {
-          setTimeout(() => {
-            if (isActive) {
-              refreshProfile();
-            }
-          }, 500);
-        }
+        // Don't refresh profile here - it causes infinite loops
+        // The profile will be updated on next page load or when explicitly needed
       } catch (error) {
         if (isActive) {
           console.error('Error updating preferences:', error);
@@ -131,7 +124,7 @@ export default function TransactionsListPage() {
     return () => {
       isActive = false;
     };
-  }, [filterActiveOnly, sortBy, user, initialized, refreshProfile]);
+  }, [filterActiveOnly, sortBy, user, initialized]);
 
   useEffect(() => {
     console.log('[Transactions] useEffect triggered - user:', !!user, 'isSuperAdmin:', isSuperAdmin, 'superAdminLoading:', superAdminLoading);

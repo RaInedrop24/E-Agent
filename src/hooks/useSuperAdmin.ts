@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -6,8 +6,21 @@ export function useSuperAdmin() {
   const { user, profile } = useAuth();
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+  const lastCheckedUserId = useRef<string | null>(null);
+  const lastCheckedProfileId = useRef<string | null>(null);
 
   useEffect(() => {
+    // Prevent re-running if we've already checked for this user/profile combination
+    const currentUserId = user?.id || null;
+    const currentProfileId = profile?.id || null;
+    
+    if (currentUserId === lastCheckedUserId.current && 
+        currentProfileId === lastCheckedProfileId.current &&
+        !loading) {
+      // Already checked for this user/profile, skip
+      return;
+    }
+
     async function checkSuperAdmin() {
       console.log('[useSuperAdmin] Starting check...', {
         hasUser: !!user,
@@ -21,8 +34,14 @@ export function useSuperAdmin() {
         console.log('[useSuperAdmin] No user or supabase, setting false');
         setIsSuperAdmin(false);
         setLoading(false);
+        lastCheckedUserId.current = null;
+        lastCheckedProfileId.current = null;
         return;
       }
+
+      // Update refs to track what we've checked
+      lastCheckedUserId.current = user.id;
+      lastCheckedProfileId.current = profile?.id || null;
 
       try {
         // First check profile cache
@@ -98,7 +117,7 @@ export function useSuperAdmin() {
     }
 
     checkSuperAdmin();
-  }, [user, profile]);
+  }, [user?.id, profile?.id, profile?.is_super_admin, loading]);
 
   return { isSuperAdmin, loading };
 }

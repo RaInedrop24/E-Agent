@@ -115,15 +115,8 @@ export default function DashboardPage() {
           })
           .eq('id', user.id);
 
-        // Refresh profile after a small delay to ensure DB write completes
-        // This ensures other pages see the updated preferences
-        if (isActive) {
-          setTimeout(() => {
-            if (isActive) {
-              refreshProfile();
-            }
-          }, 500);
-        }
+        // Don't refresh profile here - it causes infinite loops
+        // The profile will be updated on next page load or when explicitly needed
       } catch (error) {
         // Silently handle errors during cleanup
         if (isActive) {
@@ -138,7 +131,7 @@ export default function DashboardPage() {
     return () => {
       isActive = false;
     };
-  }, [filterActiveOnly, sortBy, activityTypeFilters, activityTimeRange, user, initialized, refreshProfile]);
+  }, [filterActiveOnly, sortBy, activityTypeFilters, activityTimeRange, user, initialized]);
 
   // Redirect agents to settings on first login if they haven't set up branding
   useEffect(() => {
