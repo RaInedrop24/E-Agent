@@ -96,6 +96,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Create profile for the buyer using admin client
+    // The inviteUserByEmail creates the auth user but not the profile
+    const { error: profileError } = await supabaseAdmin
+      .from('profiles')
+      .insert({
+        id: authData.user.id,
+        full_name: fullName,
+        preferred_language: preferredLanguage || 'en',
+        role: 'buyer',
+      });
+
+    if (profileError) {
+      console.error('Error creating buyer profile:', profileError);
+      // Clean up: delete the auth user we just created
+      await supabaseAdmin.auth.admin.deleteUser(authData.user.id);
+      return NextResponse.json(
+        { error: 'Database error saving new user' },
+        { status: 400 }
+      );
+    }
+
     // Create buyer-agent association using admin client
     const { error: associationError } = await supabaseAdmin
       .from('buyer_agent_associations')
