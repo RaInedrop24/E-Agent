@@ -95,7 +95,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
         setLoading(false);
       }
-    }).catch((err) => {
+    }).catch((err: unknown) => {
       // Catch any unexpected errors
       console.error('[AuthContext] Unexpected error getting session:', err);
       setLoading(false);
