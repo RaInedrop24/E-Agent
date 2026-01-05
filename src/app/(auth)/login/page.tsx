@@ -19,6 +19,25 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Check for pre-filled email from URL params (e.g., after password reset)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const emailParam = params.get('email');
+      const passwordSet = params.get('password-set');
+      
+      if (emailParam) {
+        setEmail(emailParam);
+      }
+      
+      if (passwordSet === 'true') {
+        // Show success message
+        setError(null);
+        // Note: We could show a success message here, but for now just pre-fill email
+      }
+    }
+  }, []);
+
   // Redirect to dashboard if user is already logged in
   useEffect(() => {
     if (user) {

@@ -140,32 +140,23 @@ function AuthCallbackContent() {
         const tokenHash = searchParams?.get('token_hash');
         const flow = searchParams?.get('flow');
 
-        // If no session yet but tokens are present, attempt to verify explicitly (handles cases where Supabase strips type)
-        if (!initialSession?.user && (token || tokenHash)) {
-          const inferredType = type || (flow === 'invite' ? 'invite' : 'recovery');
-          const otpType = inferredType === 'recovery' ? 'recovery' : 'invite';
-
-          const verifyResult = await supabase.auth.verifyOtp(
-            token
-              ? { token, type: otpType as 'recovery' | 'invite' }
-              : { token_hash: tokenHash || '', type: otpType as 'recovery' | 'invite' }
-          );
-
-          if (verifyResult.error) {
-            console.error('Error verifying token (fallback):', verifyResult.error);
-            setStatus(`Invalid or expired link: ${verifyResult.error.message}. Please request a new invitation.`);
-            return;
-          }
-
-          // Retry to get session after explicit verification
-          const { data: { session: verifiedSession } } = await supabase.auth.getSession();
-          if (verifiedSession) {
-            router.push('/auth/update-password');
-            return;
-          }
+        // For invite flows, redirect directly to update-password page with token parameters
+        // The update-password page will handle token verification
+        if (type === 'invite' || flow === 'invite' || (token && !type && !initialSession?.user)) {
+          // Build redirect URL with token parameters
+          const params = new URLSearchParams();
+          if (token) params.set('token', token);
+          if (tokenHash) params.set('token_hash', tokenHash);
+          if (type) params.set('type', type);
+          else params.set('type', 'invite');
+          if (flow) params.set('flow', flow);
+          
+          // Redirect directly to update-password page
+          router.push(`/auth/update-password?${params.toString()}`);
+          return;
         }
 
-        if (type === 'recovery' || type === 'invite') {
+        if (type === 'recovery') {
           // Password recovery or invite flow
           // When Supabase redirects after verification, the session should already be established
           // But we may need to wait a moment for it to be available
@@ -190,12 +181,12 @@ function AuthCallbackContent() {
           if (!session && token) {
             const { data: verifyData, error: exchangeError } = await supabase.auth.verifyOtp({
               token,
-              type: type === 'invite' ? 'invite' : 'recovery',
+              type: 'recovery',
             });
 
             if (exchangeError) {
               console.error('Error verifying token:', exchangeError);
-              setStatus(`Invalid or expired link: ${exchangeError.message}. Please request a new invitation.`);
+              setStatus(`Invalid or expired link: ${exchangeError.message}. Please request a new password reset.`);
               return;
             }
 
@@ -206,12 +197,12 @@ function AuthCallbackContent() {
             // Handle token_hash format (PKCE flow)
             const { data: verifyData, error: exchangeError } = await supabase.auth.verifyOtp({
               token_hash: tokenHash,
-              type: type === 'invite' ? 'invite' : 'recovery',
+              type: 'recovery',
             });
 
             if (exchangeError) {
               console.error('Error exchanging code for session:', exchangeError);
-              setStatus(`Invalid or expired link: ${exchangeError.message}. Please request a new invitation.`);
+              setStatus(`Invalid or expired link: ${exchangeError.message}. Please request a new password reset.`);
               return;
             }
 
@@ -221,7 +212,12 @@ function AuthCallbackContent() {
           }
 
           if (!session) {
-            setStatus('Session could not be established. Please try clicking the link from your email again.');
+            // If no session, redirect to update-password with token params anyway
+            const params = new URLSearchParams();
+            if (token) params.set('token', token);
+            if (tokenHash) params.set('token_hash', tokenHash);
+            params.set('type', 'recovery');
+            router.push(`/auth/update-password?${params.toString()}`);
             return;
           }
 

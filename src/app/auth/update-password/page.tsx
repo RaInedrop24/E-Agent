@@ -124,8 +124,28 @@ function UpdatePasswordContent() {
 
       if (updateError) throw updateError;
 
-      // Password updated successfully
-      router.push('/dashboard?password-updated=true');
+      // Password updated successfully - get user email and auto-login
+      const { data: { user } } = await supabase.auth.getUser();
+      const userEmail = user?.email;
+
+      if (userEmail) {
+        // Auto-login with the new password
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: userEmail,
+          password: newPassword,
+        });
+
+        if (signInError) {
+          // If auto-login fails, redirect to login with pre-filled email
+          router.push(`/login?email=${encodeURIComponent(userEmail)}&password-set=true`);
+        } else {
+          // Successfully logged in, redirect to dashboard
+          router.push('/dashboard?password-updated=true');
+        }
+      } else {
+        // No email available, redirect to login
+        router.push('/login?password-set=true');
+      }
     } catch (err: any) {
       console.error('Error updating password:', err);
       setError(err.message || 'Failed to update password');
