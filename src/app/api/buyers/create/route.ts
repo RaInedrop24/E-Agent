@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
 
     // Create profile for the buyer using admin client
     // The inviteUserByEmail creates the auth user but not the profile
-    const { error: profileError } = await supabaseAdmin
+    const { error: buyerProfileError } = await supabaseAdmin
       .from('profiles')
       .insert({
         id: authData.user.id,
@@ -107,8 +107,8 @@ export async function POST(request: NextRequest) {
         role: 'buyer',
       });
 
-    if (profileError) {
-      console.error('Error creating buyer profile:', profileError);
+    if (buyerProfileError) {
+      console.error('Error creating buyer profile:', buyerProfileError);
       // Clean up: delete the auth user we just created
       await supabaseAdmin.auth.admin.deleteUser(authData.user.id);
       return NextResponse.json(
