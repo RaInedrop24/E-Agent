@@ -69,6 +69,7 @@ export async function POST(request: NextRequest) {
 
     // Create and invite the buyer user using admin API
     // Using inviteUserByEmail sends an invitation email automatically
+    console.log('[Buyer Creation] Step 1: Inviting user via email', { email, fullName, preferredLanguage });
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
       email,
       {
@@ -82,7 +83,11 @@ export async function POST(request: NextRequest) {
     );
 
     if (authError) {
-      console.error('Error inviting buyer:', authError);
+      console.error('Error inviting buyer:', {
+        message: authError.message,
+        status: authError.status,
+        fullError: JSON.stringify(authError, null, 2)
+      });
       return NextResponse.json(
         { error: authError.message },
         { status: 400 }
@@ -96,8 +101,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    console.log('[Buyer Creation] Step 2: Auth user created successfully', { userId: authData.user.id });
+
     // Create profile for the buyer using admin client
     // The inviteUserByEmail creates the auth user but not the profile
+    console.log('[Buyer Creation] Step 3: Creating profile', { 
+      id: authData.user.id, 
+      full_name: fullName, 
+      preferred_language: preferredLanguage || 'en',
+      role: 'buyer'
+    });
     const { error: buyerProfileError } = await supabaseAdmin
       .from('profiles')
       .insert({
@@ -108,16 +121,33 @@ export async function POST(request: NextRequest) {
       });
 
     if (buyerProfileError) {
-      console.error('Error creating buyer profile:', buyerProfileError);
+      console.error('Error creating buyer profile:', {
+        message: buyerProfileError.message,
+        details: buyerProfileError.details,
+        hint: buyerProfileError.hint,
+        code: buyerProfileError.code,
+        fullError: JSON.stringify(buyerProfileError, null, 2)
+      });
       // Clean up: delete the auth user we just created
       await supabaseAdmin.auth.admin.deleteUser(authData.user.id);
       return NextResponse.json(
-        { error: 'Database error saving new user' },
+        { 
+          error: 'Database error saving new user',
+          details: buyerProfileError.message,
+          code: buyerProfileError.code,
+          hint: buyerProfileError.hint
+        },
         { status: 400 }
       );
     }
 
+    console.log('[Buyer Creation] Step 4: Profile created successfully');
+
     // Create buyer-agent association using admin client
+    console.log('[Buyer Creation] Step 5: Creating buyer-agent association', {
+      buyer_id: authData.user.id,
+      agent_id: user.id
+    });
     const { error: associationError } = await supabaseAdmin
       .from('buyer_agent_associations')
       .insert({
@@ -126,14 +156,26 @@ export async function POST(request: NextRequest) {
       });
 
     if (associationError) {
-      console.error('Error creating buyer-agent association:', associationError);
+      console.error('Error creating buyer-agent association:', {
+        message: associationError.message,
+        details: associationError.details,
+        hint: associationError.hint,
+        code: associationError.code,
+        fullError: JSON.stringify(associationError, null, 2)
+      });
       // Clean up: delete the auth user we just created
       await supabaseAdmin.auth.admin.deleteUser(authData.user.id);
       return NextResponse.json(
-        { error: 'Failed to associate buyer with agent' },
+        { 
+          error: 'Failed to associate buyer with agent',
+          details: associationError.message,
+          code: associationError.code
+        },
         { status: 500 }
       );
     }
+
+    console.log('[Buyer Creation] Step 6: Association created successfully');
 
     return NextResponse.json({
       success: true,
