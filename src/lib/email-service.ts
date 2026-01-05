@@ -32,15 +32,36 @@ export async function sendBuyerWelcomeEmail(params: SendBuyerWelcomeEmailParams)
     const resend = new Resend(apiKey);
 
     const loginUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://thepropertygateway.com'}/login`;
-
-    // Generate multilingual email
-    const { subject, html } = generateBuyerWelcomeEmail({
+    
+    console.log('[Email Service] About to call generateBuyerWelcomeEmail with:', {
       fullName: params.fullName,
       email: params.to,
-      password: params.password,
+      password: '***',
       loginUrl,
       language: params.language,
     });
+
+    // Generate multilingual email
+    let subject, html;
+    try {
+      const result = generateBuyerWelcomeEmail({
+        fullName: params.fullName,
+        email: params.to,
+        password: params.password,
+        loginUrl,
+        language: params.language,
+      });
+      subject = result.subject;
+      html = result.html;
+      console.log('[Email Service] Template generated successfully');
+    } catch (templateError: any) {
+      console.error('[Email Service] Template generation failed:', {
+        error: templateError,
+        message: templateError.message,
+        stack: templateError.stack,
+      });
+      throw templateError;
+    }
 
     console.log('[Email Service] Sending welcome email', { 
       to: params.to, 

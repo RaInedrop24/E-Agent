@@ -133,7 +133,17 @@ const translations = {
 };
 
 export function generateBuyerWelcomeEmail(data: WelcomeEmailData): { subject: string; html: string } {
+  console.log('[Email Template] Starting generation with data:', {
+    fullName: data.fullName,
+    email: data.email,
+    password: '***',
+    loginUrl: data.loginUrl,
+    language: data.language,
+  });
+  
   const t = translations[data.language] || translations.en;
+  
+  console.log('[Email Template] About to generate HTML template');
 
   const html = `<!DOCTYPE html>
 <html lang="${data.language}">
