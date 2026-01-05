@@ -15,33 +15,19 @@ interface SendBuyerWelcomeEmailParams {
 
 export async function sendBuyerWelcomeEmail(params: SendBuyerWelcomeEmailParams): Promise<{ success: boolean; error?: string }> {
   try {
-    // Check for API key and log detailed info
     const apiKey = process.env.RESEND_API_KEY;
-    console.log('[Email Service] API Key check:', {
-      exists: !!apiKey,
-      keyPrefix: apiKey ? apiKey.substring(0, 8) + '...' : 'MISSING',
-      envKeys: Object.keys(process.env).filter(k => k.includes('RESEND')),
-    });
 
     if (!apiKey) {
       console.error('[Email Service] RESEND_API_KEY not configured');
       return { success: false, error: 'Email service not configured - RESEND_API_KEY missing' };
     }
 
-    // Initialize Resend client with API key
+    // Initialize Resend client
     const resend = new Resend(apiKey);
-
     const loginUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://thepropertygateway.com'}/login`;
-    
-    console.log('[Email Service] About to call generateBuyerWelcomeEmail with:', {
-      fullName: params.fullName,
-      email: params.to,
-      password: '***',
-      loginUrl,
-      language: params.language,
-    });
 
-    // Generate multilingual email
+    // Generate multilingual email template
+    // Note: Using separate variable declarations instead of destructuring to avoid scope issues
     let subject, html;
     try {
       const result = generateBuyerWelcomeEmail({
@@ -53,21 +39,12 @@ export async function sendBuyerWelcomeEmail(params: SendBuyerWelcomeEmailParams)
       });
       subject = result.subject;
       html = result.html;
-      console.log('[Email Service] Template generated successfully');
     } catch (templateError: any) {
-      console.error('[Email Service] Template generation failed:', {
-        error: templateError,
-        message: templateError.message,
-        stack: templateError.stack,
-      });
+      console.error('[Email Service] Template generation failed:', templateError.message);
       throw templateError;
     }
 
-    console.log('[Email Service] Sending welcome email', { 
-      to: params.to, 
-      language: params.language,
-      subject,
-    });
+    console.log('[Email Service] Sending welcome email to', params.to);
 
     // Send email via Resend (matching existing notification pattern)
     const emailFrom = 'Welcome <Welcome@mail.thepropertygateway.com>';
@@ -80,28 +57,18 @@ export async function sendBuyerWelcomeEmail(params: SendBuyerWelcomeEmailParams)
     });
 
     if (error) {
-      console.error('[Email Service] Failed to send email', { 
-        error,
-        errorMessage: error.message,
-        errorName: error.name,
-        fullError: JSON.stringify(error, null, 2),
-        to: params.to,
-        from: emailFrom,
-      });
+      console.error('[Email Service] Failed to send email:', error.message, { to: params.to });
       return { 
         success: false, 
-        error: `${error.name || 'Error'}: ${error.message || 'Failed to send email'}` 
+        error: error.message || 'Failed to send email' 
       };
     }
 
-    console.log('[Email Service] Email sent successfully', { 
-      id: data?.id,
-      to: params.to,
-    });
-
+    console.log('[Email Service] ✓ Email sent successfully to', params.to);
     return { success: true };
+    
   } catch (error: any) {
-    console.error('[Email Service] Error sending email:', error);
+    console.error('[Email Service] Unexpected error:', error.message);
     return { 
       success: false, 
       error: error.message || 'Failed to send email' 
