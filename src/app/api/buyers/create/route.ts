@@ -73,25 +73,27 @@ export async function POST(request: NextRequest) {
     // ========================================
     console.log('[Buyer Creation] Step 1: Checking if buyer already exists', { email });
     
-    // First, check if user exists in auth.users by email
-    const { data: authUser, error: authUserError } = await supabaseAdmin.auth.admin.getUserByEmail(email);
+    // Use listUsers to check if email exists (filter by email)
+    const { data: userList, error: listError } = await supabaseAdmin.auth.admin.listUsers();
     
-    if (authUserError && authUserError.message !== 'User not found') {
-      console.error('[Buyer Creation] Error checking for existing user:', authUserError);
+    if (listError) {
+      console.error('[Buyer Creation] Error listing users:', listError);
       return NextResponse.json(
         { error: 'Database error checking for existing buyer' },
         { status: 500 }
       );
     }
 
+    // Find user by email
+    const existingAuthUser = userList.users.find(u => u.email?.toLowerCase() === email.toLowerCase());
     let existingProfile = null;
     
     // If auth user exists, get their profile
-    if (authUser?.user) {
+    if (existingAuthUser) {
       const { data: profileData, error: profileError } = await supabaseAdmin
         .from('profiles')
         .select('id, full_name, role')
-        .eq('id', authUser.user.id)
+        .eq('id', existingAuthUser.id)
         .maybeSingle();
       
       if (profileError) {
