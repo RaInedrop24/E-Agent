@@ -135,7 +135,7 @@ export default function DashboardPage() {
 
   // Force password change for first-time users
   useEffect(() => {
-    if (user && initialized) {
+    if (user && initialized && profile) {
       const mustChangePassword = user.user_metadata?.must_change_password === true;
       const firstLogin = user.user_metadata?.first_login === true;
       
@@ -145,7 +145,7 @@ export default function DashboardPage() {
         return;
       }
     }
-  }, [user, initialized, router]);
+  }, [user, profile, initialized, router]);
 
   // Redirect agents to settings on first login if they haven't set up branding
   useEffect(() => {
@@ -156,6 +156,7 @@ export default function DashboardPage() {
       
       // If they have a website URL but no branding colors extracted, redirect to settings
       if (hasWebsiteUrl && !hasBranding) {
+        console.log('[Dashboard] No branding found - redirecting to settings');
         router.push('/settings');
         return;
       }
@@ -163,12 +164,15 @@ export default function DashboardPage() {
   }, [user, profile, initialized, router]);
 
   useEffect(() => {
-    if (user) {
+    console.log('[Dashboard] fetchDashboard useEffect', { user: !!user, initialized, profile: !!profile });
+    if (user && initialized && profile) {
       fetchDashboardData();
     }
-  }, [user, filterActiveOnly, sortBy]);
+  }, [user, profile, initialized, filterActiveOnly, sortBy]);
 
   async function fetchDashboardData() {
+    console.log('[Dashboard] fetchDashboardData called');
+    setLoading(true);
     try {
       const supabase = createClient();
 
