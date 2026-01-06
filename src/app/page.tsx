@@ -12,15 +12,15 @@ import { motion } from 'framer-motion';
 
 export default function Home() {
   const router = useRouter();
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const { t } = useLanguage();
 
-  // Log out user when they visit the landing page
+  // Redirect logged-in users to dashboard instead of logging them out
   useEffect(() => {
     if (user) {
-      signOut();
+      router.push('/dashboard');
     }
-  }, [user, signOut]);
+  }, [user, router]);
 
   return (
     <div className="min-h-screen bg-gray-50">
