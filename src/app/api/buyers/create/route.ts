@@ -73,18 +73,36 @@ export async function POST(request: NextRequest) {
     // ========================================
     console.log('[Buyer Creation] Step 1: Checking if buyer already exists', { email });
     
-    const { data: existingProfile, error: profileCheckError } = await supabaseAdmin
-      .from('profiles')
-      .select('id, full_name, email, role')
-      .eq('email', email)
-      .maybeSingle();
-
-    if (profileCheckError) {
-      console.error('[Buyer Creation] Error checking for existing buyer:', profileCheckError);
+    // First, check if user exists in auth.users by email
+    const { data: authUser, error: authUserError } = await supabaseAdmin.auth.admin.getUserByEmail(email);
+    
+    if (authUserError && authUserError.message !== 'User not found') {
+      console.error('[Buyer Creation] Error checking for existing user:', authUserError);
       return NextResponse.json(
         { error: 'Database error checking for existing buyer' },
         { status: 500 }
       );
+    }
+
+    let existingProfile = null;
+    
+    // If auth user exists, get their profile
+    if (authUser?.user) {
+      const { data: profileData, error: profileError } = await supabaseAdmin
+        .from('profiles')
+        .select('id, full_name, role')
+        .eq('id', authUser.user.id)
+        .maybeSingle();
+      
+      if (profileError) {
+        console.error('[Buyer Creation] Error fetching profile:', profileError);
+        return NextResponse.json(
+          { error: 'Database error checking for existing buyer' },
+          { status: 500 }
+        );
+      }
+      
+      existingProfile = profileData;
     }
 
     // ========================================
@@ -147,7 +165,7 @@ export async function POST(request: NextRequest) {
       // Send connection notification email
       console.log('[Buyer Creation] Sending connection notification email');
       const emailResult = await sendBuyerConnectionEmail({
-        to: existingProfile.email || email,
+        to: email,
         buyerName: existingProfile.full_name || 'there',
         agentName: agentProfile?.full_name || 'Your agent',
         agentEmail: user.email || '',
@@ -168,7 +186,7 @@ export async function POST(request: NextRequest) {
         existingBuyer: true,
         buyer: {
           id: existingProfile.id,
-          email: existingProfile.email || email,
+          email: email,
           full_name: existingProfile.full_name,
         },
         emailSent: emailResult.success,
