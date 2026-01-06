@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTransactionData } from '@/hooks/useTransactionData';
+import { useTransactionBranding } from '@/hooks/useTransactionBranding';
 import { supabase } from '@/lib/supabase';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -36,6 +37,9 @@ export default function TransactionDetailPage({ params }: PageProps) {
   const router = useRouter();
   const { user, profile } = useAuth();
   const { t, tVar, language } = useLanguage();
+
+  // Apply transaction-specific agent branding (for multi-agent buyer support)
+  const agentBranding = useTransactionBranding(transactionId);
 
   // Use custom hook for transaction data management
   const {

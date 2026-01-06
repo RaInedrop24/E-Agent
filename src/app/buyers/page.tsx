@@ -148,7 +148,17 @@ export default function BuyersPage() {
       }
 
       // Show success message
-      if (result.emailSent) {
+      if (result.existingBuyer) {
+        // Existing buyer was added to this agent's list
+        alert(
+          `✅ ${result.message}\n\n` +
+          `📧 Email: ${newBuyerEmail}\n` +
+          `👤 Name: ${result.buyer.full_name}\n\n` +
+          `ℹ️ This buyer is already registered and can log in with their existing credentials.\n` +
+          `You can now create transactions with this buyer.`
+        );
+      } else if (result.emailSent) {
+        // New buyer created with email sent
         alert(
           `✅ Buyer created successfully!\n\n` +
           `📧 Welcome email sent to: ${newBuyerEmail}\n\n` +
@@ -157,6 +167,7 @@ export default function BuyersPage() {
           `They will be required to change their password on first login.`
         );
       } else if (result.defaultPassword) {
+        // New buyer created but email failed
         alert(
           `✅ Buyer created successfully!\n\n` +
           `⚠️ Email failed to send - please share these credentials manually:\n\n` +

@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
-import { sendBuyerWelcomeEmail } from '@/lib/email-service';
+import { sendBuyerWelcomeEmail, sendBuyerConnectionEmail } from '@/lib/email-service';
 
 // Create admin client with service role key (server-side only)
 const supabaseAdmin = createClient(
@@ -68,9 +68,120 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create user account with a default temporary password
-    // User will login with this password and be forced to change it
-    console.log('[Buyer Creation] Step 1: Creating user account', { email, fullName, preferredLanguage });
+    // ========================================
+    // STEP 1: Check if buyer already exists
+    // ========================================
+    console.log('[Buyer Creation] Step 1: Checking if buyer already exists', { email });
+    
+    const { data: existingProfile, error: profileCheckError } = await supabaseAdmin
+      .from('profiles')
+      .select('id, full_name, email, role')
+      .eq('email', email)
+      .maybeSingle();
+
+    if (profileCheckError) {
+      console.error('[Buyer Creation] Error checking for existing buyer:', profileCheckError);
+      return NextResponse.json(
+        { error: 'Database error checking for existing buyer' },
+        { status: 500 }
+      );
+    }
+
+    // ========================================
+    // SCENARIO A: Buyer EXISTS - Add association only
+    // ========================================
+    if (existingProfile) {
+      console.log('[Buyer Creation] Buyer exists, checking agent association', {
+        buyerId: existingProfile.id,
+        agentId: user.id
+      });
+
+      // Check if this agent already has this buyer
+      const { data: existingAssociation, error: associationCheckError } = await supabaseAdmin
+        .from('buyer_agent_associations')
+        .select('id')
+        .eq('buyer_id', existingProfile.id)
+        .eq('agent_id', user.id)
+        .maybeSingle();
+
+      if (associationCheckError) {
+        console.error('[Buyer Creation] Error checking association:', associationCheckError);
+        return NextResponse.json(
+          { error: 'Database error checking buyer association' },
+          { status: 500 }
+        );
+      }
+
+      // Agent already has this buyer
+      if (existingAssociation) {
+        return NextResponse.json(
+          { error: 'This buyer is already in your list' },
+          { status: 400 }
+        );
+      }
+
+      // Create new association (buyer exists but not for this agent)
+      console.log('[Buyer Creation] Creating new association for existing buyer');
+      const { error: newAssociationError } = await supabaseAdmin
+        .from('buyer_agent_associations')
+        .insert({
+          buyer_id: existingProfile.id,
+          agent_id: user.id,
+        });
+
+      if (newAssociationError) {
+        console.error('[Buyer Creation] Error creating association:', newAssociationError);
+        return NextResponse.json(
+          { error: 'Failed to associate buyer with agent' },
+          { status: 500 }
+        );
+      }
+
+      // Get agent profile for connection notification
+      const { data: agentProfile } = await supabaseAdmin
+        .from('profiles')
+        .select('full_name, email')
+        .eq('id', user.id)
+        .single();
+
+      // Send connection notification email
+      console.log('[Buyer Creation] Sending connection notification email');
+      const emailResult = await sendBuyerConnectionEmail({
+        to: existingProfile.email || email,
+        buyerName: existingProfile.full_name || 'there',
+        agentName: agentProfile?.full_name || 'Your agent',
+        agentEmail: user.email || '',
+        language: (preferredLanguage || 'en') as 'en' | 'it' | 'pl' | 'es' | 'fr' | 'nl' | 'de',
+      });
+
+      if (!emailResult.success) {
+        console.error('[Buyer Creation] Failed to send connection notification:', emailResult.error);
+        // Don't fail the operation if email fails
+      } else {
+        console.log('[Buyer Creation] Connection notification sent successfully');
+      }
+
+      console.log('[Buyer Creation] ✓ Existing buyer added successfully');
+
+      return NextResponse.json({
+        success: true,
+        existingBuyer: true,
+        buyer: {
+          id: existingProfile.id,
+          email: existingProfile.email || email,
+          full_name: existingProfile.full_name,
+        },
+        emailSent: emailResult.success,
+        message: emailResult.success
+          ? `✓ Buyer added to your list! A notification email has been sent to ${email}.`
+          : `✓ Buyer added to your list! This buyer is already registered and can log in with their existing credentials.`,
+      });
+    }
+
+    // ========================================
+    // SCENARIO B: New buyer - Create everything
+    // ========================================
+    console.log('[Buyer Creation] Step 2: Creating new buyer account', { email, fullName, preferredLanguage });
     
     // Simple default password that buyer will change on first login
     const defaultPassword = 'Welcome2026!';
@@ -107,14 +218,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('[Buyer Creation] Step 2: Auth user created successfully', { userId: authData.user.id });
+    console.log('[Buyer Creation] Step 3: Auth user created successfully', { userId: authData.user.id });
 
     // Note: Email will be sent separately with login credentials
     // TODO: Implement custom email with default password and login instructions
 
     // Create profile for the buyer using RPC function
     // This function uses SECURITY DEFINER to bypass RLS policies
-    console.log('[Buyer Creation] Step 3: Creating profile via RPC', { 
+    console.log('[Buyer Creation] Step 4: Creating profile via RPC', { 
       user_id: authData.user.id, 
       full_name: fullName, 
       preferred_language: preferredLanguage || 'en',
@@ -164,10 +275,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('[Buyer Creation] Step 4: Profile created successfully', { profile: profileResult.profile });
+    console.log('[Buyer Creation] Step 5: Profile created successfully', { profile: profileResult.profile });
 
     // Create buyer-agent association using admin client
-    console.log('[Buyer Creation] Step 5: Creating buyer-agent association', {
+    console.log('[Buyer Creation] Step 6: Creating buyer-agent association', {
       buyer_id: authData.user.id,
       agent_id: user.id
     });
@@ -198,10 +309,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('[Buyer Creation] Step 6: Association created successfully');
+    console.log('[Buyer Creation] Step 7: Association created successfully');
 
-    // Step 7: Send welcome email with credentials
-    console.log('[Buyer Creation] Step 7: Sending welcome email');
+    // Step 8: Send welcome email with credentials
+    console.log('[Buyer Creation] Step 8: Sending welcome email');
     const emailResult = await sendBuyerWelcomeEmail({
       to: email,
       fullName,
