@@ -11,6 +11,9 @@ interface SendBuyerWelcomeEmailParams {
   fullName: string;
   password: string;
   language: Language;
+  agentName: string;
+  agentLogoUrl?: string | null;
+  agentPrimaryColor?: string;
 }
 
 interface SendBuyerConnectionEmailParams {
@@ -19,6 +22,8 @@ interface SendBuyerConnectionEmailParams {
   agentName: string;
   agentEmail: string;
   language: Language;
+  agentLogoUrl?: string | null;
+  agentPrimaryColor?: string;
 }
 
 export async function sendBuyerWelcomeEmail(params: SendBuyerWelcomeEmailParams): Promise<{ success: boolean; error?: string }> {
@@ -44,6 +49,9 @@ export async function sendBuyerWelcomeEmail(params: SendBuyerWelcomeEmailParams)
         password: params.password,
         loginUrl,
         language: params.language,
+        agentName: params.agentName,
+        agentLogoUrl: params.agentLogoUrl,
+        agentPrimaryColor: params.agentPrimaryColor,
       });
       subject = result.subject;
       html = result.html;
@@ -108,6 +116,8 @@ export async function sendBuyerConnectionEmail(params: SendBuyerConnectionEmailP
         agentEmail: params.agentEmail,
         loginUrl,
         language: params.language,
+        agentLogoUrl: params.agentLogoUrl,
+        agentPrimaryColor: params.agentPrimaryColor,
       });
       subject = result.subject;
       html = result.html;

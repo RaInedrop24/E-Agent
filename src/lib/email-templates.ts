@@ -8,6 +8,9 @@ interface WelcomeEmailData {
   password: string;
   loginUrl: string;
   language: Language;
+  agentName: string;
+  agentLogoUrl?: string | null;
+  agentPrimaryColor?: string;
 }
 
 const translations = {
@@ -148,12 +151,18 @@ export function generateBuyerWelcomeEmail(data: WelcomeEmailData): { subject: st
       <td align="center" style="padding: 20px 0;">
         <table role="presentation" style="width: 600px; max-width: 100%; border-collapse: collapse; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
           
-          <!-- Header -->
+          <!-- Header with Agent Branding -->
           <tr>
-            <td style="padding: 40px 40px 30px; text-align: center; background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); border-radius: 8px 8px 0 0;">
-              <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700; letter-spacing: -0.5px;">
-                The Property Gateway
+            <td style="padding: 40px 40px 30px; text-align: center; background: linear-gradient(135deg, ${data.agentPrimaryColor || '#2563eb'} 0%, ${data.agentPrimaryColor || '#1e40af'} 100%); border-radius: 8px 8px 0 0;">
+              ${data.agentLogoUrl ? `
+                <img src="${data.agentLogoUrl}" alt="Agent Logo" style="max-width: 200px; max-height: 80px; margin-bottom: 16px; display: block; margin-left: auto; margin-right: auto;">
+              ` : ''}
+              <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 700; letter-spacing: -0.5px;">
+                ${data.agentName}
               </h1>
+              <p style="margin: 8px 0 0; color: rgba(255,255,255,0.9); font-size: 14px;">
+                via The Property Gateway
+              </p>
             </td>
           </tr>
           
@@ -275,6 +284,8 @@ interface ConnectionEmailData {
   agentEmail: string;
   loginUrl: string;
   language: Language;
+  agentLogoUrl?: string | null;
+  agentPrimaryColor?: string;
 }
 
 const connectionTranslations = {
@@ -422,12 +433,21 @@ export function generateBuyerConnectionEmail(data: ConnectionEmailData): { subje
       <td style="padding: 40px 20px;">
         <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
           
-          <!-- Header -->
+          <!-- Header with Agent Branding -->
           <tr>
-            <td style="background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%); padding: 40px; text-align: center; border-radius: 8px 8px 0 0;">
-              <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700;">
-                ${t.title}
+            <td style="background: linear-gradient(135deg, ${data.agentPrimaryColor || '#2563eb'} 0%, ${data.agentPrimaryColor || '#7c3aed'} 100%); padding: 40px; text-align: center; border-radius: 8px 8px 0 0;">
+              ${data.agentLogoUrl ? `
+                <img src="${data.agentLogoUrl}" alt="Agent Logo" style="max-width: 200px; max-height: 80px; margin-bottom: 16px; display: block; margin-left: auto; margin-right: auto;">
+              ` : ''}
+              <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 700;">
+                ${data.agentName}
               </h1>
+              <p style="margin: 8px 0 0; color: rgba(255,255,255,0.9); font-size: 14px;">
+                via The Property Gateway
+              </p>
+              <h2 style="margin: 20px 0 0; color: #ffffff; font-size: 20px; font-weight: 600;">
+                ${t.title}
+              </h2>
             </td>
           </tr>
 

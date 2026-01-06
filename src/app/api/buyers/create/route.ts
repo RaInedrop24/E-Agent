@@ -157,21 +157,26 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // Get agent profile for connection notification
+      // Get agent profile including branding for connection notification
       const { data: agentProfile } = await supabaseAdmin
         .from('profiles')
-        .select('full_name, email')
+        .select('full_name, email, branding_logo_url, branding_settings')
         .eq('id', user.id)
         .single();
 
-      // Send connection notification email
-      console.log('[Buyer Creation] Sending connection notification email');
+      // Extract primary color from branding settings
+      const agentPrimaryColor = agentProfile?.branding_settings?.primary;
+
+      // Send connection notification email with agent branding
+      console.log('[Buyer Creation] Sending connection notification email with agent branding');
       const emailResult = await sendBuyerConnectionEmail({
         to: email,
         buyerName: existingProfile.full_name || 'there',
         agentName: agentProfile?.full_name || 'Your agent',
         agentEmail: user.email || '',
         language: (preferredLanguage || 'en') as 'en' | 'it' | 'pl' | 'es' | 'fr' | 'nl' | 'de',
+        agentLogoUrl: agentProfile?.branding_logo_url,
+        agentPrimaryColor,
       });
 
       if (!emailResult.success) {
@@ -331,13 +336,24 @@ export async function POST(request: NextRequest) {
 
     console.log('[Buyer Creation] Step 7: Association created successfully');
 
-    // Step 8: Send welcome email with credentials
-    console.log('[Buyer Creation] Step 8: Sending welcome email');
+    // Step 8: Get agent branding and send welcome email with credentials
+    console.log('[Buyer Creation] Step 8: Fetching agent branding and sending welcome email');
+    const { data: agentProfileForEmail } = await supabaseAdmin
+      .from('profiles')
+      .select('full_name, branding_logo_url, branding_settings')
+      .eq('id', user.id)
+      .single();
+
+    const agentPrimaryColorForEmail = agentProfileForEmail?.branding_settings?.primary;
+
     const emailResult = await sendBuyerWelcomeEmail({
       to: email,
       fullName,
       password: defaultPassword,
       language: (preferredLanguage || 'en') as 'en' | 'it' | 'pl' | 'es' | 'fr' | 'nl' | 'de',
+      agentName: agentProfileForEmail?.full_name || 'Your agent',
+      agentLogoUrl: agentProfileForEmail?.branding_logo_url,
+      agentPrimaryColor: agentPrimaryColorForEmail,
     });
 
     if (!emailResult.success) {
