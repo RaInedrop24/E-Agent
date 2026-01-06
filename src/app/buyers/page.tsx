@@ -150,11 +150,12 @@ export default function BuyersPage() {
       // Show success message
       if (result.existingBuyer) {
         // Existing buyer was added to this agent's list
+        // Keep message generic to maintain privacy (don't reveal buyer is working with other agents)
         alert(
-          `✅ ${result.message}\n\n` +
+          `✅ Buyer added to your list!\n\n` +
           `📧 Email: ${newBuyerEmail}\n` +
           `👤 Name: ${result.buyer.full_name}\n\n` +
-          `ℹ️ This buyer is already registered and can log in with their existing credentials.\n` +
+          `📧 A notification email has been sent to the buyer.\n` +
           `You can now create transactions with this buyer.`
         );
       } else if (result.emailSent) {

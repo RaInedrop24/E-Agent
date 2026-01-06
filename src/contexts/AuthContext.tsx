@@ -57,8 +57,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // Get initial session
-    supabase.auth.getSession().then((response: AuthResponse) => {
+    // Get initial session and validate it
+    supabase.auth.getSession().then(async (response: AuthResponse) => {
       const initialSession = response.data.session;
       const sessionError = response.error;
       
@@ -76,6 +76,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
         // Log other errors
         console.error('[AuthContext] Session error:', sessionError.message);
+      }
+      
+      // If we have a session, validate it by calling getUser()
+      // This forces Supabase to check if the tokens are actually valid
+      if (initialSession) {
+        const { data: { user: validatedUser }, error: userError } = await supabase.auth.getUser();
+        
+        if (userError || !validatedUser) {
+          // Session is invalid/expired - clear everything
+          console.log('[AuthContext] Session validation failed, clearing...');
+          if (typeof document !== 'undefined') {
+            document.cookie = 'sb-skvfgvlwccxetglmfhpm-auth-token=; path=/; max-age=0';
+          }
+          setSession(null);
+          setUser(null);
+          setLoading(false);
+          return;
+        }
       }
       
       setSession(initialSession);

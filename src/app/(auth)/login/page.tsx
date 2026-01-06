@@ -12,7 +12,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, session, loading: authLoading } = useAuth();
   const { t } = useLanguage();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -38,15 +38,32 @@ export default function LoginPage() {
     }
   }, []);
 
-  // Redirect to dashboard if user is already logged in
+  // Redirect to dashboard if user is already logged in with valid session
+  // Wait for auth to finish loading to avoid race conditions
   useEffect(() => {
-    if (user) {
+    if (!authLoading && user && session) {
       router.push("/dashboard");
     }
-  }, [user, router]);
+  }, [user, session, authLoading, router]);
+
+  // Show loading state while auth is initializing
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="flex items-center justify-center p-8">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+              <p className="mt-4 text-sm text-gray-600">Loading...</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   // Don't render form if user is already logged in (will redirect)
-  if (user) {
+  if (user && session) {
     return null;
   }
 

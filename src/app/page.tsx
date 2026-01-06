@@ -12,15 +12,16 @@ import { motion } from 'framer-motion';
 
 export default function Home() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, session, loading } = useAuth();
   const { t } = useLanguage();
 
-  // Redirect logged-in users to dashboard instead of logging them out
+  // Redirect logged-in users to dashboard (only if valid session exists)
+  // Wait for auth to finish loading to avoid race conditions with expired sessions
   useEffect(() => {
-    if (user) {
+    if (!loading && user && session) {
       router.push('/dashboard');
     }
-  }, [user, router]);
+  }, [user, session, loading, router]);
 
   return (
     <div className="min-h-screen bg-gray-50">
