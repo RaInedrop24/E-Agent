@@ -153,7 +153,7 @@ export function generateBuyerWelcomeEmail(data: WelcomeEmailData): { subject: st
           
           <!-- Header with Agent Branding -->
           <tr>
-            <td style="padding: 40px 40px 30px; text-align: center; background: linear-gradient(135deg, ${data.agentPrimaryColor || '#2563eb'} 0%, ${data.agentPrimaryColor || '#1e40af'} 100%); border-radius: 8px 8px 0 0;">
+            <td style="padding: 40px 40px 30px; text-align: center; background: ${data.agentPrimaryColor ? `linear-gradient(135deg, ${data.agentPrimaryColor} 0%, ${data.agentPrimaryColor} 100%)` : 'linear-gradient(135deg, #2563eb 0%, #1e40af 100%)'}; border-radius: 8px 8px 0 0;">
               ${data.agentLogoUrl ? `
                 <img src="${data.agentLogoUrl}" alt="Agent Logo" style="max-width: 200px; max-height: 80px; margin-bottom: 16px; display: block; margin-left: auto; margin-right: auto;">
               ` : ''}
@@ -435,7 +435,7 @@ export function generateBuyerConnectionEmail(data: ConnectionEmailData): { subje
           
           <!-- Header with Agent Branding -->
           <tr>
-            <td style="background: linear-gradient(135deg, ${data.agentPrimaryColor || '#2563eb'} 0%, ${data.agentPrimaryColor || '#7c3aed'} 100%); padding: 40px; text-align: center; border-radius: 8px 8px 0 0;">
+            <td style="background: ${data.agentPrimaryColor ? `linear-gradient(135deg, ${data.agentPrimaryColor} 0%, ${data.agentPrimaryColor} 100%)` : 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)'}; padding: 40px; text-align: center; border-radius: 8px 8px 0 0;">
               ${data.agentLogoUrl ? `
                 <img src="${data.agentLogoUrl}" alt="Agent Logo" style="max-width: 200px; max-height: 80px; margin-bottom: 16px; display: block; margin-left: auto; margin-right: auto;">
               ` : ''}

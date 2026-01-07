@@ -39,6 +39,14 @@ export async function sendBuyerWelcomeEmail(params: SendBuyerWelcomeEmailParams)
     const resend = new Resend(apiKey);
     const loginUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://thepropertygateway.com'}/login`;
 
+    // Log branding data for debugging
+    console.log('[Email Service] Branding data:', {
+      agentName: params.agentName,
+      agentLogoUrl: params.agentLogoUrl ? 'SET' : 'NULL',
+      agentPrimaryColor: params.agentPrimaryColor || 'NULL',
+      logoUrlLength: params.agentLogoUrl?.length || 0,
+    });
+
     // Generate multilingual email template
     // Note: Using separate variable declarations instead of destructuring to avoid scope issues
     let subject, html;
@@ -55,9 +63,10 @@ export async function sendBuyerWelcomeEmail(params: SendBuyerWelcomeEmailParams)
       });
       subject = result.subject;
       html = result.html;
+      console.log('[Email Service] ✓ Template generated successfully, HTML length:', html.length);
     } catch (templateError: any) {
-      console.error('[Email Service] Template generation failed:', templateError.message);
-      throw templateError;
+      console.error('[Email Service] ✗ Template generation failed:', templateError.message, templateError.stack);
+      return { success: false, error: `Template generation failed: ${templateError.message}` };
     }
 
     console.log('[Email Service] Sending welcome email to', params.to);
@@ -107,6 +116,13 @@ export async function sendBuyerConnectionEmail(params: SendBuyerConnectionEmailP
     const resend = new Resend(apiKey);
     const loginUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://thepropertygateway.com'}/login`;
 
+    // Log branding data for debugging
+    console.log('[Email Service] Connection email branding data:', {
+      agentName: params.agentName,
+      agentLogoUrl: params.agentLogoUrl ? 'SET' : 'NULL',
+      agentPrimaryColor: params.agentPrimaryColor || 'NULL',
+    });
+
     // Generate multilingual connection email
     let subject, html;
     try {
@@ -121,9 +137,10 @@ export async function sendBuyerConnectionEmail(params: SendBuyerConnectionEmailP
       });
       subject = result.subject;
       html = result.html;
+      console.log('[Email Service] ✓ Connection template generated successfully, HTML length:', html.length);
     } catch (templateError: any) {
-      console.error('[Email Service] Connection template generation failed:', templateError.message);
-      throw templateError;
+      console.error('[Email Service] ✗ Connection template generation failed:', templateError.message, templateError.stack);
+      return { success: false, error: `Template generation failed: ${templateError.message}` };
     }
 
     console.log('[Email Service] Sending connection notification to', params.to);
