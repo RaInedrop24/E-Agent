@@ -39,21 +39,7 @@ export async function sendBuyerWelcomeEmail(params: SendBuyerWelcomeEmailParams)
     const resend = new Resend(apiKey);
     const loginUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://thepropertygateway.com'}/login`;
 
-    // Log branding data for debugging
-    console.log('[Email Service] Branding data:', {
-      agentName: params.agentName,
-      agentLogoUrl: params.agentLogoUrl ? 'SET' : 'NULL',
-      agentPrimaryColor: params.agentPrimaryColor || 'NULL',
-      logoUrlLength: params.agentLogoUrl?.length || 0,
-    });
-    console.log('[Email Service] loginUrl value:', loginUrl);
-    console.log('[Email Service] All data for template:', {
-      fullName: params.fullName,
-      email: params.to,
-      password: params.password,
-      loginUrl: loginUrl,
-      language: params.language,
-    });
+    // Branding and template data prepared
 
     // Generate multilingual email template
     // Note: Using separate variable declarations instead of destructuring to avoid scope issues
@@ -70,20 +56,15 @@ export async function sendBuyerWelcomeEmail(params: SendBuyerWelcomeEmailParams)
         agentLogoUrl: params.agentLogoUrl,
         agentPrimaryColor: params.agentPrimaryColor,
       };
-      console.log('[Email Service] Template data keys:', Object.keys(templateData));
-      
       const result = generateBuyerWelcomeEmail(templateData);
       subject = result.subject;
       html = result.html;
-      console.log('[Email Service] ✓ Template generated successfully, HTML length:', html.length);
     } catch (templateError: any) {
       console.error('[Email Service] ✗ Template generation failed:', templateError.message, templateError.stack);
       return { success: false, error: `Template generation failed: ${templateError.message}` };
     }
 
-    console.log('[Email Service] Sending welcome email to', params.to);
-
-    // Send email via Resend (matching existing notification pattern)
+    // Send email via Resend
     const emailFrom = 'Welcome <Welcome@mail.thepropertygateway.com>';
     
     const { data, error } = await resend.emails.send({
@@ -94,14 +75,13 @@ export async function sendBuyerWelcomeEmail(params: SendBuyerWelcomeEmailParams)
     });
 
     if (error) {
-      console.error('[Email Service] Failed to send email:', error.message, { to: params.to });
+      console.error('[Email Service] Failed to send welcome email:', error.message);
       return { 
         success: false, 
         error: error.message || 'Failed to send email' 
       };
     }
 
-    console.log('[Email Service] ✓ Email sent successfully to', params.to);
     return { success: true };
     
   } catch (error: any) {
@@ -128,13 +108,6 @@ export async function sendBuyerConnectionEmail(params: SendBuyerConnectionEmailP
     const resend = new Resend(apiKey);
     const loginUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://thepropertygateway.com'}/login`;
 
-    // Log branding data for debugging
-    console.log('[Email Service] Connection email branding data:', {
-      agentName: params.agentName,
-      agentLogoUrl: params.agentLogoUrl ? 'SET' : 'NULL',
-      agentPrimaryColor: params.agentPrimaryColor || 'NULL',
-    });
-
     // Generate multilingual connection email
     let subject, html;
     try {
@@ -149,13 +122,10 @@ export async function sendBuyerConnectionEmail(params: SendBuyerConnectionEmailP
       });
       subject = result.subject;
       html = result.html;
-      console.log('[Email Service] ✓ Connection template generated successfully, HTML length:', html.length);
     } catch (templateError: any) {
-      console.error('[Email Service] ✗ Connection template generation failed:', templateError.message, templateError.stack);
+      console.error('[Email Service] Connection template generation failed:', templateError.message);
       return { success: false, error: `Template generation failed: ${templateError.message}` };
     }
-
-    console.log('[Email Service] Sending connection notification to', params.to);
 
     // Send email via Resend
     const emailFrom = 'The Property Gateway <notifications@mail.thepropertygateway.com>';
@@ -168,14 +138,13 @@ export async function sendBuyerConnectionEmail(params: SendBuyerConnectionEmailP
     });
 
     if (error) {
-      console.error('[Email Service] Failed to send connection email:', error.message, { to: params.to });
+      console.error('[Email Service] Failed to send connection email:', error.message);
       return { 
         success: false, 
         error: error.message || 'Failed to send email' 
       };
     }
 
-    console.log('[Email Service] ✓ Connection notification sent successfully to', params.to);
     return { success: true };
     
   } catch (error: any) {

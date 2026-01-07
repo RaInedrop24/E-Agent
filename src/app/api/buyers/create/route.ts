@@ -68,10 +68,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // ========================================
-    // STEP 1: Check if buyer already exists
-    // ========================================
-    console.log('[Buyer Creation] Step 1: Checking if buyer already exists', { email });
+    // Check if buyer already exists
     
     // Use listUsers to check if email exists (filter by email)
     const { data: userList, error: listError } = await supabaseAdmin.auth.admin.listUsers();
@@ -111,10 +108,7 @@ export async function POST(request: NextRequest) {
     // SCENARIO A: Buyer EXISTS - Add association only
     // ========================================
     if (existingProfile) {
-      console.log('[Buyer Creation] Buyer exists, checking agent association', {
-        buyerId: existingProfile.id,
-        agentId: user.id
-      });
+      // Buyer exists, check agent association
 
       // Check if this agent already has this buyer
       const { data: existingAssociation, error: associationCheckError } = await supabaseAdmin
@@ -141,7 +135,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Create new association (buyer exists but not for this agent)
-      console.log('[Buyer Creation] Creating new association for existing buyer');
+      // Create new association for existing buyer
       const { error: newAssociationError } = await supabaseAdmin
         .from('buyer_agent_associations')
         .insert({
@@ -168,7 +162,7 @@ export async function POST(request: NextRequest) {
       const agentPrimaryColor = agentProfile?.branding_settings?.primary;
 
       // Send connection notification email with agent branding
-      console.log('[Buyer Creation] Sending connection notification email with agent branding');
+      // Send connection notification email
       const emailResult = await sendBuyerConnectionEmail({
         to: email,
         buyerName: existingProfile.full_name || 'there',
@@ -182,11 +176,7 @@ export async function POST(request: NextRequest) {
       if (!emailResult.success) {
         console.error('[Buyer Creation] Failed to send connection notification:', emailResult.error);
         // Don't fail the operation if email fails
-      } else {
-        console.log('[Buyer Creation] Connection notification sent successfully');
       }
-
-      console.log('[Buyer Creation] ✓ Existing buyer added successfully');
 
       return NextResponse.json({
         success: true,
@@ -204,9 +194,7 @@ export async function POST(request: NextRequest) {
     }
 
     // ========================================
-    // SCENARIO B: New buyer - Create everything
-    // ========================================
-    console.log('[Buyer Creation] Step 2: Creating new buyer account', { email, fullName, preferredLanguage });
+    // Create new buyer account
     
     // Simple default password that buyer will change on first login
     const defaultPassword = 'Welcome2026!';
@@ -243,19 +231,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('[Buyer Creation] Step 3: Auth user created successfully', { userId: authData.user.id });
+    // Auth user created
 
     // Note: Email will be sent separately with login credentials
     // TODO: Implement custom email with default password and login instructions
 
     // Create profile for the buyer using RPC function
     // This function uses SECURITY DEFINER to bypass RLS policies
-    console.log('[Buyer Creation] Step 4: Creating profile via RPC', { 
-      user_id: authData.user.id, 
-      full_name: fullName, 
-      preferred_language: preferredLanguage || 'en',
-      role: 'buyer'
-    });
+    // Create profile via RPC
     
     const { data: profileResult, error: buyerProfileError } = await supabaseAdmin
       .rpc('create_profile_for_user', {
@@ -300,13 +283,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('[Buyer Creation] Step 5: Profile created successfully', { profile: profileResult.profile });
+    // Profile created successfully
 
     // Create buyer-agent association using admin client
-    console.log('[Buyer Creation] Step 6: Creating buyer-agent association', {
-      buyer_id: authData.user.id,
-      agent_id: user.id
-    });
+    // Create buyer-agent association
     const { error: associationError } = await supabaseAdmin
       .from('buyer_agent_associations')
       .insert({
@@ -334,10 +314,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('[Buyer Creation] Step 7: Association created successfully');
-
-    // Step 8: Get agent branding and send welcome email with credentials
-    console.log('[Buyer Creation] Step 8: Fetching agent branding and sending welcome email');
+    // Association created - send welcome email
     const { data: agentProfileForEmail } = await supabaseAdmin
       .from('profiles')
       .select('full_name, branding_logo_url, branding_settings')
@@ -359,8 +336,6 @@ export async function POST(request: NextRequest) {
     if (!emailResult.success) {
       console.error('[Buyer Creation] Failed to send welcome email:', emailResult.error);
       // Don't fail the whole operation if email fails - agent can manually share credentials
-    } else {
-      console.log('[Buyer Creation] Welcome email sent successfully');
     }
 
     return NextResponse.json({
