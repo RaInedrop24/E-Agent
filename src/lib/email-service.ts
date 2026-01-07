@@ -46,21 +46,33 @@ export async function sendBuyerWelcomeEmail(params: SendBuyerWelcomeEmailParams)
       agentPrimaryColor: params.agentPrimaryColor || 'NULL',
       logoUrlLength: params.agentLogoUrl?.length || 0,
     });
+    console.log('[Email Service] loginUrl value:', loginUrl);
+    console.log('[Email Service] All data for template:', {
+      fullName: params.fullName,
+      email: params.to,
+      password: params.password,
+      loginUrl: loginUrl,
+      language: params.language,
+    });
 
     // Generate multilingual email template
     // Note: Using separate variable declarations instead of destructuring to avoid scope issues
     let subject, html;
     try {
-      const result = generateBuyerWelcomeEmail({
+      // Explicitly construct data object with all fields
+      const templateData = {
         fullName: params.fullName,
         email: params.to,
         password: params.password,
-        loginUrl,
+        loginUrl: loginUrl, // Explicitly assign
         language: params.language,
         agentName: params.agentName,
         agentLogoUrl: params.agentLogoUrl,
         agentPrimaryColor: params.agentPrimaryColor,
-      });
+      };
+      console.log('[Email Service] Template data keys:', Object.keys(templateData));
+      
+      const result = generateBuyerWelcomeEmail(templateData);
       subject = result.subject;
       html = result.html;
       console.log('[Email Service] ✓ Template generated successfully, HTML length:', html.length);
