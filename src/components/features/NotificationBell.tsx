@@ -41,6 +41,7 @@ export function NotificationBell() {
 
   useEffect(() => {
     let isMounted = true;
+    let channel: any = null;
 
     const fetchNotifications = async () => {
       try {
@@ -82,44 +83,55 @@ export function NotificationBell() {
       }
     };
 
+    const setupRealtimeSubscription = async () => {
+      if (!supabase) return;
+
+      // Get current user ID for filtering
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session || !isMounted) return;
+
+      const userId = session.user.id;
+
+      // Set up Realtime subscription for new notifications
+      channel = supabase
+        .channel('user_notifications')
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'user_notifications',
+            filter: `user_id=eq.${userId}`, // 🔥 PERFORMANCE FIX: Only listen to MY notifications
+          },
+          () => {
+            // New notification received - refresh
+            if (isMounted) fetchNotifications();
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'user_notifications',
+            filter: `user_id=eq.${userId}`, // 🔥 PERFORMANCE FIX: Only listen to MY notifications
+          },
+          () => {
+            // Notification updated (probably marked as read) - refresh
+            if (isMounted) fetchNotifications();
+          }
+        )
+        .subscribe();
+    };
+
     fetchNotifications();
-
-    // Set up Realtime subscription for new notifications
-    if (!supabase) return;
-
-    const channel = supabase
-      .channel('user_notifications')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'user_notifications',
-          filter: `user_id=eq.${user.id}`, // 🔥 PERFORMANCE FIX: Only listen to MY notifications
-        },
-        () => {
-          // New notification received - refresh
-          if (isMounted) fetchNotifications();
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'user_notifications',
-          filter: `user_id=eq.${user.id}`, // 🔥 PERFORMANCE FIX: Only listen to MY notifications
-        },
-        () => {
-          // Notification updated (probably marked as read) - refresh
-          if (isMounted) fetchNotifications();
-        }
-      )
-      .subscribe();
+    setupRealtimeSubscription();
 
     return () => {
       isMounted = false;
-      supabase.removeChannel(channel);
+      if (channel && supabase) {
+        supabase.removeChannel(channel);
+      }
     };
   }, []);
 
