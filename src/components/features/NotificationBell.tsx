@@ -95,6 +95,7 @@ export function NotificationBell() {
           event: 'INSERT',
           schema: 'public',
           table: 'user_notifications',
+          filter: `user_id=eq.${user.id}`, // 🔥 PERFORMANCE FIX: Only listen to MY notifications
         },
         () => {
           // New notification received - refresh
@@ -107,6 +108,7 @@ export function NotificationBell() {
           event: 'UPDATE',
           schema: 'public',
           table: 'user_notifications',
+          filter: `user_id=eq.${user.id}`, // 🔥 PERFORMANCE FIX: Only listen to MY notifications
         },
         () => {
           // Notification updated (probably marked as read) - refresh
