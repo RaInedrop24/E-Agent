@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ConditionalHeader } from "@/components/layout/ConditionalHeader";
+import { CookieBanner } from "@/components/layout/CookieBanner";
+import { Footer } from "@/components/layout/Footer";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { BrandingProvider } from "@/contexts/BrandingContext";
@@ -89,6 +91,8 @@ export default function RootLayout({
               <main id="main-content">
                 {children}
               </main>
+              <Footer />
+              <CookieBanner />
               <Toaster position="top-right" richColors />
             </LanguageProvider>
           </BrandingProvider>

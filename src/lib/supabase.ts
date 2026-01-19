@@ -21,7 +21,7 @@ export const supabase =
         flowType: 'pkce',
         detectSessionInUrl: true,
         persistSession: true,
-        autoRefreshToken: true,
+        autoRefreshToken: false,
       },
     })
     : (undefined as any);

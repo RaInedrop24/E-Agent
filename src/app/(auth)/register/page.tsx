@@ -158,6 +158,17 @@ export default function RegisterPage() {
           <Button className="w-full" type="button" onClick={onSubmit} disabled={loading}>
             {loading ? t('auth.creatingAccount') : t('auth.registerAsAgentButton')}
           </Button>
+          <p className="text-xs text-muted-foreground">
+            {t('legal.registrationPrefix')}{' '}
+            <Link className="underline" href="/terms">
+              {t('legal.termsOfService')}
+            </Link>{' '}
+            {t('legal.registrationAnd')}{' '}
+            <Link className="underline" href="/privacy">
+              {t('legal.privacyPolicy')}
+            </Link>
+            .
+          </p>
           <p className="text-sm text-muted-foreground">
             {t('auth.alreadyHaveAccount')}{" "}
             <Link className="underline" href="/login">

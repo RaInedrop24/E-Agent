@@ -49,6 +49,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const clearStoredSession = () => {
+    if (typeof document !== 'undefined') {
+      document.cookie = 'sb-skvfgvlwccxetglmfhpm-auth-token=; path=/; max-age=0';
+    }
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem('sb-skvfgvlwccxetglmfhpm-auth-token');
+    }
+    if (supabase) {
+      supabase.auth.stopAutoRefresh();
+    }
+  };
+
   useEffect(() => {
     // Check if supabase is configured
     if (!supabase) {
@@ -57,67 +69,86 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // Get initial session and validate it
-    supabase.auth.getSession().then(async (response: AuthResponse) => {
-      const initialSession = response.data.session;
-      const sessionError = response.error;
-      
-      // Handle refresh token errors silently - just clear the session
-      if (sessionError) {
-        if (sessionError.message?.includes('Refresh Token') || sessionError.message?.includes('refresh_token')) {
-          // Silently clear invalid session
-          if (typeof document !== 'undefined') {
-            document.cookie = 'sb-skvfgvlwccxetglmfhpm-auth-token=; path=/; max-age=0';
-          }
-          setSession(null);
-          setUser(null);
-          setLoading(false);
-          return;
-        }
-        // Log other errors
-        console.error('[AuthContext] Session error:', sessionError.message);
-      }
-      
-      // If we have a session, validate it by calling getUser()
-      // This forces Supabase to check if the tokens are actually valid
-      if (initialSession) {
-        const { data: { user: validatedUser }, error: userError } = await supabase.auth.getUser();
+    const hasStoredSession =
+      typeof window !== 'undefined' &&
+      !!window.localStorage.getItem('sb-skvfgvlwccxetglmfhpm-auth-token');
+
+    if (hasStoredSession) {
+      // Get initial session and validate it
+      supabase.auth.getSession().then(async (response: AuthResponse) => {
+        const initialSession = response.data.session;
+        const sessionError = response.error;
         
-        if (userError || !validatedUser) {
-          // Session is invalid/expired - clear everything
-          console.log('[AuthContext] Session validation failed, clearing...');
-          if (typeof document !== 'undefined') {
-            document.cookie = 'sb-skvfgvlwccxetglmfhpm-auth-token=; path=/; max-age=0';
+        // Handle refresh token errors silently - just clear the session
+        if (sessionError) {
+          if (sessionError.message?.includes('Refresh Token') || sessionError.message?.includes('refresh_token')) {
+            // Silently clear invalid session
+            clearStoredSession();
+            setSession(null);
+            setUser(null);
+            setLoading(false);
+            return;
           }
-          setSession(null);
-          setUser(null);
-          setLoading(false);
-          return;
+          // Log other errors
+          console.error('[AuthContext] Session error:', sessionError.message);
         }
-      }
-      
-      setSession(initialSession);
-      setUser(initialSession?.user ?? null);
+        
+        // If we have a session, validate it by calling getUser()
+        // This forces Supabase to check if the tokens are actually valid
+        if (initialSession) {
+          const { data: { user: validatedUser }, error: userError } = await supabase.auth.getUser();
+          
+          if (userError || !validatedUser) {
+            // Session is invalid/expired - clear everything
+            console.log('[AuthContext] Session validation failed, clearing...');
+            clearStoredSession();
+            setSession(null);
+            setUser(null);
+            setLoading(false);
+            return;
+          }
+        }
+        
+        setSession(initialSession);
+        setUser(initialSession?.user ?? null);
 
-      // Set cookie for middleware to access
-      if (initialSession && typeof document !== 'undefined') {
-        document.cookie = `sb-skvfgvlwccxetglmfhpm-auth-token=${JSON.stringify({
-          access_token: initialSession.access_token,
-          refresh_token: initialSession.refresh_token,
-        })}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
-        console.log('[AuthContext] Initial cookie set');
-      }
+        // Set cookie for middleware to access
+        if (initialSession && typeof document !== 'undefined') {
+          document.cookie = `sb-skvfgvlwccxetglmfhpm-auth-token=${JSON.stringify({
+            access_token: initialSession.access_token,
+            refresh_token: initialSession.refresh_token,
+          })}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
+          console.log('[AuthContext] Initial cookie set');
+        }
 
-      if (initialSession?.user) {
-        fetchProfile(initialSession.user.id);
-      } else {
+        if (initialSession?.user) {
+          supabase.auth.startAutoRefresh();
+          fetchProfile(initialSession.user.id);
+        } else {
+          supabase.auth.stopAutoRefresh();
+          setLoading(false);
+        }
+      }).catch((err: unknown) => {
+        // Catch any unexpected errors
+        const message = err instanceof Error ? err.message : String(err);
+        console.error('[AuthContext] Unexpected error getting session:', err);
+
+        if (
+          message.includes('Failed to fetch') ||
+          message.includes('ERR_NAME_NOT_RESOLVED')
+        ) {
+          clearStoredSession();
+        }
+
         setLoading(false);
-      }
-    }).catch((err: unknown) => {
-      // Catch any unexpected errors
-      console.error('[AuthContext] Unexpected error getting session:', err);
+      });
+    } else {
+      supabase.auth.stopAutoRefresh();
+      setSession(null);
+      setUser(null);
+      setProfile(null);
       setLoading(false);
-    });
+    }
 
     // Listen for auth state changes
     const {
@@ -140,8 +171,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (currentSession?.user) {
+        supabase.auth.startAutoRefresh();
         fetchProfile(currentSession.user.id);
       } else {
+        supabase.auth.stopAutoRefresh();
         setProfile(null);
         setLoading(false);
       }

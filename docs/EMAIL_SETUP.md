@@ -77,7 +77,7 @@ Emails are automatically sent in the buyer's preferred language:
 
 The welcome email includes:
 - Greeting in buyer's language
-- Login credentials (email + default password: `Welcome2026!`)
+- Login credentials (email + a temporary password generated per buyer)
 - Direct link to login page
 - Security notice about required password change
 - Professional formatting matching the site design
@@ -103,7 +103,7 @@ If email fails, the agent sees an alert with credentials to share manually:
 ⚠️ Email failed to send - please share these credentials manually:
 
 Email: buyer@example.com
-Default Password: Welcome2026!
+Temporary Password: (generated during buyer creation)
 ```
 
 ---
@@ -122,7 +122,7 @@ For most real estate agencies, the free tier should be sufficient.
 
 - API keys should NEVER be committed to Git
 - Always use environment variables
-- The default password is only temporary - users must change it on first login
+- The temporary password is unique per buyer and must be changed on first login
 - Emails contain sensitive information - ensure your domain is properly secured
 
 ---

@@ -1,0 +1,388 @@
+# Estate Agent Portal - Project Documentation
+
+**Project Name:** Estate Agent Portal
+**Type:** Next.js 16 + Supabase Full-Stack Application
+**Primary Use Case:** Property transaction management for estate agents and buyers
+**Target Market:** European Union (GDPR compliance required)
+
+---
+
+## Quick Links
+
+- **Backlog:** [/backlog/backlog_features.md](backlog/backlog_features.md)
+- **Backlog Methodology:** [/backlog/README.md](backlog/README.md)
+- **Tech Stack:** Next.js 16, React 19, TypeScript, Supabase, Tailwind CSS
+- **Database:** PostgreSQL (via Supabase)
+- **Authentication:** Supabase Auth (PKCE flow)
+
+---
+
+## For AI Agents (Claude Code)
+
+### Backlog Management System
+
+This project uses a **structured backlog system** for feature tracking. Before proposing or implementing any new feature:
+
+1. **Check existing backlog:** Review [backlog/backlog_features.md](backlog/backlog_features.md) to avoid duplicates
+
+2. **Add new features to backlog:**
+   ```
+   - Create folder: backlog/features/{next-id}-{feature-name}/
+   - Create README.md (feature overview, user story, acceptance criteria)
+   - Create technical-analysis.md (if complex feature)
+   - Create implementation-plan.md (step-by-step guide)
+   - Update backlog/backlog_features.md index
+   ```
+
+3. **Priority Levels:**
+   - **P0 (Critical):** Security, legal compliance, data loss prevention
+   - **P1 (High):** Core functionality, major user impact
+   - **P2 (Medium):** Important enhancements
+   - **P3 (Low):** Nice-to-have features
+
+4. **See full methodology:** [backlog/README.md](backlog/README.md)
+
+---
+
+## Project Structure
+
+```
+estate-portal/
+├── src/
+│   ├── app/                    # Next.js App Router
+│   │   ├── (auth)/             # Auth-related pages
+│   │   ├── api/                # API routes
+│   │   ├── dashboard/          # Dashboard pages
+│   │   ├── profile/            # Profile pages
+│   │   └── transaction/        # Transaction pages
+│   ├── components/             # React components
+│   │   └── ui/                 # shadcn/ui components
+│   ├── lib/                    # Utilities
+│   │   ├── supabase.ts         # Supabase client config
+│   │   └── utils.ts            # Helper functions
+│   └── types/                  # TypeScript types
+├── supabase/
+│   ├── migrations/             # Database migrations (chronological)
+│   ├── setup_branding_storage.sql
+│   └── (other setup scripts)
+├── backlog/                    # ⭐ BACKLOG SYSTEM
+│   ├── README.md               # Backlog methodology
+│   ├── backlog_features.md     # Main feature index
+│   └── features/               # Individual feature folders
+│       └── 001-sensitive-pii-storage/
+├── public/                     # Static assets
+├── tests/                      # Test files
+├── .claude_project             # This file
+└── (config files)
+```
+
+---
+
+## Key Technical Details
+
+### Database Tables (Supabase/PostgreSQL)
+
+**User Management:**
+- `profiles` - User profiles (agents, buyers, super_admins)
+- `buyer_agent_associations` - Links buyers to their managing agent
+
+**Transaction Management:**
+- `transactions` - Property transactions
+- `transaction_participants` - Many-to-many (users ↔ transactions)
+- `milestones` - Progress tracking with multilingual labels
+- `messages` - Transaction messaging with translation support
+- `files` - Document attachments
+
+**Admin & System:**
+- `milestone_templates` - Reusable templates
+- `system_announcements` - Admin announcements
+- `user_notifications` - Notification system
+- `admin_audit_log` - Audit trail for admin actions
+
+**Future (Backlog Feature 001):**
+- `buyer_identity_documents` - Encrypted PII storage
+- `pii_access_log` - Access audit trail
+- `user_consents` - GDPR consent tracking
+
+### Security Architecture
+
+**Row Level Security (RLS):**
+- ✅ All tables have RLS policies
+- ✅ Users can only access their own data + related transactions
+- ✅ Agents can access their assigned buyers
+- ✅ Super admins have full access (logged)
+
+**Authentication:**
+- ✅ Supabase Auth with PKCE flow
+- ✅ Email verification required
+- ✅ Role-based access control (agent, buyer, super_admin)
+
+**Current Gaps (See Backlog Feature 001):**
+- ❌ No application-level encryption for PII
+- ❌ No GDPR data export feature
+- ❌ No account deletion workflow
+- ❌ No consent management system
+
+### API Architecture
+
+**API Routes Pattern:**
+```typescript
+// Standard pattern in src/app/api/**/route.ts
+
+1. Authenticate user with Supabase auth.getUser()
+2. Check user role/permissions
+3. Validate input (preferably with Zod)
+4. Execute operation (use service role for admin ops)
+5. Return response
+```
+
+**Key API Routes:**
+- `/api/buyers/create` - Agents create buyer accounts
+- `/api/transactions/[id]/*` - Transaction CRUD
+- `/api/milestones/*` - Milestone management
+- `/api/messages/*` - Messaging with translation
+- `/api/admin/*` - Super admin operations
+
+### Environment Variables
+
+**Required:**
+```bash
+# Supabase (Public)
+NEXT_PUBLIC_SUPABASE_URL=https://skvfgvlwccxetglmfhpm.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbG...
+
+# Supabase (Server-only)
+SUPABASE_SERVICE_ROLE_KEY=eyJhbG...  # ⚠️ NEVER expose to client
+SUPABASE_PROJECT_REF=skvfgvlwccxetglmfhpm
+SUPABASE_MANAGEMENT_TOKEN=sbp_...     # For Management API
+
+# External Services
+DEEPL_API_KEY=...                     # Translation
+TWILIO_SID=...                        # SMS notifications
+TWILIO_AUTH_TOKEN=...
+TWILIO_PHONE_NUMBER=...
+RESEND_API_KEY=...                    # Email service
+GEMINI_API_KEY=...                    # Google Generative AI
+```
+
+---
+
+## Development Workflow
+
+### Starting the Dev Server
+
+```bash
+cd estate-portal
+npm install
+npm run dev
+# Open http://localhost:3000
+```
+
+### Database Migrations
+
+```bash
+# Create new migration
+npx supabase migration new <migration_name>
+
+# Push to Supabase
+npx supabase db push
+
+# Reset database (⚠️ destructive)
+npx supabase db reset
+```
+
+### Testing
+
+```bash
+# E2E tests (Playwright)
+npx playwright test
+
+# Run specific test
+npx playwright test tests/e2e/transaction.spec.ts
+```
+
+### Git Workflow
+
+```bash
+# Feature branch
+git checkout -b feature/001-feature-name
+
+# Commit (reference backlog feature ID)
+git commit -m "[001] Implement feature XYZ"
+
+# Push and create PR
+git push origin feature/001-feature-name
+gh pr create --title "[001] Feature Name"
+```
+
+---
+
+## Important Conventions
+
+### File Naming
+
+- **React Components:** PascalCase (e.g., `TransactionCard.tsx`)
+- **Utilities:** kebab-case (e.g., `format-date.ts`)
+- **API Routes:** kebab-case folders (e.g., `api/buyers/create/route.ts`)
+
+### Database Migrations
+
+- **Naming:** `YYYYMMDD_description.sql` (e.g., `20260108_add_pii_encryption.sql`)
+- **Always:** Include rollback comments
+- **Test:** In staging before production
+
+### Code Style
+
+- **TypeScript:** Strict mode enabled
+- **ESLint:** Enforced via Husky pre-commit hooks
+- **Formatting:** Follow Next.js conventions
+- **Comments:** Only where logic is non-obvious
+
+---
+
+## Common Tasks for Agents
+
+### Task: "Add a new feature"
+
+1. ✅ Check backlog for existing/similar features
+2. ✅ Create feature folder in `backlog/features/`
+3. ✅ Write technical analysis
+4. ✅ Estimate effort and priority
+5. ✅ Update `backlog/backlog_features.md`
+6. ✅ Ask user for approval before implementing
+7. ✅ Create feature branch
+8. ✅ Implement with tests
+9. ✅ Create PR referencing backlog feature
+10. ✅ Update backlog status to "Completed" after merge
+
+### Task: "Fix a bug"
+
+1. ✅ Identify root cause (use Read, Grep, LSP tools)
+2. ✅ Check if bug is security-related (priority P0)
+3. ✅ Propose fix with explanation
+4. ✅ Implement fix
+5. ✅ Add regression test
+6. ✅ Commit with descriptive message
+
+### Task: "Review security"
+
+1. ✅ Check RLS policies are enabled on all tables
+2. ✅ Verify authentication on API routes
+3. ✅ Look for sensitive data exposure
+4. ✅ Check for SQL injection/XSS vulnerabilities
+5. ✅ Review service role key usage
+6. ✅ Document findings in backlog if major changes needed
+
+### Task: "Update documentation"
+
+1. ✅ Update this file (.claude_project) for major changes
+2. ✅ Update backlog feature READMEs
+3. ✅ Update user-facing docs (if applicable)
+4. ✅ Add code comments for complex logic
+
+---
+
+## GDPR Compliance (CRITICAL)
+
+**⚠️ This project targets the EU market - GDPR compliance is mandatory**
+
+**Current Status:**
+- ✅ Strong authentication and authorization
+- ✅ RLS policies limit data access
+- ✅ Audit logging for admin actions
+- ❌ **NO application-level encryption** (see Backlog Feature 001)
+- ❌ **NO data export feature** (GDPR Article 20 violation)
+- ❌ **NO account deletion** (GDPR Article 17 violation)
+
+**Before enabling PII storage (NI numbers, passports, addresses):**
+- ⚠️ **MUST implement Backlog Feature 001** (Sensitive PII Storage & GDPR Compliance)
+- ⚠️ Legal review required
+- ⚠️ Penetration testing required
+- ⚠️ Data Processing Agreements with all third parties
+
+**See:** [backlog/features/001-sensitive-pii-storage/README.md](backlog/features/001-sensitive-pii-storage/README.md)
+
+---
+
+## Third-Party Services & DPAs
+
+| Service | Purpose | PII Processed | DPA Status |
+|---------|---------|---------------|-----------|
+| Supabase | Database, Auth, Storage | All data | ❌ Need to sign |
+| DeepL | Message translation | Message content | ❌ Need to sign |
+| Twilio | SMS notifications | Phone numbers, SMS content | ❌ Need to sign |
+| Resend | Email service | Email addresses, content | ❌ Need to sign |
+| Google Gemini AI | Content generation | User-provided prompts | ❌ Need to sign |
+
+**Action Required:** Execute Data Processing Agreements before EU launch
+
+---
+
+## Known Issues & Technical Debt
+
+1. **LocalStorage session storage** - Vulnerable to XSS (consider httpOnly cookies)
+2. **No rate limiting** - Add middleware for API routes
+3. **No CSRF protection** - Validate Origin header on POST requests
+4. **Service role key in .env** - Move to secure vault (Vercel env vars ok)
+5. **Filenames may contain PII** - Implement hashing/anonymization
+6. **No automated key rotation** - Set up 90-day rotation schedule
+
+**See:** Technical debt can be added to backlog as P2/P3 features
+
+---
+
+## Testing Credentials (Staging Only)
+
+**Super Admin:**
+- Email: `eagent_admin@rainedrop.co.uk`
+- Password: `EA@l0u15e001`
+
+**⚠️ NEVER use test credentials in production**
+
+---
+
+## Deployment
+
+**Platform:** Vercel (auto-deploy from main branch)
+
+**Environments:**
+- **Production:** `https://estate-portal.vercel.app` (or custom domain)
+- **Staging:** PR preview deployments
+
+**Pre-Deploy Checklist:**
+- [ ] All tests passing
+- [ ] Database migrations applied
+- [ ] Environment variables set in Vercel
+- [ ] RLS policies verified
+- [ ] Security review completed (for P0 changes)
+
+---
+
+## Getting Help
+
+**For Agents (Claude Code):**
+- Use Task tool with `subagent_type='Explore'` for codebase questions
+- Use Task tool with `subagent_type='Plan'` for complex features
+- Check backlog before proposing new features
+- Reference this file for project conventions
+
+**For Developers:**
+- See [backlog/README.md](backlog/README.md) for backlog usage
+- Check feature documentation in `backlog/features/`
+- Run `npm run dev` and check console for errors
+- Use Supabase Dashboard for database queries
+
+---
+
+## Version History
+
+- **2026-01-08:** Created .claude_project file, established backlog system
+- **2025-12-23:** Added super admin role and features
+- **2025-12-22:** Added alert settings (email/SMS preferences)
+- **2025-11-17:** Initial schema created
+
+---
+
+**Last Updated:** 2026-01-08
+**Maintained By:** Development Team + Claude Code
+**Next Review:** After major architectural changes or quarterly

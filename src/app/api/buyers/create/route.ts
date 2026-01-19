@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
+import crypto from 'crypto';
 import { sendBuyerWelcomeEmail, sendBuyerConnectionEmail } from '@/lib/email-service';
 
 // Create admin client with service role key (server-side only)
@@ -196,8 +197,7 @@ export async function POST(request: NextRequest) {
     // ========================================
     // Create new buyer account
     
-    // Simple default password that buyer will change on first login
-    const defaultPassword = 'Welcome2026!';
+    const defaultPassword = generateTemporaryPassword();
     
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email,
@@ -361,3 +361,8 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+const generateTemporaryPassword = () => {
+  const raw = crypto.randomBytes(18).toString('base64');
+  return raw.replace(/[+/=]/g, '').slice(0, 16);
+};

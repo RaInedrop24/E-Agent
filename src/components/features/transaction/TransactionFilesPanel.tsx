@@ -127,29 +127,31 @@ export function TransactionFilesPanel({
 
     setUploading(true);
     setError(null);
-    const path = `${transactionId}/${crypto.randomUUID()}-${selectedFile.name}`;
 
     try {
-      const { error: uploadError } = await supabase.storage
-        .from('transaction_files')
-        .upload(path, selectedFile, {
-          upsert: false,
-          contentType: selectedFile.type,
-        });
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('Not authenticated');
+      }
 
-      if (uploadError) throw uploadError;
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      if (selectedMilestone && selectedMilestone !== 'none') {
+        formData.append('milestoneId', selectedMilestone);
+      }
 
-      const { error: insertError } = await supabase.from('files').insert({
-        transaction_id: transactionId,
-        uploaded_by_profile_id: user.id,
-        storage_path: path,
-        file_name: selectedFile.name,
-        mime_type: selectedFile.type,
-        file_size: selectedFile.size,
-        milestone_id: selectedMilestone && selectedMilestone !== 'none' ? selectedMilestone : null,
+      const response = await fetch(`/api/transaction/${transactionId}/files`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: formData,
       });
 
-      if (insertError) throw insertError;
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result?.error || 'Upload failed');
+      }
 
       // Trigger notifications
       await notifyFileUpload(transactionId, selectedFile.name, user.id);

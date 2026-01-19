@@ -373,6 +373,15 @@ const translations = {
     'auth.registerAsAgentLink': 'Register as Estate Agent',
     'auth.registrationSuccess': 'Registration successful!',
     'auth.verificationEmailSent': 'A verification email has been sent to {{email}}. Please check your inbox and verify your email address, then log in to continue.',
+
+    // Legal
+    'legal.privacyPolicy': 'Privacy Policy',
+    'legal.termsOfService': 'Terms of Service',
+    'legal.cookiePolicy': 'Cookie Policy',
+    'legal.registrationPrefix': 'By registering, you agree to our',
+    'legal.registrationAnd': 'and',
+    'cookie.notice': 'We use essential cookies to keep you signed in and to secure the portal.',
+    'cookie.acknowledge': 'I understand',
     
     // Settings
     'settings.title': 'Settings',
@@ -914,6 +923,15 @@ const translations = {
     'auth.registerAsAgentLink': 'Registrati come Agente Immobiliare',
     'auth.registrationSuccess': 'Registrazione completata!',
     'auth.verificationEmailSent': 'È stata inviata un\'email di verifica a {{email}}. Controlla la tua casella di posta e verifica il tuo indirizzo email, quindi accedi per continuare.',
+
+    // Legal
+    'legal.privacyPolicy': 'Informativa sulla privacy',
+    'legal.termsOfService': 'Termini di servizio',
+    'legal.cookiePolicy': 'Politica sui cookie',
+    'legal.registrationPrefix': 'Registrandoti, accetti i nostri',
+    'legal.registrationAnd': 'e',
+    'cookie.notice': 'Utilizziamo cookie essenziali per mantenerti connesso e proteggere il portale.',
+    'cookie.acknowledge': 'Ho capito',
     
     // Settings
     'settings.title': 'Impostazioni',
@@ -1436,6 +1454,15 @@ const translations = {
     'auth.registrationSuccess': 'Rejestracja zakończona sukcesem!',
     'auth.verificationEmailSent': 'Wiadomość weryfikacyjna została wysłana na adres {{email}}. Sprawdź swoją skrzynkę pocztową i zweryfikuj swój adres e-mail, a następnie zaloguj się, aby kontynuować.',
     
+    // Legal
+    'legal.privacyPolicy': 'Polityka prywatności',
+    'legal.termsOfService': 'Warunki korzystania z usługi',
+    'legal.cookiePolicy': 'Polityka plików cookie',
+    'legal.registrationPrefix': 'Rejestrując się, akceptujesz nasze',
+    'legal.registrationAnd': 'i',
+    'cookie.notice': 'Używamy niezbędnych plików cookie, aby utrzymać logowanie i zabezpieczyć portal.',
+    'cookie.acknowledge': 'Rozumiem',
+    
     'settings.title': 'Ustawienia',
     'settings.profile': 'Profil',
     'settings.security': 'Bezpieczeństwo',
@@ -1928,6 +1955,15 @@ const translations = {
   'auth.registrationSuccess': '¡Registro exitoso!',
   'auth.verificationEmailSent': 'Se ha enviado un correo de verificación a {{email}}. Por favor, revisa tu bandeja de entrada y verifica tu dirección de correo electrónico, luego inicia sesión para continuar.',
   
+  // Legal
+  'legal.privacyPolicy': 'Política de privacidad',
+  'legal.termsOfService': 'Términos del servicio',
+  'legal.cookiePolicy': 'Política de cookies',
+  'legal.registrationPrefix': 'Al registrarte, aceptas nuestros',
+  'legal.registrationAnd': 'y',
+  'cookie.notice': 'Usamos cookies esenciales para mantener tu sesión y proteger el portal.',
+  'cookie.acknowledge': 'Entiendo',
+  
   'settings.title': 'Ajustes',
   'settings.profile': 'Perfil',
   'settings.security': 'Seguridad',
@@ -2417,6 +2453,15 @@ const translations = {
   'auth.registerAsAgentLink': 'S\'inscrire en tant qu\'Agent Immobilier',
   'auth.registrationSuccess': 'Inscription réussie!',
   'auth.verificationEmailSent': 'Un e-mail de vérification a été envoyé à {{email}}. Veuillez vérifier votre boîte de réception et vérifier votre adresse e-mail, puis connectez-vous pour continuer.',
+  
+  // Legal
+  'legal.privacyPolicy': 'Politique de confidentialité',
+  'legal.termsOfService': 'Conditions d\'utilisation',
+  'legal.cookiePolicy': 'Politique relative aux cookies',
+  'legal.registrationPrefix': 'En vous inscrivant, vous acceptez nos',
+  'legal.registrationAnd': 'et',
+  'cookie.notice': 'Nous utilisons des cookies essentiels pour vous maintenir connecté et sécuriser le portail.',
+  'cookie.acknowledge': 'J\'ai compris',
   
   'settings.title': 'Paramètres',
   'settings.profile': 'Profil',
@@ -2908,6 +2953,15 @@ const translations = {
   'auth.registrationSuccess': 'Registratie succesvol!',
   'auth.verificationEmailSent': 'Er is een verificatie-e-mail verzonden naar {{email}}. Controleer uw inbox en verifieer uw e-mailadres, log dan in om door te gaan.',
   
+  // Legal
+  'legal.privacyPolicy': 'Privacybeleid',
+  'legal.termsOfService': 'Servicevoorwaarden',
+  'legal.cookiePolicy': 'Cookiebeleid',
+  'legal.registrationPrefix': 'Door je te registreren, ga je akkoord met onze',
+  'legal.registrationAnd': 'en',
+  'cookie.notice': 'We gebruiken essentiële cookies om je ingelogd te houden en het portaal te beveiligen.',
+  'cookie.acknowledge': 'Ik begrijp het',
+  
   'settings.title': 'Instellingen',
   'settings.profile': 'Profiel',
   'settings.security': 'Beveiliging',
@@ -3397,6 +3451,15 @@ const translations = {
   'auth.registerAsAgentLink': 'Als Immobilienmakler registrieren',
   'auth.registrationSuccess': 'Registrierung erfolgreich!',
   'auth.verificationEmailSent': 'Eine Bestätigungs-E-Mail wurde an {{email}} gesendet. Bitte überprüfen Sie Ihren Posteingang und bestätigen Sie Ihre E-Mail-Adresse, dann melden Sie sich an, um fortzufahren.',
+  
+  // Legal
+  'legal.privacyPolicy': 'Datenschutzerklärung',
+  'legal.termsOfService': 'Nutzungsbedingungen',
+  'legal.cookiePolicy': 'Cookie-Richtlinie',
+  'legal.registrationPrefix': 'Mit der Registrierung stimmst du unseren',
+  'legal.registrationAnd': 'und',
+  'cookie.notice': 'Wir verwenden essentielle Cookies, um dich angemeldet zu halten und das Portal zu schützen.',
+  'cookie.acknowledge': 'Ich verstehe',
   
   'settings.title': 'Einstellungen',
   'settings.profile': 'Profil',
