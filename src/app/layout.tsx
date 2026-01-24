@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     default: "The Property Gateway | Property Transaction Tracking Software",
     template: "%s | The Property Gateway"
   },
-  description: "Streamline property transactions with multilingual communication, automated progress tracking, and real-time notifications for estate agents and buyers across Europe.",
+  description: "The transaction portal for estate agents selling to international buyers. Automatic translation in 7 languages, visual progress tracking, and centralized communication - everything overseas buyers need to complete with confidence.",
   keywords: ["property transaction management", "estate agent software", "multilingual property portal", "buyer communication platform", "property purchase tracking"],
   authors: [{ name: "The Property Gateway" }],
   creator: "The Property Gateway",
@@ -45,7 +45,7 @@ export const metadata: Metadata = {
     locale: "en_GB",
     url: "https://mail.thepropertygateway.com",
     title: "The Property Gateway | Property Transaction Tracking",
-    description: "Streamline property transactions with multilingual communication and automated tracking",
+    description: "The transaction portal for estate agents selling to international buyers. Automatic translation in 7 languages and visual progress tracking.",
     siteName: "The Property Gateway",
     images: [{
       url: "https://mail.thepropertygateway.com/og-image.png",
@@ -57,7 +57,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "The Property Gateway | Property Transaction Tracking",
-    description: "Streamline property transactions with multilingual communication",
+    description: "The transaction portal for estate agents selling to international buyers. Automatic translation in 7 languages.",
     images: ["https://mail.thepropertygateway.com/twitter-image.png"],
   },
   alternates: {

@@ -32,27 +32,19 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Fancy Header */}
-      <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 text-white shadow-lg">
-        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+      {/* Hero Section */}
+      <section className="bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 text-white shadow-lg">
+        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h1 className="text-5xl font-extrabold tracking-tight sm:text-6xl md:text-7xl lg:text-8xl leading-tight pb-2">
+            <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl leading-tight pb-2">
               <span className="block text-white drop-shadow-2xl">
                 The Property Gateway
               </span>
             </h1>
-            <p className="mt-4 text-xl text-blue-100 sm:text-2xl">
-              {t('landing.heroTitle1')} {t('landing.heroTitle2')}
+            <p className="mt-4 text-xl text-blue-100 sm:text-2xl font-medium">
+              {t('landing.heroSubheadline')}
             </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Hero Section */}
-      <section className="bg-white">
-        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-gray-600">
+            <p className="mx-auto mt-6 max-w-3xl text-lg leading-8 text-blue-50">
               {t('landing.heroDescription')}
             </p>
             <div className="mt-8 flex justify-center gap-4 flex-wrap">
@@ -62,14 +54,13 @@ export default function Home() {
                   asChild
                   className="shadow-lg hover:shadow-xl transition-shadow"
                 >
-                  <a href="/register" className="flex items-center gap-2">
+                  <a href="/register">
                     {t('landing.getStarted')}
-                    <ArrowRight className="h-4 w-4" />
                   </a>
                 </Button>
               </motion.div>
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Button variant="outline" size="lg" asChild>
+                <Button variant="outline" size="lg" asChild className="border-white bg-white/10 text-white hover:bg-white hover:text-blue-700">
                   <a href="/login">{t('landing.signIn')}</a>
                 </Button>
               </motion.div>
