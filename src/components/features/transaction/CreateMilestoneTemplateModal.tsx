@@ -72,7 +72,6 @@ export function CreateMilestoneTemplateModal({ onSuccess }: CreateMilestoneTempl
         if (onSuccess) onSuccess();
       }
     } catch (err: any) {
-      console.error('[CreateMilestoneTemplate] Error:', err);
       setError(err.message || 'Failed to create template');
     } finally {
       setIsSaving(false);

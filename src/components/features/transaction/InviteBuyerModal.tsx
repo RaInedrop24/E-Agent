@@ -79,7 +79,6 @@ export function InviteBuyerModal({ transactionId, onSuccess }: InviteBuyerModalP
 
       setBuyers(buyersList);
     } catch (err: any) {
-      console.error('Error fetching buyers:', err);
       setError('Failed to load buyers. Please try again.');
     } finally {
       setLoadingBuyers(false);

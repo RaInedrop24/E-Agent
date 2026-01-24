@@ -101,7 +101,6 @@ export function SendSystemMessageDialog({
         handleClose();
       }, 2000);
     } catch (error: any) {
-      console.error('Error sending system message:', error);
       setResult({
         success: false,
         message: error.message || 'Failed to send message',

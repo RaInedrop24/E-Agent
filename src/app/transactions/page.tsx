@@ -50,7 +50,6 @@ export default function TransactionsListPage() {
   const { t, tVar, language } = useLanguage();
   const { isSuperAdmin, loading: superAdminLoading } = useSuperAdmin();
 
-  console.log('[Transactions] Component render - isSuperAdmin:', isSuperAdmin, 'loading:', superAdminLoading);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
   const [agents, setAgents] = useState<Agent[]>([]);
@@ -114,7 +113,7 @@ export default function TransactionsListPage() {
         // The profile will be updated on next page load or when explicitly needed
       } catch (error) {
         if (isActive) {
-          console.error('Error updating preferences:', error);
+          // no-op
         }
       }
     };
@@ -127,11 +126,8 @@ export default function TransactionsListPage() {
   }, [filterActiveOnly, sortBy, user, initialized]);
 
   useEffect(() => {
-    console.log('[Transactions] useEffect triggered - user:', !!user, 'isSuperAdmin:', isSuperAdmin, 'superAdminLoading:', superAdminLoading);
-
     // Wait for super admin check to complete before fetching
     if (user && !superAdminLoading) {
-      console.log('[Transactions] Calling fetchTransactions...');
       fetchTransactions();
     }
   }, [user, isSuperAdmin, superAdminLoading]);
@@ -192,11 +188,8 @@ export default function TransactionsListPage() {
       if (!user) return;
 
       const supabase = createClient();
-      console.log('[Transactions] isSuperAdmin:', isSuperAdmin);
-
       if (isSuperAdmin) {
         // Super admin can see ALL transactions
-        console.log('[Transactions] Fetching as super admin...');
         const { data: allTx, error: allError } = await supabase
           .from('transactions')
           .select(`
@@ -205,14 +198,7 @@ export default function TransactionsListPage() {
           `)
           .order('created_at', { ascending: false });
 
-        console.log('[Transactions] Super admin query result:', {
-          count: allTx?.length,
-          error: allError?.message,
-          firstItem: allTx?.[0]
-        });
-
         if (allError) {
-          console.error('[Transactions] Error fetching as super admin:', allError);
           throw allError;
         }
 
@@ -289,7 +275,6 @@ export default function TransactionsListPage() {
         setTransactions(allTx);
       }
     } catch (err: any) {
-      console.error('Error fetching transactions:', err);
       setError(err.message);
     } finally {
       setLoading(false);

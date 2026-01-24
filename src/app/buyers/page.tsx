@@ -103,7 +103,6 @@ export default function BuyersPage() {
 
       setBuyers(buyersList);
     } catch (err: any) {
-      console.error('Error fetching buyers:', err);
       setError(err.message || 'Failed to load buyers');
     } finally {
       setLoading(false);
@@ -188,7 +187,6 @@ export default function BuyersPage() {
       // Refresh buyers list
       await fetchBuyers();
     } catch (err: any) {
-      console.error('Error creating buyer:', err);
       setError(err.message || 'Failed to create buyer');
     } finally {
       setCreating(false);
@@ -226,7 +224,6 @@ export default function BuyersPage() {
       setEditingBuyer(null);
       await fetchBuyers();
     } catch (err: any) {
-      console.error('Error updating buyer:', err);
       setError(err.message || 'Failed to update buyer');
     } finally {
       setUpdating(false);
@@ -255,7 +252,6 @@ export default function BuyersPage() {
       setDeletingBuyer(null);
       await fetchBuyers();
     } catch (err: any) {
-      console.error('Error deleting buyer:', err);
       setError(err.message || 'Failed to delete buyer');
     } finally {
       setDeleting(false);
@@ -293,7 +289,6 @@ export default function BuyersPage() {
 
       alert('Invitation email resent successfully!');
     } catch (err: any) {
-      console.error('Error resending invite:', err);
       setError(err.message || 'Failed to resend invitation');
     }
   };

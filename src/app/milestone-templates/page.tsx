@@ -53,7 +53,6 @@ export default function MilestoneTemplatesPage() {
 
       setTemplates(data || []);
     } catch (err: any) {
-      console.error('Error fetching templates:', err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -84,7 +83,6 @@ export default function MilestoneTemplatesPage() {
       // Success - refresh the list
       await fetchTemplates();
     } catch (err: any) {
-      console.error('Error deleting template:', err);
       alert(`Failed to delete template: ${err.message}`);
     } finally {
       setDeletingId(null);

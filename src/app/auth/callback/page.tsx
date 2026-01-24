@@ -95,8 +95,6 @@ function AuthCallbackContent() {
           const { error } = await supabase.auth.exchangeCodeForSession(code);
 
           if (error) {
-            console.error('Error exchanging code for session:', error);
-            
             // PKCE flow requires code_verifier in sessionStorage, which may not be available
             // if the email link opens in a different browser. In this case, the user needs
             // to verify their email from the same browser they registered in, or we need
@@ -200,7 +198,6 @@ function AuthCallbackContent() {
             });
 
             if (exchangeError) {
-              console.error('Error verifying token:', exchangeError);
               setStatus(`Invalid or expired link: ${exchangeError.message}. Please request a new password reset.`);
               return;
             }
@@ -216,7 +213,6 @@ function AuthCallbackContent() {
             });
 
             if (exchangeError) {
-              console.error('Error exchanging code for session:', exchangeError);
               setStatus(`Invalid or expired link: ${exchangeError.message}. Please request a new password reset.`);
               return;
             }
@@ -253,7 +249,6 @@ function AuthCallbackContent() {
           setStatus('Email confirmation complete. Please sign in.');
         }
       } catch (err) {
-        console.error('Error in auth callback:', err);
         setStatus('An error occurred. Please try again.');
       }
     }

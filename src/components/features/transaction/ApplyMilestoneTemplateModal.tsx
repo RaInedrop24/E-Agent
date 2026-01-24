@@ -62,7 +62,6 @@ export function ApplyMilestoneTemplateModal({ transactionId, onSuccess }: ApplyM
 
       setTemplates(data || []);
     } catch (err: any) {
-      console.error('Error fetching templates:', err);
       setError('Failed to load templates: ' + err.message);
     } finally {
       setIsLoadingTemplates(false);
@@ -107,7 +106,6 @@ export function ApplyMilestoneTemplateModal({ transactionId, onSuccess }: ApplyM
       setSelectedTemplateId('');
       if (onSuccess) onSuccess();
     } catch (err: any) {
-      console.error('[ApplyMilestoneTemplate] Error:', err);
       setError(err.message || 'Failed to apply template');
     } finally {
       setIsApplying(false);

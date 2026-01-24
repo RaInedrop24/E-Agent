@@ -82,13 +82,6 @@ export default function MilestonePage({ params }: PageProps) {
       // Check if user is creator or participant or super admin
       const isCreator = txData.created_by === user?.id;
 
-      console.log('[MilestonePage] Access check:', {
-        isCreator,
-        isSuperAdmin,
-        userId: user?.id,
-        createdBy: txData.created_by
-      });
-
       if (!isCreator && !isSuperAdmin) {
         const { data: participantCheck, error: participantError } = await supabase
           .from('transaction_participants')
@@ -98,18 +91,11 @@ export default function MilestonePage({ params }: PageProps) {
           .eq('participant_role', 'agent')
           .maybeSingle();
 
-        console.log('[MilestonePage] Participant check:', {
-          participantCheck,
-          participantError
-        });
-
         if (!participantCheck) {
           setError('Access denied');
           setLoading(false);
           return;
         }
-      } else {
-        console.log('[MilestonePage] Access granted:', isSuperAdmin ? 'Super Admin' : 'Creator');
       }
 
       setTransactionTitle(txData.title);
@@ -126,7 +112,6 @@ export default function MilestonePage({ params }: PageProps) {
       setMilestones(milestonesData || []);
       setLoading(false);
     } catch (err: any) {
-      console.error('Error fetching milestones:', err);
       setError(err.message);
       setLoading(false);
     }
@@ -221,7 +206,6 @@ export default function MilestonePage({ params }: PageProps) {
       setMilestones(updated);
 
     } catch (err: any) {
-      console.error('Translation error:', err);
       setTranslationError(err.message || 'Translation failed. Please try again.');
     } finally {
       setTranslatingIndex(null);
@@ -323,7 +307,6 @@ export default function MilestonePage({ params }: PageProps) {
       // Redirect back to transaction
       router.push(`/transaction/${transactionId}`);
     } catch (err: any) {
-      console.error('Error saving milestones:', err);
       alert('Failed to save milestones: ' + err.message);
       setSaving(false);
     }

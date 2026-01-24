@@ -127,7 +127,6 @@ export default function AgentDetailPage({ params }: PageProps) {
         recent_transactions,
       });
     } catch (err: any) {
-      console.error('Error fetching agent details:', err);
       setError(err.message);
     } finally {
       setLoading(false);

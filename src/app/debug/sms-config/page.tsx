@@ -18,7 +18,6 @@ export default function SMSConfigPage() {
         setLoading(false);
       })
       .catch(err => {
-        console.error('Failed to load user alerts:', err);
         setLoading(false);
       });
   }, []);

@@ -275,7 +275,6 @@ export default function SQLEditorPage() {
         });
       }
     } catch (error: any) {
-      console.error('[SQL Editor] Error:', error);
       setResult({
         success: false,
         error: error.message || 'Failed to execute query',

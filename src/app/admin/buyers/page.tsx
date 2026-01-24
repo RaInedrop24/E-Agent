@@ -64,16 +64,13 @@ export default function AllBuyersPage() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('API Error Response:', errorData);
         throw new Error(errorData.error || 'Failed to fetch buyers');
       }
 
       const data = await response.json();
-      console.log('Buyers fetched successfully:', data.buyers?.length || 0);
       setBuyers(data.buyers || []);
       setFilteredBuyers(data.buyers || []);
     } catch (err: any) {
-      console.error('Error fetching buyers:', err);
       setError(err.message);
     } finally {
       setLoading(false);

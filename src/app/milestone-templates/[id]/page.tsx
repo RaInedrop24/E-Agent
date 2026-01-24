@@ -89,7 +89,6 @@ export default function EditTemplatePage({ params }: PageProps) {
       setItems(itemsData || []);
       setLoading(false);
     } catch (err: any) {
-      console.error('Error fetching template:', err);
       setError(err.message);
       setLoading(false);
     }
@@ -182,7 +181,6 @@ export default function EditTemplatePage({ params }: PageProps) {
       setItems(updated);
 
     } catch (err: any) {
-      console.error('Translation error:', err);
       setTranslationError(err.message || 'Translation failed. Please try again.');
     } finally {
       setTranslatingIndex(null);
@@ -298,7 +296,6 @@ export default function EditTemplatePage({ params }: PageProps) {
       // Redirect back to templates list
       router.push('/milestone-templates');
     } catch (err: any) {
-      console.error('Error saving template:', err);
       alert('Failed to save template: ' + err.message);
       setSaving(false);
     }

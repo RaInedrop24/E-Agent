@@ -32,7 +32,6 @@ function UpdatePasswordContent() {
 
         if (!session) {
           // No session - redirect to login
-          console.error('No active session - redirecting to login');
           router.push('/login?error=Please login with your credentials to change your password');
           return;
         }
@@ -41,10 +40,8 @@ function UpdatePasswordContent() {
         const force = searchParams?.get('force');
         setIsForced(force === 'true');
 
-        console.log('Session verified - ready to change password');
         setCheckingSession(false);
       } catch (err: any) {
-        console.error('Error checking session:', err);
         setError(err.message || 'Failed to verify session');
         setCheckingSession(false);
       }
@@ -93,12 +90,9 @@ function UpdatePasswordContent() {
 
       if (updateError) throw updateError;
 
-      console.log('Password updated successfully, redirecting to dashboard');
-      
       // Redirect to dashboard - they're already logged in
       router.push('/dashboard?password-updated=true');
     } catch (err: any) {
-      console.error('Error updating password:', err);
       setError(err.message || 'Failed to update password');
       setLoading(false);
     }

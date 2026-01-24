@@ -104,11 +104,9 @@ export default function AllAgentsPage() {
       }
 
       const data = await response.json();
-      console.log('Agents fetched successfully:', data.agents?.length || 0);
       setAgents(data.agents || []);
       setFilteredAgents(data.agents || []);
     } catch (err: any) {
-      console.error('Error fetching agents:', err);
       setError(err.message);
     } finally {
       setLoading(false);

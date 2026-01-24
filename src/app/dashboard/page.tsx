@@ -120,7 +120,7 @@ export default function DashboardPage() {
       } catch (error) {
         // Silently handle errors during cleanup
         if (isActive) {
-          console.error('Error updating dashboard preferences:', error);
+          // no-op
         }
       }
     };
@@ -140,7 +140,6 @@ export default function DashboardPage() {
       const firstLogin = user.user_metadata?.first_login === true;
       
       if (mustChangePassword || firstLogin) {
-        console.log('[Dashboard] First login detected - redirecting to password change');
         router.push('/auth/update-password?force=true');
         return;
       }
@@ -156,7 +155,6 @@ export default function DashboardPage() {
       
       // If they have a website URL but no branding colors extracted, redirect to settings
       if (hasWebsiteUrl && !hasBranding) {
-        console.log('[Dashboard] No branding found - redirecting to settings');
         router.push('/settings');
         return;
       }
@@ -164,14 +162,12 @@ export default function DashboardPage() {
   }, [user, profile, initialized, router]);
 
   useEffect(() => {
-    console.log('[Dashboard] fetchDashboard useEffect', { user: !!user, initialized, profile: !!profile });
     if (user && initialized && profile) {
       fetchDashboardData();
     }
   }, [user, profile, initialized, filterActiveOnly, sortBy]);
 
   async function fetchDashboardData() {
-    console.log('[Dashboard] fetchDashboardData called');
     setLoading(true);
     try {
       const supabase = createClient();
@@ -301,7 +297,7 @@ export default function DashboardPage() {
           }
         }
       } catch (error) {
-        console.error('Error fetching notifications for activity:', error);
+        // ignore activity fetch errors
       }
 
       // Combine and sort all activity

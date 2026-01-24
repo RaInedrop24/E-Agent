@@ -85,16 +85,13 @@ export default function MilestoneTemplatesPage() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('API Error Response:', errorData);
         throw new Error(errorData.error || 'Failed to fetch templates');
       }
 
       const data = await response.json();
-      console.log('Templates fetched successfully:', data.templates?.length || 0);
       setTemplates(data.templates || []);
       setFilteredTemplates(data.templates || []);
     } catch (err: any) {
-      console.error('Error fetching templates:', err);
       setError(err.message);
     } finally {
       setLoading(false);

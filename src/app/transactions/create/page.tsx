@@ -64,7 +64,6 @@ export default function CreateTransactionPage() {
       setTemplates(data || []);
       setLoadingTemplates(false);
     } catch (err: any) {
-      console.error('Error fetching templates:', err);
       // Don't show error to user - templates are optional
       setLoadingTemplates(false);
     }
@@ -98,7 +97,6 @@ export default function CreateTransactionPage() {
       setBuyers(buyersList);
       setLoadingBuyers(false);
     } catch (err: any) {
-      console.error('Error fetching buyers:', err);
       setError(t('error.loadBuyersFailed'));
       setLoadingBuyers(false);
     }
@@ -135,16 +133,12 @@ export default function CreateTransactionPage() {
       const trimmedTitle = title.trim();
       const userLang = (profile?.preferred_language as string) || 'en';
       
-      console.log('[CreateTransaction] User language:', userLang, 'Title:', trimmedTitle);
-      
       // Set the original language version
       titleTranslations[`title_${userLang}`] = trimmedTitle;
 
       // Translate to other languages
       try {
         const languages = ['en', 'it', 'de', 'fr', 'es'].filter(lang => lang !== userLang);
-        
-        console.log('[CreateTransaction] Translating to languages:', languages);
         
         const translationPromises = languages.map(async (targetLang) => {
           try {
@@ -160,13 +154,9 @@ export default function CreateTransactionPage() {
             
             if (response.ok) {
               const data = await response.json();
-              console.log(`[CreateTransaction] Translated to ${targetLang}:`, data.translatedText);
               return { lang: targetLang, text: data.translatedText };
-            } else {
-              console.error(`[CreateTransaction] Translation failed for ${targetLang}:`, await response.text());
             }
           } catch (err) {
-            console.error(`[CreateTransaction] Translation error for ${targetLang}:`, err);
           }
           return null;
         });
@@ -178,17 +168,13 @@ export default function CreateTransactionPage() {
           }
         });
         
-        console.log('[CreateTransaction] Final titleTranslations:', titleTranslations);
       } catch (translationError) {
-        console.error('[CreateTransaction] Translation error:', translationError);
         // Continue without translations - not critical
       }
 
       // Create transaction with translated titles
       // Use the user's language as the main title (for backward compatibility)
       const mainTitle = titleTranslations[`title_${userLang}`] || trimmedTitle;
-      
-      console.log('[CreateTransaction] Main title (user language):', mainTitle);
       
       const { data: transaction, error: txError } = await supabase
         .from('transactions')
@@ -218,7 +204,6 @@ export default function CreateTransactionPage() {
         });
 
         if (milestonesError) {
-          console.error('[CreateTransaction] Error creating default milestones:', milestonesError);
           // Don't throw - transaction is already created, we can add milestones manually later
         }
       } else {
@@ -229,22 +214,18 @@ export default function CreateTransactionPage() {
         });
 
         if (applyError) {
-          console.error('[CreateTransaction] Error applying template:', applyError);
           // Fall back to default milestones
           const { error: milestonesError } = await supabase.rpc('create_default_milestones', {
             p_transaction_id: transaction.id,
           });
           if (milestonesError) {
-            console.error('[CreateTransaction] Error creating fallback milestones:', milestonesError);
           }
         } else if (applyResult && !applyResult.success) {
-          console.error('[CreateTransaction] Template application failed:', applyResult.error);
           // Fall back to default milestones
           const { error: milestonesError } = await supabase.rpc('create_default_milestones', {
             p_transaction_id: transaction.id,
           });
           if (milestonesError) {
-            console.error('[CreateTransaction] Error creating fallback milestones:', milestonesError);
           }
         }
       }
@@ -262,7 +243,6 @@ export default function CreateTransactionPage() {
           .insert(participantsToAdd);
 
         if (participantsError) {
-          console.error('[CreateTransaction] Error adding buyers:', participantsError);
           // Don't throw - transaction is created, buyers can be added later
         }
       }
@@ -270,7 +250,6 @@ export default function CreateTransactionPage() {
       // Redirect to the new transaction
       router.push(`/transaction/${transaction.id}`);
     } catch (err: any) {
-      console.error('[CreateTransaction] Error:', err);
       setError(err.message || t('error.createTransactionFailed'));
       setLoading(false);
     }

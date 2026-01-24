@@ -102,7 +102,6 @@ export function TransactionFilesPanel({
 
       setFiles(mapped);
     } catch (err: any) {
-      console.error('[TransactionFilesPanel] fetchFiles error', err);
       setError(err.message || 'Failed to load files');
     } finally {
       setLoading(false);
@@ -160,7 +159,6 @@ export function TransactionFilesPanel({
       setSelectedMilestone(null);
       await fetchFiles();
     } catch (err: any) {
-      console.error('[TransactionFilesPanel] upload error', err);
       setError(err.message || 'Upload failed');
     } finally {
       setUploading(false);
@@ -194,7 +192,6 @@ export function TransactionFilesPanel({
       const url = await fetchSignedUrl(file.storage_path);
       window.open(url, '_blank');
     } catch (err: any) {
-      console.error('[TransactionFilesPanel] download error', err);
       setError(t('files.downloadFailed'));
     }
   };

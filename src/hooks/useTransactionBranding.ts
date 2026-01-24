@@ -54,7 +54,6 @@ export function useTransactionBranding(transactionId: string | null, applyBrandi
           .single();
 
         if (error) {
-          console.error('[Transaction Branding] Error loading agent branding:', error);
           return;
         }
 
@@ -85,7 +84,7 @@ export function useTransactionBranding(transactionId: string | null, applyBrandi
           }
         }
       } catch (err) {
-        console.error('[Transaction Branding] Failed to load branding:', err);
+        // ignore branding load errors
       }
     }
 
