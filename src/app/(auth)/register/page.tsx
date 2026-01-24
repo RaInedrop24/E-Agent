@@ -107,15 +107,36 @@ export default function RegisterPage() {
           <form className="space-y-4" onSubmit={onSubmit}>
           <div className="space-y-2">
             <Label htmlFor="full_name">{t('form.fullName')}</Label>
-            <Input id="full_name" type="text" placeholder="Alex Doe" value={fullName} onChange={(e) => setFullName(e.target.value)} />
+            <Input
+              id="full_name"
+              type="text"
+              placeholder="Alex Doe"
+              autoComplete="name"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="email">{t('form.email')}</Label>
-            <Input id="email" type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+            <Input
+              id="email"
+              type="email"
+              placeholder="you@example.com"
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="password">{t('form.password')}</Label>
-            <Input id="password" type="password" placeholder="********" value={password} onChange={(e) => setPassword(e.target.value)} />
+            <Input
+              id="password"
+              type="password"
+              placeholder="********"
+              autoComplete="new-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="website_url">{t('form.websiteUrl')}</Label>
@@ -123,6 +144,7 @@ export default function RegisterPage() {
               id="website_url" 
               type="url" 
               placeholder={t('form.websiteUrlPlaceholder')} 
+              autoComplete="url"
               value={websiteUrl} 
               onChange={(e) => setWebsiteUrl(e.target.value)} 
             />

@@ -21,7 +21,7 @@ export async function proxy(request: NextRequest) {
   if (process.env.NODE_ENV === 'production') {
     const cspHeader = [
       "default-src 'self'",
-      "script-src 'self' https://*.supabase.co https://*.supabase.in",
+      "script-src 'self' 'unsafe-inline' https://*.supabase.co https://*.supabase.in",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com data:",
       "img-src 'self' data: https: blob:",
