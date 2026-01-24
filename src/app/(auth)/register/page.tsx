@@ -37,13 +37,12 @@ export default function RegisterPage() {
     return null;
   }
 
-  const onSubmit = async () => {
-    console.log("RegisterPage: onSubmit called");
+  const onSubmit = async (event?: React.FormEvent<HTMLFormElement>) => {
+    event?.preventDefault();
     setError(null);
     setLoading(true);
     try {
       if (!supabase) {
-        console.error("RegisterPage: Supabase is undefined");
         throw new Error("Supabase is not configured. Check your .env.local.");
       }
       // Validate website URL if provided
@@ -78,10 +77,7 @@ export default function RegisterPage() {
           },
         },
       };
-      console.log("RegisterPage: Calling supabase.auth.signUp with", JSON.stringify(signUpOptions, null, 2));
-
       const { error: signUpError, data } = await supabase.auth.signUp(signUpOptions);
-      console.log("RegisterPage: signUp returned", { signUpError, data });
       if (signUpError) throw signUpError;
       
       // Show success message
@@ -95,7 +91,6 @@ export default function RegisterPage() {
         router.push("/login");
       }, 1500);
     } catch (e: any) {
-      console.error("RegisterPage: Error", e);
       setError(e?.message || "Registration failed");
     } finally {
       setLoading(false);
@@ -109,6 +104,7 @@ export default function RegisterPage() {
           <CardTitle>{t('auth.registerAsAgent')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          <form className="space-y-4" onSubmit={onSubmit}>
           <div className="space-y-2">
             <Label htmlFor="full_name">{t('form.fullName')}</Label>
             <Input id="full_name" type="text" placeholder="Alex Doe" value={fullName} onChange={(e) => setFullName(e.target.value)} />
@@ -155,7 +151,7 @@ export default function RegisterPage() {
             </p>
           </div>
           {error && <p className="text-sm text-red-600">{error}</p>}
-          <Button className="w-full" type="button" onClick={onSubmit} disabled={loading}>
+          <Button className="w-full" type="submit" disabled={loading}>
             {loading ? t('auth.creatingAccount') : t('auth.registerAsAgentButton')}
           </Button>
           <p className="text-xs text-muted-foreground">
@@ -175,6 +171,7 @@ export default function RegisterPage() {
               {t('auth.signIn')}
             </Link>
           </p>
+          </form>
         </CardContent>
       </Card>
     </div>

@@ -17,12 +17,11 @@ export async function proxy(request: NextRequest) {
   // Set Content Security Policy headers
   const response = NextResponse.next();
   
-  // Only set CSP in production - in development, Next.js needs eval for HMR
+  // Only set CSP in production - keep dev clean for HMR/devtools
   if (process.env.NODE_ENV === 'production') {
-    // Strict CSP for production
     const cspHeader = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.supabase.co https://*.supabase.in",
+      "script-src 'self' https://*.supabase.co https://*.supabase.in",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com data:",
       "img-src 'self' data: https: blob:",
@@ -33,22 +32,6 @@ export async function proxy(request: NextRequest) {
       "form-action 'self'",
       "frame-ancestors 'none'",
       "upgrade-insecure-requests",
-    ].join('; ');
-
-    response.headers.set('Content-Security-Policy', cspHeader);
-  } else {
-    // More permissive CSP for development (allows eval for HMR)
-    const cspHeader = [
-      "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.supabase.co https://*.supabase.in",
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-      "font-src 'self' https://fonts.gstatic.com data:",
-      "img-src 'self' data: https: blob:",
-      "connect-src 'self' https://*.supabase.co https://*.supabase.in https://api.deepl.com wss://*.supabase.co wss://*.supabase.in ws://localhost:* http://localhost:*",
-      "frame-src 'self'",
-      "object-src 'none'",
-      "base-uri 'self'",
-      "form-action 'self'",
     ].join('; ');
 
     response.headers.set('Content-Security-Policy', cspHeader);

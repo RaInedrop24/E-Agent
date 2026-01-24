@@ -64,7 +64,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Check if supabase is configured
     if (!supabase) {
-      console.warn('[AuthContext] Supabase client not configured');
       setLoading(false);
       return;
     }
@@ -89,8 +88,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setLoading(false);
             return;
           }
-          // Log other errors
-          console.error('[AuthContext] Session error:', sessionError.message);
         }
         
         // If we have a session, validate it by calling getUser()
@@ -100,7 +97,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           
           if (userError || !validatedUser) {
             // Session is invalid/expired - clear everything
-            console.log('[AuthContext] Session validation failed, clearing...');
             clearStoredSession();
             setSession(null);
             setUser(null);
@@ -118,7 +114,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             access_token: initialSession.access_token,
             refresh_token: initialSession.refresh_token,
           })}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
-          console.log('[AuthContext] Initial cookie set');
         }
 
         if (initialSession?.user) {
@@ -129,17 +124,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setLoading(false);
         }
       }).catch((err: unknown) => {
-        // Catch any unexpected errors
         const message = err instanceof Error ? err.message : String(err);
-        console.error('[AuthContext] Unexpected error getting session:', err);
-
-        if (
-          message.includes('Failed to fetch') ||
-          message.includes('ERR_NAME_NOT_RESOLVED')
-        ) {
+        if (message.includes('Failed to fetch') || message.includes('ERR_NAME_NOT_RESOLVED')) {
           clearStoredSession();
         }
-
         setLoading(false);
       });
     } else {
@@ -163,11 +151,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           access_token: currentSession.access_token,
           refresh_token: currentSession.refresh_token,
         })}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
-        console.log('[AuthContext] Cookie set for session');
       } else if (typeof document !== 'undefined') {
         // Clear cookie on logout
         document.cookie = 'sb-skvfgvlwccxetglmfhpm-auth-token=; path=/; max-age=0';
-        console.log('[AuthContext] Cookie cleared');
       }
 
       if (currentSession?.user) {
@@ -185,11 +171,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchProfile = async (userId: string) => {
     try {
-      console.log('[AuthContext] Fetching profile for user:', userId);
-
       // Check if we have a session
       const { data: { session } } = await supabase.auth.getSession();
-      console.log('[AuthContext] Current session exists:', !!session);
 
       const { data, error } = await supabase
         .from('profiles')
@@ -198,35 +181,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .single();
 
       if (error) {
-        console.error('[AuthContext] Error fetching profile:', error);
-        console.error('[AuthContext] Error message:', error.message || 'No error message');
-        console.error('[AuthContext] Error code:', error.code || 'No error code');
-
         // If no profile exists (PGRST116), try to create one automatically
         if (error.code === 'PGRST116') {
-          console.log('[AuthContext] No profile found, attempting to create one...');
           try {
             const { data: newProfile, error: createError } = await supabase.rpc('create_profile_for_current_user');
             if (createError) {
-              console.error('[AuthContext] Error creating profile:', createError);
               setProfile(null);
             } else {
-              console.log('[AuthContext] Profile created successfully:', newProfile);
               setProfile(newProfile);
             }
           } catch (createErr) {
-            console.error('[AuthContext] Exception creating profile:', createErr);
             setProfile(null);
           }
         } else {
           setProfile(null);
         }
       } else {
-        console.log('[AuthContext] Profile fetched successfully:', data);
         setProfile(data);
       }
     } catch (err) {
-      console.error('[AuthContext] Exception fetching profile:', err);
       setProfile(null);
     } finally {
       setLoading(false);
@@ -235,7 +208,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const refreshProfile = async () => {
     if (!user) {
-      console.log('[AuthContext] refreshProfile called but no user logged in');
       return;
     }
     await fetchProfile(user.id);
@@ -248,7 +220,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setProfile(null);
       setSession(null);
     } catch (error) {
-      console.error('[AuthContext] Error signing out:', error);
       throw error;
     }
   };
