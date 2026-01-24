@@ -16,6 +16,7 @@ export default function RegisterPage() {
   const router = useRouter();
   const { user } = useAuth();
   const { t, tVar } = useLanguage();
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.thepropertygateway.com";
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -60,15 +61,11 @@ export default function RegisterPage() {
         }
       }
 
-      // Don't use emailRedirectTo - it forces PKCE flow which requires code_verifier in sessionStorage
-      // Without emailRedirectTo, Supabase uses token-based verification (token_hash) which works cross-device
-      // Configure Site URL in Supabase dashboard to point to /auth/callback for redirects
       const signUpOptions = {
         email,
         password,
         options: {
-          // emailRedirectTo removed to enable cross-device verification
-          // Supabase will use Site URL from dashboard settings for redirect
+          emailRedirectTo: `${siteUrl}/auth/callback`,
           data: {
             full_name: fullName,
             role,
