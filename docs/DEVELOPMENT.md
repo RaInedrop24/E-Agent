@@ -11,7 +11,7 @@
 ```bash
 # Clone and navigate to project
 git clone <repository-url>
-cd the-property-gateway
+cd estate-portal
 
 # Install dependencies
 npm install
@@ -87,7 +87,7 @@ Get-Content $env:USERPROFILE\.ssh\id_ed25519.pub
 ```
 3. Use SSH remote:
 ```powershell
-cd the-property-gateway
+cd estate-portal
 git remote set-url origin git@github.com:RaInedrop24/E-Agent.git
 ssh -T git@github.com
 git push
@@ -97,7 +97,7 @@ git push
 1. Create a PAT (repo scope).
 2. Set HTTPS remote:
 ```powershell
-cd the-property-gateway
+cd estate-portal
 git remote set-url origin https://github.com/RaInedrop24/E-Agent.git
 git push   # use PAT when prompted
 ```
@@ -105,7 +105,7 @@ git push   # use PAT when prompted
 ### Option 3 — GitHub CLI
 ```powershell
 gh auth login
-cd the-property-gateway
+cd estate-portal
 git push
 ```
 

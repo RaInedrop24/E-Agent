@@ -30,6 +30,7 @@ interface Profile {
     notification: boolean;
   };
   activity_time_range?: '24h' | '3d' | '7d' | '30d' | 'all';
+  onboarding_completed?: boolean;
 }
 
 interface AuthContextType {

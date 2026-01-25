@@ -39,7 +39,8 @@ const translations = {
     'nav.login': 'Login',
     'nav.register': 'Register',
     'nav.siteAdmin': 'Site Admin',
-    
+    'nav.help': 'Help',
+
     // Common actions
     'action.save': 'Save',
     'action.cancel': 'Cancel',
@@ -55,6 +56,7 @@ const translations = {
     'action.processing': 'Processing...',
     'action.upload': 'Upload',
     'action.download': 'Download',
+    'action.refresh': 'Refresh',
     
     // Dashboard
     'dashboard.title': 'Dashboard',
@@ -373,6 +375,8 @@ const translations = {
     'auth.registerAsAgentLink': 'Register as Estate Agent',
     'auth.registrationSuccess': 'Registration successful!',
     'auth.verificationEmailSent': 'A verification email has been sent to {{email}}. Please check your inbox and verify your email address, then log in to continue.',
+    'auth.settingUpAccount': 'Setting up your account...',
+    'auth.settingUpAccountDescription': 'We are finalizing your profile. This should only take a moment.',
 
     // Legal
     'legal.privacyPolicy': 'Privacy Policy',
@@ -591,7 +595,8 @@ const translations = {
     'nav.login': 'Accedi',
     'nav.register': 'Registrati',
     'nav.siteAdmin': 'Amministrazione Sito',
-    
+    'nav.help': 'Aiuto',
+
     // Common actions
     'action.save': 'Salva',
     'action.cancel': 'Annulla',
@@ -607,6 +612,7 @@ const translations = {
     'action.processing': 'Elaborazione...',
     'action.upload': 'Carica',
     'action.download': 'Scarica',
+    'action.refresh': 'Aggiorna',
     
     // Dashboard
     'dashboard.title': 'Cruscotto',
@@ -925,6 +931,8 @@ const translations = {
     'auth.registerAsAgentLink': 'Registrati come Agente Immobiliare',
     'auth.registrationSuccess': 'Registrazione completata!',
     'auth.verificationEmailSent': 'È stata inviata un\'email di verifica a {{email}}. Controlla la tua casella di posta e verifica il tuo indirizzo email, quindi accedi per continuare.',
+    'auth.settingUpAccount': 'Configurazione del tuo account...',
+    'auth.settingUpAccountDescription': 'Stiamo completando il tuo profilo. Dovrebbe richiedere solo un momento.',
 
     // Legal
     'legal.privacyPolicy': 'Informativa sulla privacy',
@@ -1142,6 +1150,7 @@ const translations = {
     'nav.login': 'Logowanie',
     'nav.register': 'Rejestr',
     'nav.siteAdmin': 'Administrator strony',
+    'nav.help': 'Pomoc',
     'action.save': 'Zapisz',
     'action.cancel': 'Anuluj',
     'action.delete': 'Usuń',
@@ -1156,6 +1165,7 @@ const translations = {
     'action.processing': 'Przetwarzanie...',
     'action.upload': 'Przesyłanie',
     'action.download': 'Pobierz',
+    'action.refresh': 'Odśwież',
     'dashboard.title': 'Pulpit nawigacyjny',
     'dashboard.welcome': 'Witamy z powrotem',
     'dashboard.activeTransactions': 'Aktywne transakcje',
@@ -1457,6 +1467,8 @@ const translations = {
     'auth.registerAsAgentLink': 'Zarejestruj się jako Agent Nieruchomości',
     'auth.registrationSuccess': 'Rejestracja zakończona sukcesem!',
     'auth.verificationEmailSent': 'Wiadomość weryfikacyjna została wysłana na adres {{email}}. Sprawdź swoją skrzynkę pocztową i zweryfikuj swój adres e-mail, a następnie zaloguj się, aby kontynuować.',
+    'auth.settingUpAccount': 'Konfigurujemy Twoje konto...',
+    'auth.settingUpAccountDescription': 'Kończymy tworzenie profilu. To powinno zająć tylko chwilę.',
     
     // Legal
     'legal.privacyPolicy': 'Polityka prywatności',
@@ -1655,6 +1667,7 @@ const translations = {
   'nav.login': 'Inicio de sesión',
   'nav.register': 'Regístrese en',
   'nav.siteAdmin': 'Administrador del sitio',
+  'nav.help': 'Ayuda',
   'action.save': 'Guardar',
   'action.cancel': 'Cancelar',
   'action.delete': 'Borrar',
@@ -1669,6 +1682,7 @@ const translations = {
   'action.processing': 'Procesando...',
   'action.upload': 'Cargar',
   'action.download': 'Descargar',
+  'action.refresh': 'Actualizar',
   'dashboard.title': 'Cuadro de mandos',
   'dashboard.welcome': 'Bienvenido de nuevo',
   'dashboard.activeTransactions': 'Transacciones activas',
@@ -1960,6 +1974,8 @@ const translations = {
   'auth.registerAsAgentLink': 'Registrarse como Agente Inmobiliario',
   'auth.registrationSuccess': '¡Registro exitoso!',
   'auth.verificationEmailSent': 'Se ha enviado un correo de verificación a {{email}}. Por favor, revisa tu bandeja de entrada y verifica tu dirección de correo electrónico, luego inicia sesión para continuar.',
+  'auth.settingUpAccount': 'Configurando tu cuenta...',
+  'auth.settingUpAccountDescription': 'Estamos finalizando tu perfil. Solo tomará un momento.',
   
   // Legal
   'legal.privacyPolicy': 'Política de privacidad',
@@ -2156,6 +2172,7 @@ const translations = {
   'nav.login': 'Connexion',
   'nav.register': 'Registre',
   'nav.siteAdmin': 'Administrateur du site',
+  'nav.help': 'Aide',
   'action.save': 'Économiser',
   'action.cancel': 'Annuler',
   'action.delete': 'Supprimer',
@@ -2170,6 +2187,7 @@ const translations = {
   'action.processing': 'Traitement...',
   'action.upload': 'Télécharger',
   'action.download': 'Télécharger',
+  'action.refresh': 'Actualiser',
   'dashboard.title': 'Tableau de bord',
   'dashboard.welcome': 'Bienvenue à nouveau',
   'dashboard.activeTransactions': 'Transactions actives',
@@ -2461,6 +2479,8 @@ const translations = {
   'auth.registerAsAgentLink': 'S\'inscrire en tant qu\'Agent Immobilier',
   'auth.registrationSuccess': 'Inscription réussie!',
   'auth.verificationEmailSent': 'Un e-mail de vérification a été envoyé à {{email}}. Veuillez vérifier votre boîte de réception et vérifier votre adresse e-mail, puis connectez-vous pour continuer.',
+  'auth.settingUpAccount': 'Configuration de votre compte...',
+  'auth.settingUpAccountDescription': 'Nous finalisons votre profil. Cela ne prendra qu\'un instant.',
   
   // Legal
   'legal.privacyPolicy': 'Politique de confidentialité',
@@ -2657,6 +2677,7 @@ const translations = {
   'nav.login': 'Inloggen',
   'nav.register': 'Registreer',
   'nav.siteAdmin': 'Sitebeheerder',
+  'nav.help': 'Hulp',
   'action.save': 'Sla',
   'action.cancel': 'Annuleren',
   'action.delete': 'Verwijder',
@@ -2671,6 +2692,7 @@ const translations = {
   'action.processing': 'Verwerken...',
   'action.upload': 'uploaden',
   'action.download': 'Downloaden',
+  'action.refresh': 'Vernieuwen',
   'dashboard.title': 'Dashboard',
   'dashboard.welcome': 'Welkom terug',
   'dashboard.activeTransactions': 'Actieve transacties',
@@ -2962,6 +2984,8 @@ const translations = {
   'auth.registerAsAgentLink': 'Registreer als Makelaar',
   'auth.registrationSuccess': 'Registratie succesvol!',
   'auth.verificationEmailSent': 'Er is een verificatie-e-mail verzonden naar {{email}}. Controleer uw inbox en verifieer uw e-mailadres, log dan in om door te gaan.',
+  'auth.settingUpAccount': 'Je account wordt ingesteld...',
+  'auth.settingUpAccountDescription': 'We ronden je profiel af. Dit duurt slechts een moment.',
   
   // Legal
   'legal.privacyPolicy': 'Privacybeleid',
@@ -3158,6 +3182,7 @@ const translations = {
   'nav.login': 'Anmeldung',
   'nav.register': 'Register',
   'nav.siteAdmin': 'Website-Verwaltung',
+  'nav.help': 'Hilfe',
   'action.save': 'Speichern Sie',
   'action.cancel': 'Abbrechen',
   'action.delete': 'Löschen',
@@ -3172,6 +3197,7 @@ const translations = {
   'action.processing': 'Wird verarbeitet...',
   'action.upload': 'Hochladen',
   'action.download': 'Herunterladen',
+  'action.refresh': 'Aktualisieren',
   'dashboard.title': 'Dashboard',
   'dashboard.welcome': 'Willkommen zurück',
   'dashboard.activeTransactions': 'Aktive Vorgänge',
@@ -3463,6 +3489,8 @@ const translations = {
   'auth.registerAsAgentLink': 'Als Immobilienmakler registrieren',
   'auth.registrationSuccess': 'Registrierung erfolgreich!',
   'auth.verificationEmailSent': 'Eine Bestätigungs-E-Mail wurde an {{email}} gesendet. Bitte überprüfen Sie Ihren Posteingang und bestätigen Sie Ihre E-Mail-Adresse, dann melden Sie sich an, um fortzufahren.',
+  'auth.settingUpAccount': 'Dein Konto wird eingerichtet...',
+  'auth.settingUpAccountDescription': 'Wir schließen dein Profil ab. Das dauert nur einen Moment.',
   
   // Legal
   'legal.privacyPolicy': 'Datenschutzerklärung',

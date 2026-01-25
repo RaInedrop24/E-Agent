@@ -13,7 +13,14 @@
     "mcp:playwright": "node -e \"console.log('Playwright MCP server package pending. Configure .cursor/mcp.json when available.')\"",
     "test:e2e": "playwright test",
     "test:ui": "playwright test --ui",
-    "test:report": "playwright show-report"
+    "test:report": "playwright show-report",
+    "guide:screenshots": "FULL_GUIDE_CAPTURE=true playwright test tests/guide/screenshots.spec.ts",
+    "guide:screenshots:en": "playwright test tests/guide/screenshots.spec.ts --grep 'EN Screenshots'",
+    "guide:seed": "npx tsx tests/guide/fixtures/guide-seed.ts",
+    "guide:pdf:en": "npx md-to-pdf docs/user-guide/en/README.md --dest public/downloads/user-guide-en.pdf",
+    "guide:pdf:it": "npx md-to-pdf docs/user-guide/it/README.md --dest public/downloads/user-guide-it.pdf",
+    "guide:pdf:all": "npm run guide:pdf:en && npm run guide:pdf:it",
+    "guide:update": "npm run guide:seed && npm run guide:screenshots && npm run guide:pdf:all"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",
@@ -34,10 +41,12 @@
     "country-flag-icons": "^1.6.4",
     "framer-motion": "^12.23.26",
     "lucide-react": "^0.553.0",
+    "md-to-pdf": "^5.2.5",
     "next": "^16.0.10",
     "qrcode": "^1.5.4",
     "react": "19.2.0",
     "react-dom": "19.2.0",
+    "react-joyride": "^2.9.3",
     "react-loading-skeleton": "^3.5.0",
     "resend": "^6.6.0",
     "sonner": "^2.0.7",

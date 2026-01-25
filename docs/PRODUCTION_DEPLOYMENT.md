@@ -90,7 +90,7 @@ echo "🏗️ Building application..."
 npm run build
 
 echo "🔄 Restarting PM2..."
-pm2 restart the-property-gateway
+pm2 restart thepropertygateway
 
 echo "✅ Deployment complete!"
 ```
@@ -147,7 +147,7 @@ git checkout -- package-lock.json
 git pull origin main
 npm install
 npm run build
-pm2 restart the-property-gateway
+pm2 restart thepropertygateway
 ```
 
 ## Troubleshooting

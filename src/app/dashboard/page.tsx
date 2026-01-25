@@ -7,7 +7,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { createClient } from "@/lib/supabase";
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { CheckCircle, MessageSquare, FileText, Clock, Bell, Receipt, SlidersHorizontal, Search } from "lucide-react";
 import { formatRelativeTime } from '@/lib/date-utils';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -16,6 +16,7 @@ import 'react-loading-skeleton/dist/skeleton.css';
 import { logger } from '@/lib/logger';
 import { LIMITS } from '@/lib/constants';
 import { NotificationModal } from '@/components/features/NotificationModal';
+import { OnboardingTour } from '@/components/features/OnboardingTour';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -54,12 +55,15 @@ interface ActivityItem {
 }
 
 export default function DashboardPage() {
-  const { user, profile, refreshProfile } = useAuth();
+  const { user, profile, refreshProfile, loading: authLoading } = useAuth();
   const { t, tVar } = useLanguage();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [recentActivity, setRecentActivity] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [profileLoadAttempted, setProfileLoadAttempted] = useState(false);
   const [notificationModalOpen, setNotificationModalOpen] = useState(false);
   const [selectedNotification, setSelectedNotification] = useState<ActivityItem['notification_data'] | null>(null);
   const [filterActiveOnly, setFilterActiveOnly] = useState(false);
@@ -67,6 +71,22 @@ export default function DashboardPage() {
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [initialized, setInitialized] = useState(false);
+
+  // Tour trigger from URL query param
+  const [forceTour, setForceTour] = useState(false);
+
+  useEffect(() => {
+    setProfileLoadAttempted(false);
+  }, [user?.id]);
+
+  // Check for tour query param on mount
+  useEffect(() => {
+    if (searchParams.get('tour') === 'true') {
+      setForceTour(true);
+      // Clean up the URL without navigating
+      router.replace('/dashboard', { scroll: false });
+    }
+  }, [searchParams, router]);
 
   // Activity feed filters
   const [activityTypeFilters, setActivityTypeFilters] = useState({
@@ -95,6 +115,27 @@ export default function DashboardPage() {
       setInitialized(true);
     }
   }, [profile]);
+
+  // Ensure profile is available after email verification
+  useEffect(() => {
+    if (!user || authLoading || profile || profileLoadAttempted) return;
+
+    let active = true;
+    setProfileLoading(true);
+    setProfileLoadAttempted(true);
+
+    refreshProfile()
+      .catch(() => undefined)
+      .finally(() => {
+        if (active) {
+          setProfileLoading(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [user, authLoading, profile, refreshProfile]);
 
   // Save preferences to database when they change (but not on initial load)
   useEffect(() => {
@@ -452,7 +493,7 @@ export default function DashboardPage() {
     }
   }
 
-  if (loading) {
+  if (authLoading || loading || profileLoading) {
     return (
       <div className="max-w-5xl mx-auto p-4 space-y-6">
         <Skeleton height={32} width={200} />
@@ -493,12 +534,45 @@ export default function DashboardPage() {
     );
   }
 
+  if (user && !profile) {
+    return (
+      <div className="max-w-5xl mx-auto p-4 space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('auth.settingUpAccount') || 'Setting up your account...'}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm text-muted-foreground">
+            <p>{t('auth.settingUpAccountDescription') || 'We are finalizing your profile. This should only take a moment.'}</p>
+            <div className="flex gap-2">
+              <Button
+                onClick={async () => {
+                  setProfileLoadAttempted(true);
+                  setProfileLoading(true);
+                  await refreshProfile();
+                  setProfileLoading(false);
+                }}
+              >
+                {t('action.refresh') || 'Refresh'}
+              </Button>
+              <Button variant="outline" onClick={() => router.push('/login')}>
+                {t('auth.signIn') || 'Sign In'}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
-    <div className="max-w-5xl mx-auto p-4 space-y-6">
+    <div className="max-w-5xl mx-auto p-4 space-y-6" data-tour="dashboard">
+      {/* Onboarding Tour - shows on first login for agents or when triggered from help page */}
+      <OnboardingTour forceRun={forceTour} onComplete={() => setForceTour(false)} />
+
       <h1 className="text-2xl font-semibold">{t('dashboard.title')}</h1>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <Card>
+        <Card data-tour="transactions-list">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
             <CardTitle>{t('transactions.my')}</CardTitle>
             <Dialog open={showFilterModal} onOpenChange={setShowFilterModal}>
@@ -633,7 +707,7 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card data-tour="recent-activity">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
             <CardTitle>{t('dashboard.recentActivity')}</CardTitle>
             <Dialog open={showActivityFilterModal} onOpenChange={setShowActivityFilterModal}>

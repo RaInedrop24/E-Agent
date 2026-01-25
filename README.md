@@ -48,7 +48,7 @@ A centralized portal providing:
 ## 🏗️ Project Structure
 
 ```
-the-property-gateway/
+estate-portal/
 ├── 📁 src/
 │   ├── 📁 app/                    # Next.js App Router pages
 │   │   ├── 📁 (auth)/            # Authentication routes
@@ -90,7 +90,7 @@ the-property-gateway/
 1. **Clone the repository**
    ```bash
    git clone https://github.com/RaInedrop24/E-Agent.git
-   cd E-Agent
+   cd E-Agent/estate-portal
    ```
 
 2. **Install dependencies**

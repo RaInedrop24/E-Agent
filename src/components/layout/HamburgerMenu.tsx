@@ -1,6 +1,6 @@
 'use client';
 
-import { Menu, LayoutDashboard, Receipt, Plus, Users, BookOpen, Shield } from 'lucide-react';
+import { Menu, LayoutDashboard, Receipt, Plus, Users, BookOpen, Shield, HelpCircle } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { User } from '@/types';
 import { useSuperAdmin } from '@/hooks/useSuperAdmin';
@@ -30,7 +30,7 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({ user }) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-10 w-10">
+        <Button variant="ghost" size="icon" className="h-10 w-10" data-tour="hamburger-menu">
           <Menu className="h-6 w-6" />
           <span className="sr-only">Open menu</span>
         </Button>
@@ -58,7 +58,7 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({ user }) => {
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/transactions/create" className="flex items-center cursor-pointer">
+                <Link href="/transactions/create" className="flex items-center cursor-pointer" data-tour="create-transaction">
                   <Plus className="mr-2 h-4 w-4" />
                   <span>{t('nav.createNew')}</span>
                 </Link>
@@ -92,6 +92,15 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({ user }) => {
             </DropdownMenuItem>
           </>
         )}
+
+        {/* Help - Accessible by all */}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link href="/help" className="flex items-center cursor-pointer">
+            <HelpCircle className="mr-2 h-4 w-4" />
+            <span>{t('nav.help') || 'Help'}</span>
+          </Link>
+        </DropdownMenuItem>
 
         {/* Super Admin Dashboard - Super Admins only */}
         {isSuperAdmin && (

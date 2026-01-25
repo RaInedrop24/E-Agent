@@ -579,7 +579,7 @@ export default function SettingsPage() {
 
         {/* Brand Identity Section */}
         {role === 'agent' && (
-          <Card>
+          <Card data-tour="branding">
             <CardHeader>
               <CardTitle>Brand Identity</CardTitle>
               <CardDescription>

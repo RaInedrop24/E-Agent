@@ -32,7 +32,7 @@ supabase db push
 ### Option 3: Via Node.js Script
 
 ```bash
-# From the-property-gateway directory
+# From the estate-portal directory
 node supabase/apply-schema.js
 ```
 

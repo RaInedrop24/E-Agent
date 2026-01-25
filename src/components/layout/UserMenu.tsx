@@ -25,7 +25,10 @@ export const UserMenu: React.FC<UserMenuProps> = ({ user, onLogout }) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="flex items-center space-x-3 hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-lg p-1">
+        <button
+          className="flex items-center space-x-3 hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-lg p-1"
+          data-tour="user-menu"
+        >
           <div className="flex items-center gap-2">
             {user.avatarUrl ? (
               <img
@@ -51,7 +54,7 @@ export const UserMenu: React.FC<UserMenuProps> = ({ user, onLogout }) => {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
         <DropdownMenuItem asChild>
-          <Link href="/settings" className="flex items-center cursor-pointer">
+          <Link href="/settings" className="flex items-center cursor-pointer" data-tour="settings">
             <Settings className="mr-2 h-4 w-4" />
             <span>{t('nav.settings')}</span>
           </Link>

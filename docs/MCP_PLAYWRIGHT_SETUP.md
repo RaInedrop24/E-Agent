@@ -48,7 +48,7 @@ If the above doesn't work, try using the local Playwright installation:
       "args": [
         "./node_modules/@playwright/mcp/dist/index.js"
       ],
-      "cwd": "the-property-gateway"
+      "cwd": "estate-portal"
     }
   }
 }
@@ -58,7 +58,7 @@ If the above doesn't work, try using the local Playwright installation:
 
 1. Check if Playwright is installed:
    ```bash
-   cd the-property-gateway
+   cd estate-portal
    npx playwright --version
    ```
 
@@ -80,7 +80,7 @@ If you still get npm errors:
 
 2. Reinstall dependencies:
    ```bash
-   cd the-property-gateway
+   cd estate-portal
    rm -rf node_modules package-lock.json
    npm install
    ```

@@ -24,7 +24,7 @@
 ## Project Structure
 
 ```
-the-property-gateway/
+estate-portal/
 ├── src/
 │   ├── app/                    # Next.js App Router
 │   │   ├── (auth)/            # Auth-related routes
