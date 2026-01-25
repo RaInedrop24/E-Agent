@@ -5,7 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { createClient } from "@/lib/supabase";
-import { useEffect, useState, useMemo } from "react";
+import { Suspense, useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CheckCircle, MessageSquare, FileText, Clock, Bell, Receipt, SlidersHorizontal, Search } from "lucide-react";
@@ -54,7 +54,46 @@ interface ActivityItem {
   };
 }
 
-export default function DashboardPage() {
+const DashboardSkeleton = () => (
+  <div className="max-w-5xl mx-auto p-4 space-y-6">
+    <Skeleton height={32} width={200} />
+    <div className="grid gap-4 md:grid-cols-2">
+      <Card>
+        <CardHeader>
+          <Skeleton height={24} width={150} />
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="border rounded p-3">
+              <Skeleton height={20} width="80%" />
+              <Skeleton height={8} width="100%" className="mt-2" />
+              <Skeleton height={12} width="40%" className="mt-1" />
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <Skeleton height={24} width={150} />
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="flex gap-3">
+              <Skeleton circle width={16} height={16} />
+              <div className="flex-1">
+                <Skeleton height={16} width="90%" />
+                <Skeleton height={12} width="60%" className="mt-1" />
+              </div>
+              <Skeleton height={12} width={50} />
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    </div>
+  </div>
+);
+
+function DashboardContent() {
   const { user, profile, refreshProfile, loading: authLoading } = useAuth();
   const { t, tVar } = useLanguage();
   const router = useRouter();
@@ -494,44 +533,7 @@ export default function DashboardPage() {
   }
 
   if (authLoading || loading || profileLoading) {
-    return (
-      <div className="max-w-5xl mx-auto p-4 space-y-6">
-        <Skeleton height={32} width={200} />
-        <div className="grid gap-4 md:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <Skeleton height={24} width={150} />
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="border rounded p-3">
-                  <Skeleton height={20} width="80%" />
-                  <Skeleton height={8} width="100%" className="mt-2" />
-                  <Skeleton height={12} width="40%" className="mt-1" />
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <Skeleton height={24} width={150} />
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="flex gap-3">
-                  <Skeleton circle width={16} height={16} />
-                  <div className="flex-1">
-                    <Skeleton height={16} width="90%" />
-                    <Skeleton height={12} width="60%" className="mt-1" />
-                  </div>
-                  <Skeleton height={12} width={50} />
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   if (user && !profile) {
@@ -883,5 +885,13 @@ export default function DashboardPage() {
         notification={selectedNotification || null}
       />
     </div>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<DashboardSkeleton />}>
+      <DashboardContent />
+    </Suspense>
   );
 }
