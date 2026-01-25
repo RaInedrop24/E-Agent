@@ -17,8 +17,8 @@
     "guide:screenshots": "FULL_GUIDE_CAPTURE=true playwright test tests/guide/screenshots.spec.ts",
     "guide:screenshots:en": "playwright test tests/guide/screenshots.spec.ts --grep 'EN Screenshots'",
     "guide:seed": "npx tsx tests/guide/fixtures/guide-seed.ts",
-    "guide:pdf:en": "npx md-to-pdf docs/user-guide/en/README.md --dest public/downloads/user-guide-en.pdf",
-    "guide:pdf:it": "npx md-to-pdf docs/user-guide/it/README.md --dest public/downloads/user-guide-it.pdf",
+    "guide:pdf:en": "node scripts/generate-guide-pdf.mjs docs/user-guide/en/README.md public/downloads/user-guide-en.pdf",
+    "guide:pdf:it": "node scripts/generate-guide-pdf.mjs docs/user-guide/it/README.md public/downloads/user-guide-it.pdf",
     "guide:pdf:all": "npm run guide:pdf:en && npm run guide:pdf:it",
     "guide:update": "npm run guide:seed && npm run guide:screenshots && npm run guide:pdf:all"
   },
