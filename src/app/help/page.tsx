@@ -45,7 +45,8 @@ interface GuideSection {
   link?: string;
 }
 
-const GUIDE_SECTIONS: GuideSection[] = [
+// Agent guide sections
+const AGENT_GUIDE_SECTIONS: GuideSection[] = [
   {
     id: 'registration',
     icon: UserPlus,
@@ -134,6 +135,57 @@ const GUIDE_SECTIONS: GuideSection[] = [
   },
 ];
 
+// Buyer guide sections
+const BUYER_GUIDE_SECTIONS: GuideSection[] = [
+  {
+    id: 'first-login',
+    icon: Home,
+    titleKey: 'help.buyer.firstLogin.title',
+    descriptionKey: 'help.buyer.firstLogin.description',
+    steps: [
+      'help.buyer.firstLogin.step1',
+      'help.buyer.firstLogin.step2',
+      'help.buyer.firstLogin.step3',
+    ],
+  },
+  {
+    id: 'view-transactions',
+    icon: FileText,
+    titleKey: 'help.buyer.viewTransactions.title',
+    descriptionKey: 'help.buyer.viewTransactions.description',
+    steps: [
+      'help.buyer.viewTransactions.step1',
+      'help.buyer.viewTransactions.step2',
+      'help.buyer.viewTransactions.step3',
+    ],
+  },
+  {
+    id: 'transaction-detail',
+    icon: Eye,
+    titleKey: 'help.buyer.transactionDetail.title',
+    descriptionKey: 'help.buyer.transactionDetail.description',
+    steps: [
+      'help.buyer.transactionDetail.step1',
+      'help.buyer.transactionDetail.step2',
+      'help.buyer.transactionDetail.step3',
+      'help.buyer.transactionDetail.step4',
+      'help.buyer.transactionDetail.step5',
+    ],
+  },
+  {
+    id: 'account-setup',
+    icon: Settings,
+    titleKey: 'help.buyer.accountSetup.title',
+    descriptionKey: 'help.buyer.accountSetup.description',
+    steps: [
+      'help.buyer.accountSetup.step1',
+      'help.buyer.accountSetup.step2',
+      'help.buyer.accountSetup.step3',
+    ],
+    link: '/settings',
+  },
+];
+
 // Help page translations
 const HELP_TRANSLATIONS: Record<string, Record<string, string>> = {
   en: {
@@ -200,6 +252,31 @@ const HELP_TRANSLATIONS: Record<string, Record<string, string>> = {
     'help.needMoreHelp': 'Need More Help?',
     'help.contactSupport': 'Contact our support team for assistance',
     'help.supportEmail': 'support@thepropertygateway.com',
+    // Buyer help translations
+    'help.buyer.title': 'Buyer Guide',
+    'help.buyer.subtitle': 'Learn how to track your property transactions and communicate with your agent',
+    'help.buyer.firstLogin.title': '1. First Login',
+    'help.buyer.firstLogin.description': 'Access your dashboard for the first time',
+    'help.buyer.firstLogin.step1': 'Log in with the credentials provided by your agent',
+    'help.buyer.firstLogin.step2': 'If prompted, update your password for security',
+    'help.buyer.firstLogin.step3': 'You\'ll be taken to your dashboard where you can see your transactions',
+    'help.buyer.viewTransactions.title': '2. View Your Transactions',
+    'help.buyer.viewTransactions.description': 'See all your property transactions in one place',
+    'help.buyer.viewTransactions.step1': 'Your transactions appear on the dashboard',
+    'help.buyer.viewTransactions.step2': 'Click on any transaction to view details and track progress',
+    'help.buyer.viewTransactions.step3': 'Use the search and filter options to find specific transactions',
+    'help.buyer.transactionDetail.title': '3. Transaction Details',
+    'help.buyer.transactionDetail.description': 'Track progress, communicate with your agent, and manage files',
+    'help.buyer.transactionDetail.step1': 'Click on any transaction to open its detail page',
+    'help.buyer.transactionDetail.step2': 'View the Tracker tab to see milestone progress (read-only)',
+    'help.buyer.transactionDetail.step3': 'Use the Messages tab to communicate with your agent (messages are automatically translated)',
+    'help.buyer.transactionDetail.step4': 'Upload files in the Files tab and download documents shared by your agent',
+    'help.buyer.transactionDetail.step5': 'View agent contact information in the Contacts tab',
+    'help.buyer.accountSetup.title': '4. Account Settings',
+    'help.buyer.accountSetup.description': 'Customize your profile and manage your account',
+    'help.buyer.accountSetup.step1': 'Navigate to Settings from the user menu',
+    'help.buyer.accountSetup.step2': 'Upload your profile photo (avatar)',
+    'help.buyer.accountSetup.step3': 'Reset your password if needed',
   },
   it: {
     'help.title': 'Guida Introduttiva',
@@ -258,6 +335,31 @@ const HELP_TRANSLATIONS: Record<string, Record<string, string>> = {
     'help.needMoreHelp': 'Serve Altro Aiuto?',
     'help.contactSupport': 'Contatta il nostro team di supporto',
     'help.supportEmail': 'support@thepropertygateway.com',
+    // Buyer help translations
+    'help.buyer.title': 'Guida Acquirente',
+    'help.buyer.subtitle': 'Scopri come tracciare le tue transazioni immobiliari e comunicare con il tuo agente',
+    'help.buyer.firstLogin.title': '1. Primo Accesso',
+    'help.buyer.firstLogin.description': 'Accedi alla tua dashboard per la prima volta',
+    'help.buyer.firstLogin.step1': 'Accedi con le credenziali fornite dal tuo agente',
+    'help.buyer.firstLogin.step2': 'Se richiesto, aggiorna la password per sicurezza',
+    'help.buyer.firstLogin.step3': 'Verrai portato alla dashboard dove vedrai le tue transazioni',
+    'help.buyer.viewTransactions.title': '2. Visualizza le Tue Transazioni',
+    'help.buyer.viewTransactions.description': 'Vedi tutte le tue transazioni immobiliari in un unico posto',
+    'help.buyer.viewTransactions.step1': 'Le tue transazioni appaiono sulla dashboard',
+    'help.buyer.viewTransactions.step2': 'Clicca su qualsiasi transazione per visualizzare i dettagli e monitorare i progressi',
+    'help.buyer.viewTransactions.step3': 'Usa le opzioni di ricerca e filtro per trovare transazioni specifiche',
+    'help.buyer.transactionDetail.title': '3. Dettagli Transazione',
+    'help.buyer.transactionDetail.description': 'Traccia i progressi, comunica con il tuo agente e gestisci i file',
+    'help.buyer.transactionDetail.step1': 'Clicca su una transazione per aprire la sua pagina di dettaglio',
+    'help.buyer.transactionDetail.step2': 'Visualizza la tab Tracker per vedere i progressi dei milestone (sola lettura)',
+    'help.buyer.transactionDetail.step3': 'Usa la tab Messaggi per comunicare con il tuo agente (i messaggi sono tradotti automaticamente)',
+    'help.buyer.transactionDetail.step4': 'Carica file nella tab File e scarica documenti condivisi dal tuo agente',
+    'help.buyer.transactionDetail.step5': 'Visualizza le informazioni di contatto dell\'agente nella tab Contatti',
+    'help.buyer.accountSetup.title': '4. Impostazioni Account',
+    'help.buyer.accountSetup.description': 'Personalizza il tuo profilo e gestisci il tuo account',
+    'help.buyer.accountSetup.step1': 'Vai alle Impostazioni dal menu utente',
+    'help.buyer.accountSetup.step2': 'Carica la tua foto profilo (avatar)',
+    'help.buyer.accountSetup.step3': 'Reimposta la password se necessario',
   },
   es: {
     'help.title': 'Guía de Inicio',
@@ -316,6 +418,31 @@ const HELP_TRANSLATIONS: Record<string, Record<string, string>> = {
     'help.needMoreHelp': '¿Necesitas Más Ayuda?',
     'help.contactSupport': 'Contacta a nuestro equipo de soporte',
     'help.supportEmail': 'support@thepropertygateway.com',
+    // Buyer help translations
+    'help.buyer.title': 'Guía para Compradores',
+    'help.buyer.subtitle': 'Aprende a rastrear tus transacciones inmobiliarias y comunicarte con tu agente',
+    'help.buyer.firstLogin.title': '1. Primer Inicio de Sesión',
+    'help.buyer.firstLogin.description': 'Accede a tu dashboard por primera vez',
+    'help.buyer.firstLogin.step1': 'Inicia sesión con las credenciales proporcionadas por tu agente',
+    'help.buyer.firstLogin.step2': 'Si se solicita, actualiza tu contraseña por seguridad',
+    'help.buyer.firstLogin.step3': 'Serás llevado al dashboard donde verás tus transacciones',
+    'help.buyer.viewTransactions.title': '2. Ver Tus Transacciones',
+    'help.buyer.viewTransactions.description': 'Ve todas tus transacciones inmobiliarias en un solo lugar',
+    'help.buyer.viewTransactions.step1': 'Tus transacciones aparecen en el dashboard',
+    'help.buyer.viewTransactions.step2': 'Haz clic en cualquier transacción para ver detalles y seguir el progreso',
+    'help.buyer.viewTransactions.step3': 'Usa las opciones de búsqueda y filtro para encontrar transacciones específicas',
+    'help.buyer.transactionDetail.title': '3. Detalles de Transacción',
+    'help.buyer.transactionDetail.description': 'Rastrea el progreso, comunícate con tu agente y gestiona archivos',
+    'help.buyer.transactionDetail.step1': 'Haz clic en una transacción para abrir su página de detalles',
+    'help.buyer.transactionDetail.step2': 'Ve la pestaña Tracker para ver el progreso de los hitos (solo lectura)',
+    'help.buyer.transactionDetail.step3': 'Usa la pestaña Mensajes para comunicarte con tu agente (los mensajes se traducen automáticamente)',
+    'help.buyer.transactionDetail.step4': 'Sube archivos en la pestaña Archivos y descarga documentos compartidos por tu agente',
+    'help.buyer.transactionDetail.step5': 'Ve la información de contacto del agente en la pestaña Contactos',
+    'help.buyer.accountSetup.title': '4. Configuración de Cuenta',
+    'help.buyer.accountSetup.description': 'Personaliza tu perfil y gestiona tu cuenta',
+    'help.buyer.accountSetup.step1': 'Navega a Configuración desde el menú de usuario',
+    'help.buyer.accountSetup.step2': 'Sube tu foto de perfil (avatar)',
+    'help.buyer.accountSetup.step3': 'Restablece tu contraseña si es necesario',
   },
   fr: {
     'help.title': 'Guide de Démarrage',
@@ -374,6 +501,31 @@ const HELP_TRANSLATIONS: Record<string, Record<string, string>> = {
     'help.needMoreHelp': 'Besoin de Plus d\'Aide?',
     'help.contactSupport': 'Contactez notre équipe de support',
     'help.supportEmail': 'support@thepropertygateway.com',
+    // Buyer help translations
+    'help.buyer.title': 'Guide Acheteur',
+    'help.buyer.subtitle': 'Apprenez à suivre vos transactions immobilières et à communiquer avec votre agent',
+    'help.buyer.firstLogin.title': '1. Première Connexion',
+    'help.buyer.firstLogin.description': 'Accédez à votre tableau de bord pour la première fois',
+    'help.buyer.firstLogin.step1': 'Connectez-vous avec les identifiants fournis par votre agent',
+    'help.buyer.firstLogin.step2': 'Si demandé, mettez à jour votre mot de passe pour la sécurité',
+    'help.buyer.firstLogin.step3': 'Vous serez dirigé vers votre tableau de bord où vous verrez vos transactions',
+    'help.buyer.viewTransactions.title': '2. Voir Vos Transactions',
+    'help.buyer.viewTransactions.description': 'Voir toutes vos transactions immobilières en un seul endroit',
+    'help.buyer.viewTransactions.step1': 'Vos transactions apparaissent sur le tableau de bord',
+    'help.buyer.viewTransactions.step2': 'Cliquez sur une transaction pour voir les détails et suivre les progrès',
+    'help.buyer.viewTransactions.step3': 'Utilisez les options de recherche et de filtre pour trouver des transactions spécifiques',
+    'help.buyer.transactionDetail.title': '3. Détails de Transaction',
+    'help.buyer.transactionDetail.description': 'Suivez les progrès, communiquez avec votre agent et gérez les fichiers',
+    'help.buyer.transactionDetail.step1': 'Cliquez sur une transaction pour ouvrir sa page de détails',
+    'help.buyer.transactionDetail.step2': 'Consultez l\'onglet Tracker pour voir la progression des étapes (lecture seule)',
+    'help.buyer.transactionDetail.step3': 'Utilisez l\'onglet Messages pour communiquer avec votre agent (les messages sont traduits automatiquement)',
+    'help.buyer.transactionDetail.step4': 'Téléchargez des fichiers dans l\'onglet Fichiers et téléchargez les documents partagés par votre agent',
+    'help.buyer.transactionDetail.step5': 'Consultez les informations de contact de l\'agent dans l\'onglet Contacts',
+    'help.buyer.accountSetup.title': '4. Paramètres du Compte',
+    'help.buyer.accountSetup.description': 'Personnalisez votre profil et gérez votre compte',
+    'help.buyer.accountSetup.step1': 'Naviguez vers Paramètres depuis le menu utilisateur',
+    'help.buyer.accountSetup.step2': 'Téléchargez votre photo de profil (avatar)',
+    'help.buyer.accountSetup.step3': 'Réinitialisez votre mot de passe si nécessaire',
   },
   de: {
     'help.title': 'Erste Schritte',
@@ -432,6 +584,31 @@ const HELP_TRANSLATIONS: Record<string, Record<string, string>> = {
     'help.needMoreHelp': 'Brauchen Sie Mehr Hilfe?',
     'help.contactSupport': 'Kontaktieren Sie unser Support-Team',
     'help.supportEmail': 'support@thepropertygateway.com',
+    // Buyer help translations
+    'help.buyer.title': 'Käufer-Leitfaden',
+    'help.buyer.subtitle': 'Erfahren Sie, wie Sie Ihre Immobilientransaktionen verfolgen und mit Ihrem Makler kommunizieren',
+    'help.buyer.firstLogin.title': '1. Erste Anmeldung',
+    'help.buyer.firstLogin.description': 'Greifen Sie zum ersten Mal auf Ihr Dashboard zu',
+    'help.buyer.firstLogin.step1': 'Melden Sie sich mit den von Ihrem Makler bereitgestellten Anmeldedaten an',
+    'help.buyer.firstLogin.step2': 'Wenn aufgefordert, aktualisieren Sie Ihr Passwort zur Sicherheit',
+    'help.buyer.firstLogin.step3': 'Sie werden zu Ihrem Dashboard weitergeleitet, wo Sie Ihre Transaktionen sehen',
+    'help.buyer.viewTransactions.title': '2. Ihre Transaktionen Anzeigen',
+    'help.buyer.viewTransactions.description': 'Sehen Sie alle Ihre Immobilientransaktionen an einem Ort',
+    'help.buyer.viewTransactions.step1': 'Ihre Transaktionen erscheinen auf dem Dashboard',
+    'help.buyer.viewTransactions.step2': 'Klicken Sie auf eine Transaktion, um Details anzuzeigen und den Fortschritt zu verfolgen',
+    'help.buyer.viewTransactions.step3': 'Verwenden Sie die Such- und Filteroptionen, um bestimmte Transaktionen zu finden',
+    'help.buyer.transactionDetail.title': '3. Transaktionsdetails',
+    'help.buyer.transactionDetail.description': 'Verfolgen Sie den Fortschritt, kommunizieren Sie mit Ihrem Makler und verwalten Sie Dateien',
+    'help.buyer.transactionDetail.step1': 'Klicken Sie auf eine Transaktion, um ihre Detailseite zu öffnen',
+    'help.buyer.transactionDetail.step2': 'Sehen Sie sich den Tracker-Tab an, um den Meilenstein-Fortschritt zu sehen (nur Leseansicht)',
+    'help.buyer.transactionDetail.step3': 'Verwenden Sie den Nachrichten-Tab, um mit Ihrem Makler zu kommunizieren (Nachrichten werden automatisch übersetzt)',
+    'help.buyer.transactionDetail.step4': 'Laden Sie Dateien im Dateien-Tab hoch und laden Sie von Ihrem Makler geteilte Dokumente herunter',
+    'help.buyer.transactionDetail.step5': 'Sehen Sie sich die Kontaktinformationen des Maklers im Kontakte-Tab an',
+    'help.buyer.accountSetup.title': '4. Kontoeinstellungen',
+    'help.buyer.accountSetup.description': 'Passen Sie Ihr Profil an und verwalten Sie Ihr Konto',
+    'help.buyer.accountSetup.step1': 'Navigieren Sie zu Einstellungen im Benutzermenü',
+    'help.buyer.accountSetup.step2': 'Laden Sie Ihr Profilfoto (Avatar) hoch',
+    'help.buyer.accountSetup.step3': 'Setzen Sie Ihr Passwort bei Bedarf zurück',
   },
   pl: {
     'help.title': 'Przewodnik Wprowadzający',
@@ -490,6 +667,31 @@ const HELP_TRANSLATIONS: Record<string, Record<string, string>> = {
     'help.needMoreHelp': 'Potrzebujesz Więcej Pomocy?',
     'help.contactSupport': 'Skontaktuj się z naszym zespołem wsparcia',
     'help.supportEmail': 'support@thepropertygateway.com',
+    // Buyer help translations
+    'help.buyer.title': 'Przewodnik dla Kupujących',
+    'help.buyer.subtitle': 'Dowiedz się, jak śledzić transakcje nieruchomości i komunikować się z agentem',
+    'help.buyer.firstLogin.title': '1. Pierwsze Logowanie',
+    'help.buyer.firstLogin.description': 'Uzyskaj dostęp do panelu po raz pierwszy',
+    'help.buyer.firstLogin.step1': 'Zaloguj się za pomocą danych logowania udostępnionych przez agenta',
+    'help.buyer.firstLogin.step2': 'Jeśli zostaniesz poproszony, zaktualizuj hasło dla bezpieczeństwa',
+    'help.buyer.firstLogin.step3': 'Zostaniesz przeniesiony do panelu, gdzie zobaczysz swoje transakcje',
+    'help.buyer.viewTransactions.title': '2. Wyświetl Swoje Transakcje',
+    'help.buyer.viewTransactions.description': 'Zobacz wszystkie swoje transakcje nieruchomości w jednym miejscu',
+    'help.buyer.viewTransactions.step1': 'Twoje transakcje pojawiają się na panelu',
+    'help.buyer.viewTransactions.step2': 'Kliknij na dowolną transakcję, aby zobaczyć szczegóły i śledzić postępy',
+    'help.buyer.viewTransactions.step3': 'Użyj opcji wyszukiwania i filtrowania, aby znaleźć konkretne transakcje',
+    'help.buyer.transactionDetail.title': '3. Szczegóły Transakcji',
+    'help.buyer.transactionDetail.description': 'Śledź postępy, komunikuj się z agentem i zarządzaj plikami',
+    'help.buyer.transactionDetail.step1': 'Kliknij na transakcję, aby otworzyć jej stronę szczegółów',
+    'help.buyer.transactionDetail.step2': 'Zobacz zakładkę Tracker, aby zobaczyć postępy kamieni milowych (tylko do odczytu)',
+    'help.buyer.transactionDetail.step3': 'Użyj zakładki Wiadomości, aby komunikować się z agentem (wiadomości są automatycznie tłumaczone)',
+    'help.buyer.transactionDetail.step4': 'Przesyłaj pliki w zakładce Pliki i pobieraj dokumenty udostępnione przez agenta',
+    'help.buyer.transactionDetail.step5': 'Zobacz informacje kontaktowe agenta w zakładce Kontakty',
+    'help.buyer.accountSetup.title': '4. Ustawienia Konta',
+    'help.buyer.accountSetup.description': 'Dostosuj swój profil i zarządzaj kontem',
+    'help.buyer.accountSetup.step1': 'Przejdź do Ustawień z menu użytkownika',
+    'help.buyer.accountSetup.step2': 'Prześlij swoje zdjęcie profilowe (awatar)',
+    'help.buyer.accountSetup.step3': 'Zresetuj hasło w razie potrzeby',
   },
 };
 
@@ -498,6 +700,9 @@ export default function HelpPage() {
   const { profile } = useAuth();
   const { language } = useLanguage();
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
+
+  // Get guide sections based on role
+  const guideSections = profile?.role === 'buyer' ? BUYER_GUIDE_SECTIONS : AGENT_GUIDE_SECTIONS;
 
   // Get translation for current language
   const t = useCallback((key: string): string => {
@@ -533,10 +738,10 @@ export default function HelpPage() {
             </div>
             <div>
               <h1 className="text-3xl font-bold text-gray-900">
-                {t('help.title')}
+                {profile?.role === 'buyer' ? t('help.buyer.title') : t('help.title')}
               </h1>
               <p className="text-gray-600 mt-1">
-                {t('help.subtitle')}
+                {profile?.role === 'buyer' ? t('help.buyer.subtitle') : t('help.subtitle')}
               </p>
             </div>
           </div>
@@ -577,30 +782,48 @@ export default function HelpPage() {
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-3">
-              <Link href="/register">
-                <Button variant="outline" size="sm" className="border-blue-300">
-                  1. {t('help.registration.title')}
-                </Button>
-              </Link>
-              <ChevronRight className="h-5 w-5 text-blue-400 self-center hidden sm:block" />
-              <Link href="/settings">
-                <Button variant="outline" size="sm" className="border-blue-300">
-                  2. {t('help.accountSetup.title')}
-                </Button>
-              </Link>
-              <ChevronRight className="h-5 w-5 text-blue-400 self-center hidden sm:block" />
-              <Link href="/transactions/create">
-                <Button variant="outline" size="sm" className="border-blue-300">
-                  3. {t('help.createTransaction.title')}
-                </Button>
-              </Link>
+              {profile?.role === 'buyer' ? (
+                <>
+                  <Link href="/dashboard">
+                    <Button variant="outline" size="sm" className="border-blue-300">
+                      1. {t('help.buyer.firstLogin.title')}
+                    </Button>
+                  </Link>
+                  <ChevronRight className="h-5 w-5 text-blue-400 self-center hidden sm:block" />
+                  <Link href="/settings">
+                    <Button variant="outline" size="sm" className="border-blue-300">
+                      2. {t('help.buyer.accountSetup.title')}
+                    </Button>
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link href="/register">
+                    <Button variant="outline" size="sm" className="border-blue-300">
+                      1. {t('help.registration.title')}
+                    </Button>
+                  </Link>
+                  <ChevronRight className="h-5 w-5 text-blue-400 self-center hidden sm:block" />
+                  <Link href="/settings">
+                    <Button variant="outline" size="sm" className="border-blue-300">
+                      2. {t('help.accountSetup.title')}
+                    </Button>
+                  </Link>
+                  <ChevronRight className="h-5 w-5 text-blue-400 self-center hidden sm:block" />
+                  <Link href="/transactions/create">
+                    <Button variant="outline" size="sm" className="border-blue-300">
+                      3. {t('help.createTransaction.title')}
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
           </CardContent>
         </Card>
 
         {/* Guide Sections */}
         <div className="space-y-4">
-          {GUIDE_SECTIONS.map((section) => {
+          {guideSections.map((section) => {
             const Icon = section.icon;
             const isExpanded = expandedSection === section.id;
 
