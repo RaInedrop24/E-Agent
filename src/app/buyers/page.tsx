@@ -26,6 +26,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import Link from 'next/link';
+import { toast } from 'sonner';
 
 interface Buyer {
   id: string;
@@ -146,36 +147,25 @@ export default function BuyersPage() {
         throw new Error(result.error || 'Failed to create buyer');
       }
 
-      // Show success message
+      // Show success message with toast
       if (result.existingBuyer) {
         // Existing buyer was added to this agent's list
-        // Keep message generic to maintain privacy (don't reveal buyer is working with other agents)
-        alert(
-          `✅ Buyer added to your list!\n\n` +
-          `📧 Email: ${newBuyerEmail}\n` +
-          `👤 Name: ${result.buyer.full_name}\n\n` +
-          `📧 A notification email has been sent to the buyer.\n` +
-          `You can now create transactions with this buyer.`
-        );
+        toast.success(t('buyers.addedSuccess'), {
+          description: tVar('buyers.notificationEmailSent', { email: newBuyerEmail }),
+          duration: 5000,
+        });
       } else if (result.emailSent) {
         // New buyer created with email sent
-        alert(
-          `✅ Buyer created successfully!\n\n` +
-          `📧 Welcome email sent to: ${newBuyerEmail}\n\n` +
-          `The buyer will receive an email with their login credentials and instructions.\n` +
-          `Default Password: ${result.defaultPassword}\n\n` +
-          `They will be required to change their password on first login.`
-        );
-      } else if (result.defaultPassword) {
+        toast.success(t('buyers.createdSuccess'), {
+          description: tVar('buyers.welcomeEmailSent', { email: newBuyerEmail }),
+          duration: 5000,
+        });
+      } else {
         // New buyer created but email failed
-        alert(
-          `✅ Buyer created successfully!\n\n` +
-          `⚠️ Email failed to send - please share these credentials manually:\n\n` +
-          `Email: ${newBuyerEmail}\n` +
-          `Default Password: ${result.defaultPassword}\n\n` +
-          `⚠️ IMPORTANT: Share these credentials with the buyer.\n` +
-          `They will be required to change their password on first login.`
-        );
+        toast.success(t('buyers.createdSuccess'), {
+          description: t('buyers.emailFailed'),
+          duration: 7000,
+        });
       }
 
       // Reset form and close modal
@@ -287,7 +277,9 @@ export default function BuyersPage() {
         throw new Error(result.error || 'Failed to resend invitation');
       }
 
-      alert('Invitation email resent successfully!');
+      toast.success(t('buyers.inviteResent'), {
+        duration: 5000,
+      });
     } catch (err: any) {
       setError(err.message || 'Failed to resend invitation');
     }
