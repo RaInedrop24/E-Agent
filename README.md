@@ -19,29 +19,37 @@ Buying property internationally (especially in Italy) is anxiety-inducing for no
 
 A centralized portal providing:
 1. **📈 Progress Tracker** - Visual timeline showing exactly where you are in the buying process
-2. **🌍 Translation Bridge** - Auto-translating messaging system for native language communication  
+2. **🌍 Translation Bridge** - Auto-translating messaging system for native language communication
 3. **📱 Centralized Hub** - All documents, messages, and updates in one secure location
 4. **🔒 Transparency** - Real-time status updates for complete peace of mind
+5. **🎓 Guided Onboarding** - Interactive product tours and downloadable user guides so agents and buyers are productive from day one
+6. **🛡️ Admin Control** - A dedicated Super Admin panel for platform oversight, agent/buyer management, and support
 
 ---
 
 ## 🚀 Tech Stack
 
 ### Frontend
-- **[Next.js 15](https://nextjs.org/)** - React framework with App Router
-- **[TypeScript](https://www.typescriptlang.org/)** - Type safety and developer experience
-- **[Tailwind CSS](https://tailwindcss.com/)** - Utility-first styling
-- **[shadcn/ui](https://ui.shadcn.com/)** - Beautiful, reusable components
+- **[Next.js 16](https://nextjs.org/)** - React framework with App Router
+- **[React 19](https://react.dev/)** + **[TypeScript](https://www.typescriptlang.org/)** - Type safety and developer experience
+- **[Tailwind CSS 4](https://tailwindcss.com/)** - Utility-first styling
+- **[shadcn/ui](https://ui.shadcn.com/)** + **Radix UI** primitives - Accessible, reusable components
+- **[Framer Motion](https://www.framer.com/motion/)** - Animations and transitions
+- **[react-joyride](https://react-joyride.com/)** - Interactive onboarding tours
 
-### Backend
-- **[Supabase](https://supabase.com/)** - PostgreSQL + Auth + Real-time subscriptions ✅ **Implemented**
-- **[DeepL API](https://www.deepl.com/pro-api)** - Premium translation service ✅ **Implemented**
+### Backend & Integrations
+- **[Supabase](https://supabase.com/)** - PostgreSQL + Auth + Real-time subscriptions + Row Level Security ✅ **Implemented**
+- **[DeepL API](https://www.deepl.com/pro-api)** - Real-time message & milestone translation ✅ **Implemented**
+- **[Resend](https://resend.com/)** + **[React Email](https://react.email/)** - Transactional email (invites, notifications, progress updates) ✅ **Implemented**
+- **[Twilio](https://www.twilio.com/)** - SMS notifications ✅ **Implemented**
+- **Next.js API Routes** - Server-side logic (buyers, files, notifications, translation, super admin) ✅ **Implemented**
 
 ### Development Tools
 - **ESLint** + **TypeScript** for code quality
+- **Husky** + **lint-staged** - Pre-commit checks
+- **[Playwright](https://playwright.dev/)** - E2E + visual regression testing ✅ **Implemented**
 - **Git** for version control
-- **[Playwright](https://playwright.dev/)** - E2E testing framework ✅ **Configured**
-- **Vercel** for deployment (recommended)
+- **Linode / PM2 / Nginx** - Production deployment (see `docs/DEPLOYMENT_LINODE.md`)
 
 ---
 
@@ -51,27 +59,36 @@ A centralized portal providing:
 estate-portal/
 ├── 📁 src/
 │   ├── 📁 app/                    # Next.js App Router pages
-│   │   ├── 📁 (auth)/            # Authentication routes
-│   │   ├── 📁 api/                # API routes
-│   │   ├── 📁 dashboard/          # Dashboard pages
-│   │   └── 📁 transaction/        # Transaction management
+│   │   ├── 📁 (auth)/            # Login / register
+│   │   ├── 📁 admin/              # Super Admin panel (agents, buyers, metrics, SQL editor, MFA)
+│   │   ├── 📁 api/                # API routes (buyers, files, notifications, translate, super-admin)
+│   │   ├── 📁 dashboard/          # Agent & buyer dashboards
+│   │   ├── 📁 transaction/        # Transaction detail, milestones, comms
+│   │   ├── 📁 transactions/       # Transaction list & creation
+│   │   ├── 📁 milestone-templates/# Reusable milestone template management
+│   │   ├── 📁 buyers/             # Buyer management (agent view)
+│   │   ├── 📁 settings/           # Profile & agency branding
+│   │   ├── 📁 help/               # In-app help centre
+│   │   └── 📁 privacy, terms, cookies/  # Legal & compliance pages
 │   ├── 📁 components/             # Reusable UI components
 │   │   ├── 📁 ui/                # shadcn/ui components
 │   │   ├── 📁 layout/            # Layout components (Header, Footer)
-│   │   └── 📁 features/          # Feature-specific components
+│   │   └── 📁 features/          # Onboarding tours, notifications, system messaging
+│   ├── 📁 contexts/               # AuthContext, LanguageContext, BrandingContext
 │   ├── 📁 lib/                   # Utilities and configurations
 │   │   ├── constants.ts          # App constants (languages, milestones)
 │   │   ├── supabase.ts           # Supabase client
-│   │   └── utils.ts              # Helper functions
+│   │   ├── translation.ts        # DeepL translation service
+│   │   ├── email-service.ts      # Resend transactional email
+│   │   ├── notifications.ts      # In-app + SMS notification helpers
+│   │   └── ui-translations.ts    # 7-language UI translation dictionary
 │   └── 📁 types/                 # TypeScript type definitions
 ├── 📁 supabase/                  # Database migrations and scripts
-│   └── 📁 migrations/            # SQL migration files
-├── 📁 scripts/                   # Utility scripts
-├── 📁 tests/                     # E2E tests (Playwright)
-├── 📁 docs/                      # Project documentation
-│   ├── ARCHITECTURE.md           # Technical architecture
-│   ├── DEVELOPMENT.md            # Development guidelines
-│   └── Project_Brief.md          # Project plan and status
+│   └── 📁 migrations/            # 60+ SQL migration files
+├── 📁 scripts/                   # Automation scripts (translations, guide PDFs)
+├── 📁 tests/                     # E2E + visual regression tests (Playwright)
+├── 📁 docs/                      # Project documentation (architecture, deployment, security, guides)
+├── 📁 backlog/                   # Feature backlog & proposals
 ├── 📁 public/                    # Static assets
 └── 📦 Package files
 ```
@@ -99,14 +116,25 @@ estate-portal/
    ```
 
 3. **Set up environment variables**
-   
+
    Create a `.env.local` file in the root directory:
    ```env
+   # Public (safe to expose in client)
    NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+   # Server-only
+   DEEPL_API_KEY=your_deepl_api_key
+   RESEND_API_KEY=your_resend_api_key
+   TWILIO_SID=your_twilio_sid
+   TWILIO_SECRET=your_twilio_secret
+   TWILIO_PHONE_NUMBER=your_twilio_phone_number
+
+   # Optional
+   NEXT_PUBLIC_SITE_URL=http://localhost:3001
    ```
-   
-   See `.env.local.example` for reference.
+
+   See `.env.local.example` for the full reference.
 
 4. **Start development server**
    ```bash
@@ -135,12 +163,12 @@ estate-portal/
 
 ## 🌍 Multi-Language Support
 
-The Property Gateway features **comprehensive translation support** across 6 languages, with easy-to-use tools for adding more.
+The Property Gateway features **comprehensive translation support** across 7 languages, with easy-to-use tools for adding more.
 
 ### For Users
 
 ✅ **Site-wide UI Translation**
-- 311+ translation keys covering all pages
+- ~500 translation keys per language, covering all pages
 - User-selected language preference (stored in profile)
 - Instant language switching
 
@@ -181,7 +209,7 @@ node scripts/generate-translations.mjs pt
 
 When adding new features or UI elements:
 
-1. **Add translation keys** to `src/lib/ui-translations.ts` (EN, IT, PL minimum)
+1. **Add translation keys** to `src/lib/ui-translations.ts` for all 7 supported languages (EN, IT, PL, ES, FR, DE, NL)
 2. **Use the `useLanguage()` hook** in your components
 3. **Replace hardcoded strings** with `t('key')` or `tVar('key', {vars})`
 4. **Test in multiple languages** before committing
@@ -230,25 +258,53 @@ export default function MyComponent() {
 
 ---
 
-## ✨ MVP Features
+## ✨ Features
+
 ### 🔐 User Management
 - [x] Role-based authentication (Agent/Buyer) ✅ **Complete**
 - [x] Transaction creation and buyer invitation ✅ **Complete**
-- [x] User profile management ✅ **Complete**
+- [x] User profile management + agency branding (logo, auto-extracted brand colors) ✅ **Complete**
 
 ### 📊 Progress Tracker
-- [x] Pre-defined milestone checklist ✅ **Complete**
-- [ ] Real-time status updates 🚧 **Planned** (Supabase subscriptions pending)
+- [x] Pre-defined & fully customizable milestone templates ✅ **Complete**
+- [x] Real-time status updates via Supabase subscriptions ✅ **Complete**
 - [x] Visual progress indicators ✅ **Complete**
 
 ### 💬 Translation Bridge
-- [ ] Auto-translation of messages 🚧 **Planned** (DeepL integration pending)
-- [ ] Language preference settings 🚧 **Planned**
-- [ ] "Show Original" functionality 🚧 **Planned**
+- [x] Auto-translation of messages via DeepL ✅ **Complete**
+- [x] Language preference settings (7 languages) ✅ **Complete**
+- [x] "Show Original" functionality with cached translations ✅ **Complete**
 
 ### 📎 File Management
-- [ ] Document upload/download 🚧 **Planned**
-- [ ] File organization by transaction 🚧 **Planned**
+- [x] Document upload/download, organized by transaction ✅ **Complete**
+- [x] Server-side file type & size validation ✅ **Complete**
+
+### 🔔 Notifications
+- [x] In-app notification bell + notification centre ✅ **Complete**
+- [x] System-wide announcements (Super Admin broadcast) ✅ **Complete**
+- [x] Transactional email via Resend + React Email ✅ **Complete**
+- [x] SMS alerts via Twilio ✅ **Complete**
+
+### 🛡️ Super Admin Panel
+- [x] Agent & buyer management dashboards ✅ **Complete**
+- [x] Platform metrics dashboard ✅ **Complete**
+- [x] SQL query editor for support/debugging ✅ **Complete**
+- [x] MFA setup for admin accounts ✅ **Complete**
+- [x] Admin audit logging ✅ **Complete**
+
+### 🎓 Onboarding & Help
+- [x] Interactive product tours for Agents and Buyers (react-joyride) ✅ **Complete**
+- [x] In-app help centre ✅ **Complete**
+- [x] Auto-generated, downloadable user guide PDFs (EN/IT) ✅ **Complete**
+
+### ⚖️ Legal & Compliance
+- [x] Privacy Policy, Terms of Service, Cookie Policy pages ✅ **Complete**
+- [x] Cookie consent banner ✅ **Complete**
+
+### 🧪 Testing & Quality
+- [x] Playwright E2E test suite (login, transactions, invitations, sort persistence) ✅ **Complete**
+- [x] Visual regression testing for the landing page ✅ **Complete**
+- [x] Husky + lint-staged pre-commit checks ✅ **Complete**
 
 ---
 
@@ -259,16 +315,12 @@ export default function MyComponent() {
 | 🇬🇧 English | `en` | ✅ Complete | ✅ | ✅ | ✅ |
 | 🇮🇹 Italiano | `it` | ✅ Complete | ✅ | ✅ | ✅ |
 | 🇵🇱 Polski | `pl` | ✅ Complete | ✅ | ✅ | ✅ |
-| 🇪🇸 Español | `es` | 🔧 Partial | ❌ | ✅ | ✅ |
-| 🇫🇷 Français | `fr` | 🔧 Partial | ❌ | ✅ | ✅ |
-| 🇩🇪 Deutsch | `de` | 🔧 Partial | ❌ | ✅ | ✅ |
+| 🇪🇸 Español | `es` | ✅ Complete | ✅ | ✅ | ✅ |
+| 🇫🇷 Français | `fr` | ✅ Complete | ✅ | ✅ | ✅ |
+| 🇩🇪 Deutsch | `de` | ✅ Complete | ✅ | ✅ | ✅ |
+| 🇳🇱 Nederlands | `nl` | ✅ Complete | ✅ | ✅ | ✅ |
 
-**Legend:**
-- ✅ Complete: Full support with translations
-- 🔧 Partial: Database ready, needs UI translations (~20 min to add)
-- ❌ Not yet: UI translations not yet added
-
-**Want to add a language?** See `docs/LANGUAGE_QUICK_START.md` for 20-minute setup guide.
+**Want to add another language?** See `docs/ADDING_NEW_LANGUAGES.md` for the ~20-minute setup guide.
 
 ---
 
@@ -278,21 +330,27 @@ export default function MyComponent() {
 |-------|--------|-------------|
 | **Phase 1** | ✅ Complete | Ideation & Planning |
 | **Phase 2** | ✅ Complete | Design & Prototyping |
-| **Phase 3** | 🚧 In Progress (~75%) | MVP Development |
-| **Phase 4** | ⏳ Planned | Beta Testing |
-| **Phase 5** | ⏳ Planned | Launch & Iteration |
+| **Phase 3** | ✅ Complete | MVP Development |
+| **Phase 4** | 🚧 In Progress | Pilot Launch (see `PILOT_LAUNCH_SUMMARY.md` and `docs/PILOT_LAUNCH_CHECKLIST.md`) |
+| **Phase 5** | ⏳ Planned | Public Launch & Iteration |
 
-### Phase 3 Progress
-- ✅ Supabase database setup with RLS policies
-- ✅ User authentication system (login, register, profiles)
-- ✅ Transaction creation and management
-- ✅ Buyer invitation system
-- ✅ Milestone tracking with visual indicators
-- ✅ Dashboard layouts for Agent and Buyer roles
-- ✅ Playwright E2E testing framework
-- 🚧 Message system (in progress)
-- 🚧 File upload functionality (planned)
-- 🚧 Translation Bridge with DeepL API (planned)
+### Phase 3 — MVP (Complete)
+- ✅ Supabase database setup with RLS policies (60+ migrations, hardened against recursion & performance issues)
+- ✅ User authentication system (login, register, profiles, MFA for admins)
+- ✅ Transaction creation, management, and customizable milestone templates
+- ✅ Buyer invitation and management system
+- ✅ Real-time dashboards for Agent, Buyer, and Super Admin roles
+- ✅ Messaging with DeepL-powered translation
+- ✅ File upload/download with validation
+- ✅ In-app, email, and SMS notifications
+- ✅ Interactive onboarding tours and downloadable user guides
+- ✅ Legal & compliance pages (Privacy, Terms, Cookies) with consent banner
+- ✅ Playwright E2E + visual regression test suite
+
+### Phase 4 — Pilot Launch (In Progress)
+- 🚧 Onboarding first pilot estate agent(s) for real-world feedback
+- 🚧 Production deployment hardening (see `docs/DEPLOYMENT_LINODE.md`, `docs/PRODUCTION_DEPLOYMENT.md`)
+- ⏳ Feature 001 — Encrypted sensitive PII storage & GDPR data export/erasure (see `backlog/features/001-sensitive-pii-storage/`)
 
 ---
 
@@ -331,7 +389,7 @@ For support, email [support@thepropertygateway.com](mailto:support@thepropertyga
 
 **Built with ❤️ for international property buyers and agents**
 
-[![Next.js](https://img.shields.io/badge/Next.js-15-black?style=flat-square&logo=next.js)](https://nextjs.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS-blue?style=flat-square&logo=tailwind-css)](https://tailwindcss.com/)
 
