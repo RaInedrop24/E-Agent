@@ -1,10 +1,10 @@
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { AUTH_COOKIE_NAME } from "@/lib/constants";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL as string | undefined;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string | undefined;
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  // eslint-disable-next-line no-console
   console.warn(
     "[supabase] Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY. Supabase client will be unavailable."
   );
@@ -14,14 +14,16 @@ export const supabase =
   supabaseUrl && supabaseAnonKey
     ? createSupabaseClient(supabaseUrl, supabaseAnonKey, {
       auth: {
-        // Store session in cookies instead of localStorage
-        // This allows middleware to access the session
+        // Session is persisted in localStorage; AuthContext mirrors the
+        // tokens into a cookie so the proxy (middleware) can read them.
         storage: typeof window !== 'undefined' ? window.localStorage : undefined,
-        storageKey: 'sb-skvfgvlwccxetglmfhpm-auth-token',
+        storageKey: AUTH_COOKIE_NAME,
         flowType: 'pkce',
         detectSessionInUrl: true,
         persistSession: true,
-        autoRefreshToken: false,
+        // Let supabase-js keep the session alive; onAuthStateChange
+        // (TOKEN_REFRESHED) re-syncs the middleware cookie on each refresh.
+        autoRefreshToken: true,
       },
     })
     : (undefined as any);

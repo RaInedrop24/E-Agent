@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { AUTH_COOKIE_NAME } from '@/lib/constants';
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -17,7 +18,7 @@ export async function GET(request: NextRequest) {
     console.log('[Templates API] Request received');
 
     // Verify super admin status
-    const authCookie = request.cookies.get('sb-skvfgvlwccxetglmfhpm-auth-token')?.value;
+    const authCookie = request.cookies.get(AUTH_COOKIE_NAME)?.value;
     if (!authCookie) {
       console.log('[Templates API] No auth cookie found');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

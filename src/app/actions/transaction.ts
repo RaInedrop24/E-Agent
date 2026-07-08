@@ -3,6 +3,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { sendNotifications } from '@/lib/notifications';
 import { cookies } from 'next/headers';
+import { AUTH_COOKIE_NAME } from '@/lib/constants';
 
 export async function toggleMilestone(
   transactionId: string, 
@@ -11,7 +12,7 @@ export async function toggleMilestone(
 ) {
   // 1. Authenticate User
   const cookieStore = await cookies();
-  const authCookie = cookieStore.get('sb-skvfgvlwccxetglmfhpm-auth-token');
+  const authCookie = cookieStore.get(AUTH_COOKIE_NAME);
   
   if (!authCookie?.value) {
     return { error: 'Unauthorized: No session' };
@@ -115,7 +116,7 @@ export async function notifyFileUpload(
 ) {
   // 1. Authenticate User via cookie
   const cookieStore = await cookies();
-  const authCookie = cookieStore.get('sb-skvfgvlwccxetglmfhpm-auth-token');
+  const authCookie = cookieStore.get(AUTH_COOKIE_NAME);
 
   if (!authCookie?.value) {
     return { error: 'Unauthorized: No session' };
@@ -173,7 +174,7 @@ export async function notifyNewMessage(
 ) {
   // 1. Authenticate User via cookie
   const cookieStore = await cookies();
-  const authCookie = cookieStore.get('sb-skvfgvlwccxetglmfhpm-auth-token');
+  const authCookie = cookieStore.get(AUTH_COOKIE_NAME);
 
   if (!authCookie?.value) {
     return { error: 'Unauthorized: No session' };
@@ -227,7 +228,7 @@ export async function notifyNewMessage(
 export async function finalizeTransaction(transactionId: string) {
   // 1. Authenticate User
   const cookieStore = await cookies();
-  const authCookie = cookieStore.get('sb-skvfgvlwccxetglmfhpm-auth-token');
+  const authCookie = cookieStore.get(AUTH_COOKIE_NAME);
 
   if (!authCookie?.value) {
     return { error: 'Unauthorized: No session' };

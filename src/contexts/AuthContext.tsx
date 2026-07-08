@@ -3,6 +3,25 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import type { User, Session, AuthResponse, AuthChangeEvent } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
+import { AUTH_COOKIE_NAME, AUTH_COOKIE_MAX_AGE } from '@/lib/constants';
+
+/**
+ * Mirror the session tokens into a cookie so the proxy (middleware) can
+ * authenticate requests. Secure flag is applied when served over HTTPS.
+ */
+function writeSessionCookie(session: Session) {
+  if (typeof document === 'undefined') return;
+  const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+  document.cookie = `${AUTH_COOKIE_NAME}=${JSON.stringify({
+    access_token: session.access_token,
+    refresh_token: session.refresh_token,
+  })}; path=/; max-age=${AUTH_COOKIE_MAX_AGE}; SameSite=Lax${secure}`;
+}
+
+function clearSessionCookie() {
+  if (typeof document === 'undefined') return;
+  document.cookie = `${AUTH_COOKIE_NAME}=; path=/; max-age=0`;
+}
 
 interface Profile {
   id: string;
@@ -51,14 +70,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const clearStoredSession = () => {
-    if (typeof document !== 'undefined') {
-      document.cookie = 'sb-skvfgvlwccxetglmfhpm-auth-token=; path=/; max-age=0';
-    }
+    clearSessionCookie();
     if (typeof window !== 'undefined') {
-      window.localStorage.removeItem('sb-skvfgvlwccxetglmfhpm-auth-token');
-    }
-    if (supabase) {
-      supabase.auth.stopAutoRefresh();
+      window.localStorage.removeItem(AUTH_COOKIE_NAME);
     }
   };
 
@@ -69,9 +83,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
+    // Guard against state updates after unmount (initial check is async)
+    let cancelled = false;
+
     const hasStoredSession =
       typeof window !== 'undefined' &&
-      !!window.localStorage.getItem('sb-skvfgvlwccxetglmfhpm-auth-token');
+      !!window.localStorage.getItem(AUTH_COOKIE_NAME);
 
     if (hasStoredSession) {
       // Get initial session and validate it
@@ -84,6 +101,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (sessionError.message?.includes('Refresh Token') || sessionError.message?.includes('refresh_token')) {
             // Silently clear invalid session
             clearStoredSession();
+            if (cancelled) return;
             setSession(null);
             setUser(null);
             setLoading(false);
@@ -99,29 +117,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (userError || !validatedUser) {
             // Session is invalid/expired - clear everything
             clearStoredSession();
+            if (cancelled) return;
             setSession(null);
             setUser(null);
             setLoading(false);
             return;
           }
         }
-        
+
+        if (cancelled) return;
         setSession(initialSession);
         setUser(initialSession?.user ?? null);
 
         // Set cookie for middleware to access
-        if (initialSession && typeof document !== 'undefined') {
-          document.cookie = `sb-skvfgvlwccxetglmfhpm-auth-token=${JSON.stringify({
-            access_token: initialSession.access_token,
-            refresh_token: initialSession.refresh_token,
-          })}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
+        if (initialSession) {
+          writeSessionCookie(initialSession);
         }
 
         if (initialSession?.user) {
-          supabase.auth.startAutoRefresh();
           fetchProfile(initialSession.user.id);
         } else {
-          supabase.auth.stopAutoRefresh();
           setLoading(false);
         }
       }).catch((err: unknown) => {
@@ -129,45 +144,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (message.includes('Failed to fetch') || message.includes('ERR_NAME_NOT_RESOLVED')) {
           clearStoredSession();
         }
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       });
     } else {
-      supabase.auth.stopAutoRefresh();
       setSession(null);
       setUser(null);
       setProfile(null);
       setLoading(false);
     }
 
-    // Listen for auth state changes
+    // Listen for auth state changes.
+    // Fires on SIGNED_IN, SIGNED_OUT and TOKEN_REFRESHED, so the middleware
+    // cookie stays in sync with supabase-js's automatic token refresh.
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event: AuthChangeEvent, currentSession: Session | null) => {
       setSession(currentSession);
       setUser(currentSession?.user ?? null);
 
-      // Set cookie for middleware to access
-      if (currentSession && typeof document !== 'undefined') {
-        document.cookie = `sb-skvfgvlwccxetglmfhpm-auth-token=${JSON.stringify({
-          access_token: currentSession.access_token,
-          refresh_token: currentSession.refresh_token,
-        })}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
-      } else if (typeof document !== 'undefined') {
-        // Clear cookie on logout
-        document.cookie = 'sb-skvfgvlwccxetglmfhpm-auth-token=; path=/; max-age=0';
+      // Keep middleware cookie in sync
+      if (currentSession) {
+        writeSessionCookie(currentSession);
+      } else {
+        clearSessionCookie();
       }
 
       if (currentSession?.user) {
-        supabase.auth.startAutoRefresh();
         fetchProfile(currentSession.user.id);
       } else {
-        supabase.auth.stopAutoRefresh();
         setProfile(null);
         setLoading(false);
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      cancelled = true;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const fetchProfile = async (userId: string) => {
