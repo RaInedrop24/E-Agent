@@ -1,5 +1,7 @@
 // Core type definitions for The Property Gateway
 
+import type { LanguageCode } from '@/lib/constants';
+
 export interface User {
   id: string;
   email: string;
@@ -66,13 +68,7 @@ export type TransactionStatus =
   | 'completed' 
   | 'cancelled';
 
-export type Language =
-  | 'en'
-  | 'it'
-  | 'es'
-  | 'fr'
-  | 'de'
-  | 'pl';
+export type Language = LanguageCode;
 
 export interface LanguageOption {
   code: Language;

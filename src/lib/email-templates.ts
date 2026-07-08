@@ -1,6 +1,6 @@
 // Email template helper for multilingual buyer welcome emails
 
-type Language = 'en' | 'it' | 'pl' | 'es' | 'fr' | 'nl' | 'de';
+import type { LanguageCode as Language } from '@/lib/constants';
 
 interface WelcomeEmailData {
   fullName: string;

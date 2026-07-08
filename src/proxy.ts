@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { rateLimit } from '@/lib/rate-limit';
+import { AUTH_COOKIE_NAME } from '@/lib/constants';
+import { logger } from '@/lib/logger';
 
 // Routes that require authentication
 const protectedRoutes = ['/dashboard', '/transactions', '/transaction', '/settings', '/buyers'];
@@ -11,8 +14,43 @@ const superAdminRoutes = ['/admin', '/debug', '/test-sms'];
 // Routes that should redirect to dashboard if already authenticated
 const authRoutes = ['/login', '/register'];
 
+// Rate limits for API routes (requests per minute, per IP)
+const API_RATE_LIMIT = 60;
+// Tighter limit for routes that spend third-party quota (DeepL, Twilio, Resend)
+const EXPENSIVE_API_RATE_LIMIT = 20;
+const EXPENSIVE_API_PREFIXES = ['/api/translate', '/api/buyers', '/api/test-sms'];
+const RATE_LIMIT_WINDOW_MS = 60 * 1000;
+
+function getClientIp(request: NextRequest): string {
+  return (
+    request.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
+    request.headers.get('x-real-ip') ||
+    'unknown'
+  );
+}
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // Rate-limit API routes before doing any other work
+  if (pathname.startsWith('/api/')) {
+    const ip = getClientIp(request);
+    const isExpensive = EXPENSIVE_API_PREFIXES.some((route) => pathname.startsWith(route));
+    const limit = isExpensive ? EXPENSIVE_API_RATE_LIMIT : API_RATE_LIMIT;
+    // Bucket by IP + route class so hammering one endpoint can't starve the rest
+    const result = rateLimit(`${ip}:${isExpensive ? pathname : 'api'}`, limit, RATE_LIMIT_WINDOW_MS);
+
+    if (!result.allowed) {
+      logger.warn('[Proxy] Rate limit exceeded', { ip, pathname });
+      return NextResponse.json(
+        { error: 'Too many requests. Please try again shortly.' },
+        {
+          status: 429,
+          headers: { 'Retry-After': String(result.retryAfterSeconds) },
+        }
+      );
+    }
+  }
 
   // Set Content Security Policy headers
   const response = NextResponse.next();
@@ -47,7 +85,7 @@ export async function proxy(request: NextRequest) {
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseAnonKey) {
-    console.warn('[Proxy] Supabase not configured');
+    logger.warn('[Proxy] Supabase not configured');
     return NextResponse.next();
   }
 
@@ -61,10 +99,9 @@ export async function proxy(request: NextRequest) {
 
   // Get session from Supabase auth cookie
   // Supabase uses project-specific cookie name: sb-<project-ref>-auth-token
-  const authCookie = request.cookies.get('sb-skvfgvlwccxetglmfhpm-auth-token')?.value;
+  const authCookie = request.cookies.get(AUTH_COOKIE_NAME)?.value;
 
-  console.log('[Proxy] Path:', pathname);
-  console.log('[Proxy] Auth cookie exists:', !!authCookie);
+  logger.debug('[Proxy] Request', { pathname, hasAuthCookie: !!authCookie });
 
   let session = null;
 
@@ -72,7 +109,6 @@ export async function proxy(request: NextRequest) {
     try {
       // Parse the auth cookie JSON
       const authData = JSON.parse(authCookie);
-      console.log('[Proxy] Cookie has tokens:', !!authData.access_token, !!authData.refresh_token);
 
       if (authData.access_token && authData.refresh_token) {
         const { data: { session: sessionData } } = await supabase.auth.setSession({
@@ -80,10 +116,11 @@ export async function proxy(request: NextRequest) {
           refresh_token: authData.refresh_token,
         });
         session = sessionData;
-        console.log('[Proxy] Session established:', !!session);
       }
     } catch (e) {
-      console.error('[Proxy] Error parsing auth cookie:', e);
+      logger.warn('[Proxy] Error parsing auth cookie', {
+        error: e instanceof Error ? e.message : String(e),
+      });
     }
   }
 
@@ -91,7 +128,6 @@ export async function proxy(request: NextRequest) {
   if (!session) {
     const { data: { session: sessionData } } = await supabase.auth.getSession();
     session = sessionData;
-    console.log('[Proxy] Fallback session:', !!session);
   }
 
   // If trying to access protected route without authentication
@@ -127,7 +163,7 @@ export async function proxy(request: NextRequest) {
       const { data: isSuperAdmin, error } = await supabase.rpc('current_user_is_super_admin');
 
       if (error || !isSuperAdmin) {
-        console.warn(`[Proxy] Non-super-admin user attempted to access ${pathname}`);
+        logger.warn('[Proxy] Non-super-admin user attempted admin route', { pathname });
 
         // Log the unauthorized access attempt
         try {
@@ -144,7 +180,9 @@ export async function proxy(request: NextRequest) {
             user_agent: request.headers.get('user-agent') || 'unknown',
           });
         } catch (logError) {
-          console.error('[Proxy] Failed to log unauthorized access:', logError);
+          logger.error('[Proxy] Failed to log unauthorized access', {
+            error: logError instanceof Error ? logError.message : String(logError),
+          });
         }
 
         // Redirect to dashboard with error message
@@ -167,7 +205,7 @@ export async function proxy(request: NextRequest) {
       // If super admin doesn't have MFA setup, redirect to MFA setup page
       // (unless they're already on the MFA setup page)
       if (!hasMFA && !pathname.startsWith('/admin/mfa-setup')) {
-        console.warn(`[Proxy] Super admin ${session.user.email} accessing without MFA`);
+        logger.warn('[Proxy] Super admin accessing without MFA', { pathname });
         const redirectUrl = new URL('/admin/mfa-setup', request.url);
         redirectUrl.searchParams.set('returnTo', pathname);
         const redirectResponse = NextResponse.redirect(redirectUrl);
@@ -195,10 +233,14 @@ export async function proxy(request: NextRequest) {
           user_agent: request.headers.get('user-agent') || 'unknown',
         });
       } catch (logError) {
-        console.error('[Proxy] Failed to log access:', logError);
+        logger.error('[Proxy] Failed to log access', {
+          error: logError instanceof Error ? logError.message : String(logError),
+        });
       }
     } catch (err) {
-      console.error('[Proxy] Error checking super admin status:', err);
+      logger.error('[Proxy] Error checking super admin status', {
+        error: err instanceof Error ? err.message : String(err),
+      });
       const redirectResponse = NextResponse.redirect(new URL('/dashboard', request.url));
       // Copy CSP headers to redirect response
       response.headers.forEach((value, key) => {

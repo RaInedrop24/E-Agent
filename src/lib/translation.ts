@@ -3,7 +3,9 @@
  * Handles all translation operations using DeepL API
  */
 
-export type SupportedLanguage = 'en' | 'it' | 'es' | 'fr' | 'de' | 'pl' | 'nl';
+import type { LanguageCode } from '@/lib/constants';
+
+export type SupportedLanguage = LanguageCode;
 
 export interface TranslationResult {
   originalText: string;
@@ -54,7 +56,7 @@ export async function translateText(
   }
 
   try {
-    const requestBody: any = {
+    const requestBody: { text: string[]; target_lang: string; source_lang?: string } = {
       text: [text],
       target_lang: mapToDeepLLanguage(targetLang),
     };
@@ -113,7 +115,7 @@ export async function translateBatch(
   }
 
   try {
-    const requestBody: any = {
+    const requestBody: { text: string[]; target_lang: string; source_lang?: string } = {
       text: texts,
       target_lang: mapToDeepLLanguage(targetLang),
     };
@@ -138,7 +140,7 @@ export async function translateBatch(
 
     const result = await response.json();
 
-    return result.translations.map((translation: any, index: number) => ({
+    return result.translations.map((translation: { text: string; detected_source_language: string }, index: number) => ({
       originalText: texts[index],
       translatedText: translation.text,
       sourceLang: sourceLang || translation.detected_source_language.toLowerCase(),

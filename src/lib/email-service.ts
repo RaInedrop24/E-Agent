@@ -3,8 +3,7 @@
 
 import { Resend } from 'resend';
 import { generateBuyerWelcomeEmail, generateBuyerConnectionEmail } from './email-templates';
-
-type Language = 'en' | 'it' | 'pl' | 'es' | 'fr' | 'nl' | 'de';
+import type { LanguageCode as Language } from '@/lib/constants';
 
 interface SendBuyerWelcomeEmailParams {
   to: string;

@@ -16,6 +16,42 @@ export const SUPPORTED_LANGUAGES = [
   { code: 'nl', name: 'Nederlands', flag: '🇳🇱' },
 ] as const;
 
+/** Canonical language code union — single source of truth for all language types */
+export type LanguageCode = (typeof SUPPORTED_LANGUAGES)[number]['code'];
+
+export const LANGUAGE_CODES: readonly LanguageCode[] = SUPPORTED_LANGUAGES.map(
+  (l) => l.code
+);
+
+export function isSupportedLanguage(value: unknown): value is LanguageCode {
+  return typeof value === 'string' && (LANGUAGE_CODES as readonly string[]).includes(value);
+}
+
+/**
+ * Coerce an untrusted value (e.g. profile.preferred_language from the DB)
+ * to a supported language, falling back to English.
+ */
+export function toSupportedLanguage(value: unknown): LanguageCode {
+  return isSupportedLanguage(value) ? value : 'en';
+}
+
+// Auth
+/**
+ * Supabase stores the session under `sb-<project-ref>-auth-token`.
+ * Derive the name from the project URL so recreating the Supabase project
+ * only requires updating NEXT_PUBLIC_SUPABASE_URL.
+ */
+function deriveAuthCookieName(): string {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const projectRef = url?.match(/^https?:\/\/([a-z0-9]+)\.supabase\.(?:co|in)/)?.[1];
+  return projectRef ? `sb-${projectRef}-auth-token` : 'sb-auth-token';
+}
+
+export const AUTH_COOKIE_NAME = deriveAuthCookieName();
+
+/** Session cookie lifetime in seconds (7 days) */
+export const AUTH_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
+
 // UI & Layout
 export const UI = {
   /** Max characters for text truncation */
