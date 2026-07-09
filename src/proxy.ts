@@ -57,9 +57,15 @@ export async function proxy(request: NextRequest) {
   
   // Only set CSP in production - keep dev clean for HMR/devtools
   if (process.env.NODE_ENV === 'production') {
+    // NOTE on 'unsafe-inline': Next.js App Router injects inline hydration
+    // scripts into statically prerendered pages, and nonce-based CSP would
+    // force every page to render dynamically (killing static optimization).
+    // Revisit if/when Next.js supports hashes/SRI for inline flight scripts.
+    // Supabase is intentionally NOT in script-src — supabase-js never loads
+    // remote scripts; it only needs connect-src for API/websocket calls.
     const cspHeader = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' https://*.supabase.co https://*.supabase.in",
+      "script-src 'self' 'unsafe-inline'",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com data:",
       "img-src 'self' data: https: blob:",
@@ -128,6 +134,21 @@ export async function proxy(request: NextRequest) {
   if (!session) {
     const { data: { session: sessionData } } = await supabase.auth.getSession();
     session = sessionData;
+  }
+
+  // Super admin routes require a session too — without this, unauthenticated
+  // visitors would fall through to the page (the super-admin check below only
+  // runs when a session exists).
+  if (isSuperAdminRoute && !session) {
+    const loginUrl = new URL('/login', request.url);
+    loginUrl.searchParams.set('redirect', pathname);
+    const redirectResponse = NextResponse.redirect(loginUrl);
+    response.headers.forEach((value, key) => {
+      if (key.toLowerCase() === 'content-security-policy') {
+        redirectResponse.headers.set(key, value);
+      }
+    });
+    return redirectResponse;
   }
 
   // If trying to access protected route without authentication

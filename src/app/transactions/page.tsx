@@ -13,7 +13,6 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Switch } from '@/components/ui/switch';
 import {
   Select,
@@ -46,7 +45,7 @@ interface Agent {
 }
 
 export default function TransactionsListPage() {
-  const { user, profile, refreshProfile } = useAuth();
+  const { user, profile } = useAuth();
   const { t, tVar, language } = useLanguage();
   const { isSuperAdmin, loading: superAdminLoading } = useSuperAdmin();
 
@@ -111,7 +110,7 @@ export default function TransactionsListPage() {
 
         // Don't refresh profile here - it causes infinite loops
         // The profile will be updated on next page load or when explicitly needed
-      } catch (error) {
+      } catch {
         if (isActive) {
           // no-op
         }
@@ -203,10 +202,12 @@ export default function TransactionsListPage() {
         }
 
         // Add agent name to transactions
-        const transactionsWithAgent = (allTx || []).map((tx: any) => ({
-          ...tx,
-          agent_name: tx.profiles?.full_name || 'Unknown Agent',
-        }));
+        const transactionsWithAgent = (allTx || []).map(
+          (tx: Transaction & { profiles?: { id: string; full_name: string | null } | null }) => ({
+            ...tx,
+            agent_name: tx.profiles?.full_name || 'Unknown Agent',
+          })
+        );
 
         setAllTransactions(transactionsWithAgent);
         setTransactions(transactionsWithAgent);
@@ -227,7 +228,7 @@ export default function TransactionsListPage() {
               transaction_count: count,
             };
           });
-          setAgents(agentsWithCounts as any);
+          setAgents(agentsWithCounts);
         }
       } else {
         // Regular user: get only their transactions
@@ -248,34 +249,36 @@ export default function TransactionsListPage() {
 
         if (partError) throw partError;
 
-        // Combine and deduplicate
-        const participantTx = participation
-          ?.map((p: any) => p.transactions)
-          .filter(Boolean) || [];
+        // Combine and deduplicate (the joined transaction comes back as a single object;
+        // cast needed because the client's inferred type disagrees with the runtime shape)
+        type ParticipationRow = { transaction_id: string; transactions: Transaction | null };
+        const participantTx = ((participation || []) as unknown as ParticipationRow[])
+          .map((p) => p.transactions)
+          .filter(Boolean);
 
         // Create a map to deduplicate by ID
-        const txMap = new Map();
+        const txMap = new Map<string, Transaction>();
 
         // Add created transactions
-        createdTx?.forEach((tx: any) => txMap.set(tx.id, tx));
+        createdTx?.forEach((tx: Transaction) => txMap.set(tx.id, tx));
 
         // Add participated transactions (if not already present)
-        participantTx.forEach((tx: any) => {
-          if (!txMap.has(tx.id)) {
+        participantTx.forEach((tx: Transaction | null) => {
+          if (tx && !txMap.has(tx.id)) {
             txMap.set(tx.id, tx);
           }
         });
 
         // Convert back to array and sort
         const allTx = Array.from(txMap.values()).sort(
-          (a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         );
 
         setAllTransactions(allTx);
         setTransactions(allTx);
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading(false);
     }

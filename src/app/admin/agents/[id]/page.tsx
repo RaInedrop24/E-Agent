@@ -19,7 +19,6 @@ import {
   Globe,
   Palette,
   Image as ImageIcon,
-  User,
   Clock,
   Activity,
 } from 'lucide-react';
@@ -92,7 +91,7 @@ export default function AgentDetailPage({ params }: PageProps) {
       if (!profileData) throw new Error('Agent not found');
 
       // Fetch email from auth.users
-      const { data: { user: authUser }, error: authError } = await supabase.auth.admin.getUserById(agentId);
+      const { data: { user: authUser } } = await supabase.auth.admin.getUserById(agentId);
       const email = authUser?.email || null;
 
       // Fetch transaction counts
@@ -126,8 +125,8 @@ export default function AgentDetailPage({ params }: PageProps) {
         template_count: templateCount || 0,
         recent_transactions,
       });
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading(false);
     }

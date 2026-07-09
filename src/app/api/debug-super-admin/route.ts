@@ -45,6 +45,17 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
 
+    // This endpoint reads cross-tenant data with the service role client,
+    // so restrict it to super admins.
+    const { data: callerProfile } = await supabaseAdmin
+      .from('profiles')
+      .select('is_super_admin')
+      .eq('id', user.id)
+      .single();
+    if (callerProfile?.is_super_admin !== true) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     // Check super admin status using RPC
     const { data: isSuperAdminRPC, error: rpcError } = await supabase.rpc('current_user_is_super_admin');
 
@@ -92,9 +103,9 @@ export async function GET(request: NextRequest) {
         error: allTransactionsUserError?.message,
       },
     });
-  } catch (error: any) {
+  } catch (error) {
     return NextResponse.json(
-      { error: error.message, stack: error.stack },
+      { error: error instanceof Error ? error.message : 'Debug lookup failed' },
       { status: 500 }
     );
   }

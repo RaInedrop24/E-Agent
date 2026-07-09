@@ -190,9 +190,12 @@ function AuthCallbackContent() {
             await new Promise(resolve => setTimeout(resolve, 200));
           }
 
-          // If still no session and we have a token, try to verify it
+          // If still no session and we have a token, try to verify it.
+          // Token-based recovery verification requires the user's email;
+          // Supabase includes it in the link when available.
           if (!session && token) {
-            const { data: verifyData, error: exchangeError } = await supabase.auth.verifyOtp({
+            const { error: exchangeError } = await supabase.auth.verifyOtp({
+              email: searchParams?.get('email') ?? '',
               token,
               type: 'recovery',
             });
@@ -207,7 +210,7 @@ function AuthCallbackContent() {
             session = newSession;
           } else if (!session && tokenHash) {
             // Handle token_hash format (PKCE flow)
-            const { data: verifyData, error: exchangeError } = await supabase.auth.verifyOtp({
+            const { error: exchangeError } = await supabase.auth.verifyOtp({
               token_hash: tokenHash,
               type: 'recovery',
             });
@@ -248,7 +251,7 @@ function AuthCallbackContent() {
         } else {
           setStatus('Email confirmation complete. Please sign in.');
         }
-      } catch (err) {
+      } catch {
         setStatus('An error occurred. Please try again.');
       }
     }

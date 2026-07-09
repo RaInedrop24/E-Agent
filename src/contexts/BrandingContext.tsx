@@ -2,7 +2,6 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useAuth } from './AuthContext';
-import { supabase } from '@/lib/supabase';
 
 interface BrandColors {
   primary: string;
@@ -31,7 +30,7 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
 
       // 1. If Agent: Load from own profile
       if (profile.role === 'agent' && profile.branding_settings) {
-         const settings = profile.branding_settings as any;
+         const settings = profile.branding_settings as BrandColors;
          if (settings.primary) setColors(settings);
          if (profile.branding_logo_url) setLogoUrl(profile.branding_logo_url);
          return;

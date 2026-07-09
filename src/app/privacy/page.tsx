@@ -15,7 +15,7 @@ export default function PrivacyPolicyPage() {
       <section className="space-y-3">
         <h2 className="text-xl font-semibold">1. Who we are</h2>
         <p>
-          The Property Gateway ("we", "our", "us") operates the Estate Agent Portal. This
+          The Property Gateway (&quot;we&quot;, &quot;our&quot;, &quot;us&quot;) operates the Estate Agent Portal. This
           policy explains how we collect, use, and protect personal data for estate agents
           and buyers using the platform.
         </p>

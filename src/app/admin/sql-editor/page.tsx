@@ -7,7 +7,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import {
@@ -189,7 +188,7 @@ ORDER BY p.created_at DESC;`,
 
 interface QueryResult {
   success: boolean;
-  data?: any[];
+  data?: Record<string, unknown>[];
   rowCount?: number;
   executionTime?: number;
   error?: string;
@@ -274,10 +273,10 @@ export default function SQLEditorPage() {
           executionTime: data.executionTime,
         });
       }
-    } catch (error: any) {
+    } catch (error) {
       setResult({
         success: false,
-        error: error.message || 'Failed to execute query',
+        error: error instanceof Error ? error.message : 'Failed to execute query',
       });
     } finally {
       setExecuting(false);
@@ -488,7 +487,7 @@ export default function SQLEditorPage() {
                           <tbody>
                             {result.data.map((row, rowIndex) => (
                               <tr key={rowIndex} className="hover:bg-muted/50">
-                                {Object.values(row).map((value: any, cellIndex) => (
+                                {Object.values(row).map((value, cellIndex) => (
                                   <td key={cellIndex} className="border px-3 py-2">
                                     {value === null ? (
                                       <span className="text-muted-foreground italic">null</span>
@@ -530,7 +529,7 @@ export default function SQLEditorPage() {
                     </div>
                     {result.isWriteQuery && (
                       <p className="text-sm text-muted-foreground">
-                        💡 Enable "Allow Write Operations" switch if you intend to modify data.
+                        💡 Enable &quot;Allow Write Operations&quot; switch if you intend to modify data.
                       </p>
                     )}
                   </div>

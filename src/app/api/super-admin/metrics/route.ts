@@ -40,16 +40,15 @@ export async function GET(request: NextRequest) {
 
     // Check if Management API is configured
     const hasManagementAPI = isManagementAPIConfigured();
-    let managementMetrics = null;
 
     if (hasManagementAPI) {
       try {
         const managementClient = createManagementClient();
-        managementMetrics = await managementClient.getAllMetrics();
+        await managementClient.getAllMetrics();
         // Note: Public Management API v1 doesn't expose usage metrics
         // We're just verifying the connection works
-      } catch (error: any) {
-        console.error('[Metrics API] Management API error:', error.message);
+      } catch (error) {
+        console.error('[Metrics API] Management API error:', error instanceof Error ? error.message : String(error));
       }
     }
 
@@ -113,7 +112,7 @@ export async function GET(request: NextRequest) {
     const completedTransactions = transactions.filter(t => t.status === 'completed');
 
     // Transactions per agent
-    const transactionsByAgent = transactions.reduce((acc: any, t) => {
+    const transactionsByAgent = transactions.reduce((acc: Record<string, number>, t) => {
       acc[t.created_by] = (acc[t.created_by] || 0) + 1;
       return acc;
     }, {});
@@ -124,7 +123,7 @@ export async function GET(request: NextRequest) {
         count,
         agent: users.find(u => u.id === agentId),
       }))
-      .sort((a: any, b: any) => b.count - a.count)
+      .sort((a, b) => b.count - a.count)
       .slice(0, 10);
 
     // Process milestones
@@ -194,7 +193,7 @@ export async function GET(request: NextRequest) {
         storageUsedGB: Number(totalStorageGB.toFixed(2)),
         totalTemplates: (() => {
           // Deduplicate templates by name
-          const uniqueNames = new Set((templatesResult.data || []).map((t: any) => t.template_name));
+          const uniqueNames = new Set((templatesResult.data || []).map((t: { template_name: string }) => t.template_name));
           return uniqueNames.size;
         })(),
       },
@@ -203,10 +202,10 @@ export async function GET(request: NextRequest) {
       supabaseLimits,
       timestamp: new Date().toISOString(),
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('[Super Admin Metrics] Error:', error);
     return NextResponse.json(
-      { error: error.message },
+      { error: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }

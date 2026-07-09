@@ -2,8 +2,7 @@
 
 **Created:** 2026-07-08
 **Source:** `docs/Code Review Polsia 2026-07-08.md` (validated + reformatted version, includes Appendix A with validation notes)
-**Baseline commit:** `386249a` (main) — all work below is **uncommitted** in the working tree, pending owner review
-**Status:** Batches 1–3 complete and build-verified. Batch 4 not started. Nothing committed.
+**Status:** Batches 1–3 complete and committed (`e244eea`, `250a5b1`, `488d043`). Batch 4 complete as **uncommitted changes** in the working tree, awaiting owner review — see §2 (Batch 4) and §3.
 
 ---
 
@@ -46,12 +45,29 @@ An external code review of The Property Gateway (this repo, `estate-portal/`) wa
 - All `console.*` migrated to `logger` (`src/lib/logger.ts`) in `notifications.ts` and `proxy.ts`; noisy Twilio init logs demoted to warn/debug.
 - Also removed remaining `any` types in `src/lib/translation.ts` request/response handling.
 
+### ✅ Batch 4 — Deferred items (DONE, uncommitted)
+
+| # | Item | Outcome |
+|---|---|---|
+| 4.1 | GDPR data export (Art. 20) | New `GET /api/gdpr/export` returns all personal data as downloadable JSON; "Download my data" button in `/settings`. Shared API auth helpers extracted to `src/lib/api-auth.ts` (new). |
+| 4.2 | GDPR account deletion (Art. 17) | New `deletion_requests` table (migration `20260708_add_deletion_requests.sql`, applied to Supabase) with RLS; user routes `GET/POST/DELETE /api/gdpr/delete-request`; super-admin queue at `/admin/deletion-requests` + `/api/super-admin/deletion-requests` (complete = permanent `auth.admin.deleteUser`, blocked if the user still owns transactions; audit-logged; best-effort storage cleanup). Manual admin confirmation is deliberate for the pilot. |
+| 4.3 | Site URL consolidation | `SITE_URL` constant in `constants.ts`; all inline `process.env.NEXT_PUBLIC_SITE_URL \|\| '...'` fallbacks replaced (notifications, email-service, register page, 3 API routes). |
+| 4.4 | Debug route gating | `/api/test-sms`, `/api/check-user-alerts`, `/api/debug-super-admin` now require an authenticated super admin; `proxy.ts` also redirects unauthenticated visitors on super-admin routes to `/login`. |
+| 4.5 | Dashboard pagination | Client-side pagination (20/page) with "Show more" button; resets on search/filter/sort change. New `dashboard.showMore` key in all 7 languages. |
+| 4.6 | Lint debt cleared | `npm run lint` now exits 0: `any` types removed/typed across admin pages and components, `require()` → ESM imports, setState-in-effect fixed (`AuthContext` hooks return derived `shouldRedirect`, `CookieBanner` uses `useSyncExternalStore`, `useTransactionBranding` keys state by id), scripts/ ignored by ESLint, test-file rules relaxed. 20 warnings remain (`exhaustive-deps`, `<img>`) — acknowledged, not errors. |
+| 4.7 | Translation code-split | `ui-translations.ts` split into per-language modules under `src/lib/translations/`; client bundle ships English only, other languages lazy-load via `translations/client.ts` (LanguageContext). New `npm run validate:translations` script checks key parity + `{{variable}}` consistency (fixed 56 mistranslated placeholders it found). |
+| 4.8 | Translation debounce | `MessagingPanel` guards against duplicate DeepL calls (`attemptedTranslations` ref) and double message sends (`sending` guard). |
+| 4.9 | CSP hardening | Nonce-based CSP rejected (would force every page dynamic, killing static optimization — documented in `proxy.ts`). Instead: Supabase domains removed from `script-src` (only needed in `connect-src`). |
+| 4.10 | Static legal pages | Verified `/privacy`, `/terms`, `/cookies` already prerender as static (`○` in build output) — no change needed. |
+
 ### Verification status
 
-- ✅ `npm run build` passes cleanly (Next.js 16 + TypeScript strict pass, 49 routes).
-- ✅ Zero IDE linter errors in all created/modified files.
-- ⚠️ `npm run lint` exits non-zero — **all failures are pre-existing** (~50 files: `any` in admin pages, `require()` in scripts, `<img>` warnings, setState-in-effect in `useRequireAuth`/`useRequireRole`). Deliberately left out of this diff; they are Batch 4 material.
-- ❌ **Manual testing not yet done** — see checklist below.
+- ✅ `npm run build` passes cleanly (Next.js 16 + TypeScript strict, 53 routes).
+- ✅ `npm run lint` exits 0 — **0 errors**, 20 acknowledged warnings (`react-hooks/exhaustive-deps`, `@next/next/no-img-element`).
+- ✅ `npx tsc --noEmit` clean.
+- ✅ `npm run validate:translations` passes (508 keys × 7 languages).
+- ✅ `deletion_requests` migration applied to the live Supabase project.
+- ❌ **Manual testing of Batch 4 flows not yet done** — GDPR export download, deletion request → admin complete/cancel, dashboard "Show more".
 
 ### Manual test checklist (before committing)
 
@@ -63,28 +79,32 @@ An external code review of The Property Gateway (this repo, `estate-portal/`) wa
 6. Hammer any `/api/*` route 61+ times in a minute → expect 429.
 7. Register/login as a Dutch (`nl`) user → UI and message translation work end-to-end.
 
-### Commit guidance (owner has NOT yet approved commits)
+**Batch 4 additions:**
 
-Suggested: three commits matching the batches, or one combined. All work is uncommitted in the working tree; `docs/Code Review Polsia 2026-07-08.md` (reformatted review), this plan, and the 7 new source files are untracked.
+8. Settings → "Download my data" → JSON file downloads and contains profile/transactions/messages.
+9. Settings → request account deletion → pending banner appears; cancel works; as super admin, `/admin/deletion-requests` lists it and complete/cancel both work (complete blocked if the user owns transactions).
+10. Dashboard with 21+ transactions → "Show more" button paginates; search resets to first page.
+11. Switch UI language → non-English dictionary lazy-loads and all strings render (no raw keys).
+12. `/api/test-sms`, `/api/check-user-alerts`, `/api/debug-super-admin` → 401/403 unless super admin.
+
+### Commit guidance
+
+Batches 1–3 are committed (`e244eea`, `250a5b1`, `488d043`). Batch 4 is uncommitted in the working tree awaiting owner review.
 
 ---
 
-## 3. Remaining work (not started)
+## 3. Remaining work
 
-### Batch 4 — Deferred items, in suggested priority order
+### Immediate (Batch 4 wrap-up)
 
-| # | Item | Effort | Notes |
-|---|---|---|---|
-| 4.1 | GDPR self-service **data export** (Art. 20): API route exporting profile + transactions + messages + files metadata as JSON, button in `/settings` | ~2d | Legally required before scaling past pilot |
-| 4.2 | GDPR self-service **account deletion** (Art. 17): soft-delete + async PII cleanup; consider a `deletion_requests` table + super-admin confirmation for pilot | ~2d | Pair with 4.1 |
-| 4.3 | Consolidate hardcoded `https://thepropertygateway.com` fallbacks into one constant (e.g. `SITE_URL` in `constants.ts`) — appears in `notifications.ts`, `email-service.ts`, and elsewhere | 0.5d | Trivial, good first task |
-| 4.4 | Gate/remove debug routes in production: `/api/debug-super-admin`, `/api/test-sms`, `/api/check-user-alerts`, `/debug/*` pages (some already behind super-admin proxy checks — verify each) | 0.5d | Attack surface |
-| 4.5 | Dashboard transaction list pagination | 1d | Perf at 50+ transactions |
-| 4.6 | Pre-existing lint debt: `any` types in admin pages, `require()` in scripts, `<img>` → `<Image>`, setState-in-effect in `useRequireAuth`/`useRequireRole` | 1–2d | Makes `npm run lint` green |
-| 4.7 | Code-split `ui-translations.ts` per language; add duplicate-key/missing-key validation script | 1d | Bundle size + safety |
-| 4.8 | Debounce message-send translation calls in `MessagingPanel.tsx` | 0.5d | DeepL cost control |
-| 4.9 | CSP hardening: remove `'unsafe-inline'` from `script-src` in `proxy.ts` (added in commit `36abd99` to unblock inline scripts — investigate nonce-based CSP) | 1d | XSS surface; important because session cookie is not HttpOnly |
-| 4.10 | ISR/static rendering for `/privacy`, `/terms`, `/cookies` | 0.5d | Minor perf |
+1. **Manual testing** of the new Batch 4 flows (see checklist additions in §2).
+2. **Owner review → commit** the Batch 4 working-tree changes (suggested: one commit per theme — GDPR, security gating, perf/pagination, translations split, lint cleanup — or a single `feat:` commit).
+3. **Deploy to Linode** after commit (see `docs/DEPLOYMENT_LINODE.md`); the `deletion_requests` migration is already applied to the live Supabase project.
+
+### Follow-ups logged elsewhere
+
+- SEO metadata points at `mail.thepropertygateway.com` + duplicate env var on the server — see `docs/KNOWN_ISSUES.md`.
+- 20 acknowledged lint warnings (`exhaustive-deps`, `<img>` → `<Image>`) — safe to revisit opportunistically.
 
 ### Explicitly deferred (do NOT do without owner decision)
 
@@ -114,12 +134,13 @@ Read these two documents FIRST — they contain the full state:
 2. estate-portal\docs\Code Review Implementation Plan 2026-07-08.md  (this plan:
    what is done, what remains, test checklist)
 
-CURRENT STATE: Batches 1-3 are implemented as UNCOMMITTED changes in the working
-tree (17 modified + 7 new files on top of commit 386249a). npm run build passes.
-npm run lint fails only on PRE-EXISTING issues unrelated to this work. The owner
-has NOT yet reviewed or approved a commit — DO NOT COMMIT OR PUSH until the owner
-explicitly approves. Verify the working tree state with git status before assuming
-anything.
+CURRENT STATE: Batches 1-3 are COMMITTED (e244eea, 250a5b1, 488d043) and pushed.
+Batch 4 is implemented as UNCOMMITTED changes in the working tree. npm run build,
+npm run lint (0 errors), npx tsc --noEmit, and npm run validate:translations all
+pass. The deletion_requests migration is applied to the live Supabase project.
+The owner has NOT yet reviewed or approved a Batch 4 commit — DO NOT COMMIT OR
+PUSH until the owner explicitly approves. Verify the working tree state with
+git status before assuming anything.
 
 WHAT WAS DONE (summary — details in the plan doc):
 - /api/translate: added auth requirement, Dutch (nl) support, removed public GET

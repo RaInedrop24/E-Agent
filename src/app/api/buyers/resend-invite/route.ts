@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
+import { SITE_URL } from '@/lib/constants';
 
 // Create admin client with service role key (server-side only)
 const supabaseAdmin = createClient(
@@ -95,7 +96,7 @@ export async function POST(request: NextRequest) {
     const { error: resetError } = await supabaseAdmin.auth.resetPasswordForEmail(
       buyerAuth.user.email,
       {
-        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://thepropertygateway.com'}/auth/callback?flow=invite&type=invite`,
+        redirectTo: `${SITE_URL}/auth/callback?flow=invite&type=invite`,
       }
     );
 
@@ -112,10 +113,10 @@ export async function POST(request: NextRequest) {
       message: 'Invitation resent successfully',
     });
 
-  } catch (error: any) {
+  } catch (error) {
     console.error('Unexpected error in resend invite API:', error);
     return NextResponse.json(
-      { error: error.message || 'Internal server error' },
+      { error: (error instanceof Error ? error.message : '') || 'Internal server error' },
       { status: 500 }
     );
   }

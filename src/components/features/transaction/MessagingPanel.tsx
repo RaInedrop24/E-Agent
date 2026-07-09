@@ -38,8 +38,11 @@ export function MessagingPanel({ transactionId, messages: initialMessages, onRef
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
   const [showOriginal, setShowOriginal] = useState<Record<string, boolean>>({});
-  const [translating, setTranslating] = useState<Record<string, boolean>>({});
+  const [translating] = useState<Record<string, boolean>>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  // Tracks message+language pairs already sent to /api/translate this session,
+  // so re-renders/refreshes can't trigger duplicate DeepL calls for the same text
+  const attemptedTranslations = useRef<Set<string>>(new Set());
 
   const userLanguage: SupportedLanguage = (profile?.preferred_language as SupportedLanguage) || 'en';
 
@@ -65,6 +68,12 @@ export function MessagingPanel({ transactionId, messages: initialMessages, onRef
 
       // If message needs translation and doesn't have one cached, fetch it
       if (needsTranslation && !hasTranslation) {
+        // Skip if a translation for this message+language is already
+        // in flight or was attempted — refreshes must not re-spend quota
+        const attemptKey = `${message.id}:${userLanguage}`;
+        if (attemptedTranslations.current.has(attemptKey)) continue;
+        attemptedTranslations.current.add(attemptKey);
+
         try {
           const response = await fetch('/api/translate', {
             method: 'POST',
@@ -101,15 +110,17 @@ export function MessagingPanel({ transactionId, messages: initialMessages, onRef
               )
             );
           }
-        } catch (error: any) {
-          logger.error('Auto-translation failed', { messageId: message.id, error: error.message });
+        } catch (error) {
+          logger.error('Auto-translation failed', { messageId: message.id, error: error instanceof Error ? error.message : String(error) });
         }
       }
     }
   };
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !supabase || !user) return;
+    // `sending` guard also prevents double Enter presses from translating
+    // and inserting the same message twice
+    if (!newMessage.trim() || !supabase || !user || sending) return;
 
     try {
       setSending(true);
@@ -120,11 +131,20 @@ export function MessagingPanel({ transactionId, messages: initialMessages, onRef
         .select('profile_id, profiles!inner(preferred_language)')
         .eq('transaction_id', transactionId);
 
+      // Row shape returned by the participants select above. Supabase
+      // infers to-one FK joins as arrays without generated DB types, but at
+      // runtime this join returns a single object.
+      type ParticipantRow = {
+        profile_id: string;
+        profiles: { preferred_language: string | null } | null;
+      };
+      const participantRows = (participants ?? []) as unknown as ParticipantRow[];
+
       // Find languages of other participants (excluding current user)
-      const otherLanguages = participants
-        ?.filter((p: any) => p.profile_id !== user.id)
-        .map((p: any) => (p.profiles as any)?.preferred_language as SupportedLanguage)
-        .filter((lang: any): lang is SupportedLanguage => lang !== null && lang !== userLanguage) || [];
+      const otherLanguages = participantRows
+        .filter((p) => p.profile_id !== user.id)
+        .map((p) => p.profiles?.preferred_language as SupportedLanguage)
+        .filter((lang): lang is SupportedLanguage => lang !== null && lang !== userLanguage);
 
       const uniqueTargetLangs = [...new Set(otherLanguages)];
 
@@ -184,7 +204,9 @@ export function MessagingPanel({ transactionId, messages: initialMessages, onRef
       // Add new message to local state
       const newMsg: MessagingMessage = {
         ...data,
-        author_name: (data.profiles as any)?.full_name || 'Unknown',
+        author_name:
+          (data.profiles as unknown as { full_name: string | null } | null)?.full_name ||
+          'Unknown',
       };
 
       setMessages([...messages, newMsg]);
@@ -194,67 +216,13 @@ export function MessagingPanel({ transactionId, messages: initialMessages, onRef
       await notifyNewMessage(transactionId, user.id, newMessage.trim());
 
       onRefresh();
-    } catch (error: any) {
-      logger.error('Failed to send message', { transactionId, error: error.message });
+    } catch (error) {
+      logger.error('Failed to send message', { transactionId, error: error instanceof Error ? error.message : String(error) });
       toast.error(t('messages.sendFailed'), {
         description: t('messages.sendFailedDescription')
       });
     } finally {
       setSending(false);
-    }
-  };
-
-  const handleTranslateOnDemand = async (messageId: string, originalText: string, sourceLang: string) => {
-    if (!supabase) return;
-
-    try {
-      setTranslating({ ...translating, [messageId]: true });
-
-      const response = await fetch('/api/translate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          text: originalText,
-          targetLang: userLanguage,
-          sourceLang,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Translation failed');
-      }
-
-      const result = await response.json();
-      const translatedText = result.translatedText;
-
-      // Find the message and update its translations
-      const message = messages.find(m => m.id === messageId);
-      const updatedTranslations = {
-        ...(message?.translated_text || {}),
-        [userLanguage]: translatedText,
-      };
-
-      // Update message in database
-      await supabase
-        .from('messages')
-        .update({ translated_text: updatedTranslations })
-        .eq('id', messageId);
-
-      // Update local state
-      setMessages(messages.map(msg =>
-        msg.id === messageId
-          ? { ...msg, translated_text: updatedTranslations }
-          : msg
-      ));
-
-      onRefresh();
-    } catch (error: any) {
-      logger.error('Translation failed', { messageId, error: error.message });
-      toast.error(t('messages.translationFailed'), {
-        description: t('messages.translationFailedDescription')
-      });
-    } finally {
-      setTranslating({ ...translating, [messageId]: false });
     }
   };
 

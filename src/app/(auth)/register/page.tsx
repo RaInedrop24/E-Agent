@@ -10,13 +10,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { SITE_URL } from "@/lib/constants";
 import { toast } from "sonner";
 
 export default function RegisterPage() {
   const router = useRouter();
   const { user } = useAuth();
   const { t, tVar } = useLanguage();
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.thepropertygateway.com";
+  const siteUrl = SITE_URL;
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -53,8 +54,8 @@ export default function RegisterPage() {
           if (!['http:', 'https:'].includes(url.protocol)) {
             throw new Error("Website URL must start with http:// or https://");
           }
-        } catch (e: any) {
-          if (e.message.includes('Invalid URL')) {
+        } catch (e) {
+          if (e instanceof Error && e.message.includes('Invalid URL')) {
             throw new Error("Please enter a valid website URL (e.g., https://example.com)");
           }
           throw e;
@@ -74,7 +75,7 @@ export default function RegisterPage() {
           },
         },
       };
-      const { error: signUpError, data } = await supabase.auth.signUp(signUpOptions);
+      const { error: signUpError } = await supabase.auth.signUp(signUpOptions);
       if (signUpError) throw signUpError;
       
       // Show success message
@@ -87,8 +88,8 @@ export default function RegisterPage() {
       setTimeout(() => {
         router.push("/login");
       }, 1500);
-    } catch (e: any) {
-      setError(e?.message || "Registration failed");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Registration failed");
     } finally {
       setLoading(false);
     }

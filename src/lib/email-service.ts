@@ -3,7 +3,7 @@
 
 import { Resend } from 'resend';
 import { generateBuyerWelcomeEmail, generateBuyerConnectionEmail } from './email-templates';
-import type { LanguageCode as Language } from '@/lib/constants';
+import { SITE_URL, type LanguageCode as Language } from '@/lib/constants';
 
 interface SendBuyerWelcomeEmailParams {
   to: string;
@@ -36,7 +36,7 @@ export async function sendBuyerWelcomeEmail(params: SendBuyerWelcomeEmailParams)
 
     // Initialize Resend client
     const resend = new Resend(apiKey);
-    const loginUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://thepropertygateway.com'}/login`;
+    const loginUrl = `${SITE_URL}/login`;
 
     // Branding and template data prepared
 
@@ -58,15 +58,17 @@ export async function sendBuyerWelcomeEmail(params: SendBuyerWelcomeEmailParams)
       const result = generateBuyerWelcomeEmail(templateData);
       subject = result.subject;
       html = result.html;
-    } catch (templateError: any) {
-      console.error('[Email Service] ✗ Template generation failed:', templateError.message, templateError.stack);
-      return { success: false, error: `Template generation failed: ${templateError.message}` };
+    } catch (templateError) {
+      const message = templateError instanceof Error ? templateError.message : String(templateError);
+      const stack = templateError instanceof Error ? templateError.stack : undefined;
+      console.error('[Email Service] ✗ Template generation failed:', message, stack);
+      return { success: false, error: `Template generation failed: ${message}` };
     }
 
     // Send email via Resend
     const emailFrom = 'Welcome <Welcome@mail.thepropertygateway.com>';
     
-    const { data, error } = await resend.emails.send({
+    const { error } = await resend.emails.send({
       from: emailFrom,
       to: params.to,
       subject,
@@ -83,11 +85,12 @@ export async function sendBuyerWelcomeEmail(params: SendBuyerWelcomeEmailParams)
 
     return { success: true };
     
-  } catch (error: any) {
-    console.error('[Email Service] Unexpected error:', error.message);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error('[Email Service] Unexpected error:', message);
     return { 
       success: false, 
-      error: error.message || 'Failed to send email' 
+      error: message || 'Failed to send email' 
     };
   }
 }
@@ -105,7 +108,7 @@ export async function sendBuyerConnectionEmail(params: SendBuyerConnectionEmailP
     }
 
     const resend = new Resend(apiKey);
-    const loginUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://thepropertygateway.com'}/login`;
+    const loginUrl = `${SITE_URL}/login`;
 
     // Generate multilingual connection email
     let subject, html;
@@ -121,15 +124,16 @@ export async function sendBuyerConnectionEmail(params: SendBuyerConnectionEmailP
       });
       subject = result.subject;
       html = result.html;
-    } catch (templateError: any) {
-      console.error('[Email Service] Connection template generation failed:', templateError.message);
-      return { success: false, error: `Template generation failed: ${templateError.message}` };
+    } catch (templateError) {
+      const message = templateError instanceof Error ? templateError.message : String(templateError);
+      console.error('[Email Service] Connection template generation failed:', message);
+      return { success: false, error: `Template generation failed: ${message}` };
     }
 
     // Send email via Resend
     const emailFrom = 'The Property Gateway <notifications@mail.thepropertygateway.com>';
     
-    const { data, error } = await resend.emails.send({
+    const { error } = await resend.emails.send({
       from: emailFrom,
       to: params.to,
       subject,
@@ -146,11 +150,12 @@ export async function sendBuyerConnectionEmail(params: SendBuyerConnectionEmailP
 
     return { success: true };
     
-  } catch (error: any) {
-    console.error('[Email Service] Unexpected error sending connection email:', error.message);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error('[Email Service] Unexpected error sending connection email:', message);
     return { 
       success: false, 
-      error: error.message || 'Failed to send email' 
+      error: message || 'Failed to send email' 
     };
   }
 }

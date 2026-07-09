@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/lib/supabase";
-import { getSupportedLanguages } from "@/lib/ui-translations";
+import { getSupportedLanguages } from "@/lib/translations/languages";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { SupportedLanguage } from "@/lib/translation";
 import { Loader2 } from "lucide-react";
@@ -50,7 +50,8 @@ export default function SettingsPage() {
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [email, setEmail] = useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [originalAvatarUrl, setOriginalAvatarUrl] = useState<string | null>(null);
+  // Only the setter is needed; the original value is never read back
+  const [, setOriginalAvatarUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   
   // Branding State
@@ -77,6 +78,11 @@ export default function SettingsPage() {
   const [originalFullPhone, setOriginalFullPhone] = useState<string | null>(null);
   const [originalWebsiteUrl, setOriginalWebsiteUrl] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
+
+  // Privacy & Data (GDPR) state
+  const [exportingData, setExportingData] = useState(false);
+  const [deletionPending, setDeletionPending] = useState(false);
+  const [deletionBusy, setDeletionBusy] = useState(false);
   
   const supportedLanguages = getSupportedLanguages();
   
@@ -180,6 +186,77 @@ export default function SettingsPage() {
     return () => { mounted = false; };
   }, []);
 
+  // Check for an open GDPR deletion request
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/gdpr/delete-request')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!cancelled && data?.request) setDeletionPending(true);
+      })
+      .catch(() => {
+        // Non-critical — leave the button in its default state
+      });
+    return () => { cancelled = true; };
+  }, []);
+
+  const onExportData = async () => {
+    setStatus(null);
+    setError(null);
+    setExportingData(true);
+    try {
+      const res = await fetch('/api/gdpr/export');
+      if (!res.ok) throw new Error(`Export failed (${res.status})`);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `property-gateway-data-export-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      setStatus(translate('settings.dataExportReady'));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Export failed');
+    } finally {
+      setExportingData(false);
+    }
+  };
+
+  const onRequestDeletion = async () => {
+    if (!window.confirm(translate('settings.deleteAccountConfirm'))) return;
+    setStatus(null);
+    setError(null);
+    setDeletionBusy(true);
+    try {
+      const res = await fetch('/api/gdpr/delete-request', { method: 'POST' });
+      if (!res.ok && res.status !== 409) throw new Error(`Request failed (${res.status})`);
+      setDeletionPending(true);
+      setStatus(translate('settings.deletionRequested'));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Request failed');
+    } finally {
+      setDeletionBusy(false);
+    }
+  };
+
+  const onCancelDeletion = async () => {
+    setStatus(null);
+    setError(null);
+    setDeletionBusy(true);
+    try {
+      const res = await fetch('/api/gdpr/delete-request', { method: 'DELETE' });
+      if (!res.ok && res.status !== 404) throw new Error(`Cancel failed (${res.status})`);
+      setDeletionPending(false);
+      setStatus(translate('settings.deletionCancelled'));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Cancel failed');
+    } finally {
+      setDeletionBusy(false);
+    }
+  };
+
   const onSaveProfile = async () => {
     setStatus(null);
     setError(null);
@@ -247,8 +324,8 @@ export default function SettingsPage() {
         setStatus("Profile updated successfully!");
         setSaving(false);
       }
-    } catch (e: any) {
-      setError(e?.message || "Failed to update profile");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to update profile");
       setSaving(false);
     }
   };
@@ -262,8 +339,8 @@ export default function SettingsPage() {
       if (pwErr) throw pwErr;
       setStatus("Password changed");
       setPassword("");
-    } catch (e: any) {
-      setError(e?.message || "Failed to change password");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to change password");
     }
   };
 
@@ -305,8 +382,8 @@ export default function SettingsPage() {
       setOriginalAvatarUrl(avatarUrl);
       // Refresh to propagate avatar
       setTimeout(() => window.location.reload(), 400);
-    } catch (e: any) {
-      setError(e?.message || "Failed to upload avatar");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to upload avatar");
     }
   };
 
@@ -339,8 +416,8 @@ export default function SettingsPage() {
       setBrandLogoUrl(publicUrl);
       setStatus("Logo uploaded! You can now adjust your theme colors below.");
 
-    } catch (e: any) {
-      setError(e?.message || "Failed to upload brand logo");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to upload brand logo");
     } finally {
       setIsGeneratingTheme(false);
     }
@@ -402,8 +479,8 @@ export default function SettingsPage() {
         throw new Error('No colors returned from extraction');
       }
       
-    } catch (e: any) {
-      setError(e?.message || "Failed to extract colors from website");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to extract colors from website");
     } finally {
       setIsExtractingColors(false);
     }
@@ -766,6 +843,54 @@ export default function SettingsPage() {
               <Input id="password" type="password" placeholder="********" value={password} onChange={(e) => setPassword(e.target.value)} />
             </div>
             <Button onClick={onChangePassword} variant="outline">{translate('settings.changePassword')}</Button>
+          </CardContent>
+        </Card>
+
+        {/* Privacy & Data (GDPR) Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle>{translate('settings.privacy')}</CardTitle>
+            <CardDescription>{translate('settings.privacyDescription')}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-2">
+              <Label>{translate('settings.downloadDataHint')}</Label>
+              <div>
+                <Button onClick={onExportData} disabled={exportingData} variant="outline">
+                  {exportingData ? (
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> {translate('settings.downloadingData')}</>
+                  ) : (
+                    translate('settings.downloadData')
+                  )}
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-2 border-t pt-6">
+              <Label className="text-red-600">{translate('settings.deleteAccountHint')}</Label>
+              {deletionPending ? (
+                <div className="space-y-2">
+                  <p className="text-sm text-amber-600">{translate('settings.deletionPending')}</p>
+                  <Button onClick={onCancelDeletion} disabled={deletionBusy} variant="outline">
+                    {deletionBusy ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      translate('settings.cancelDeletion')
+                    )}
+                  </Button>
+                </div>
+              ) : (
+                <div>
+                  <Button onClick={onRequestDeletion} disabled={deletionBusy} variant="destructive">
+                    {deletionBusy ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      translate('settings.deleteAccount')
+                    )}
+                  </Button>
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
 

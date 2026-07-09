@@ -25,11 +25,12 @@ interface AgentBranding {
  * @returns Agent branding data or null
  */
 export function useTransactionBranding(transactionId: string | null, applyBranding: boolean = true): AgentBranding | null {
-  const [branding, setBranding] = useState<AgentBranding | null>(null);
+  // Keyed by transaction so switching transactions never shows stale
+  // branding and no state reset is needed in the effect
+  const [loaded, setLoaded] = useState<{ id: string; branding: AgentBranding } | null>(null);
 
   useEffect(() => {
     if (!transactionId) {
-      setBranding(null);
       return;
     }
 
@@ -58,7 +59,13 @@ export function useTransactionBranding(transactionId: string | null, applyBrandi
         }
 
         if (data?.agent) {
-          const agent = data.agent as any;
+          // Supabase types the joined row loosely; the shape matches the .select() above
+          const agent = data.agent as unknown as {
+            id: string;
+            full_name: string | null;
+            branding_logo_url: string | null;
+            branding_settings: BrandColors | null;
+          };
           const brandingData: AgentBranding = {
             logoUrl: agent.branding_logo_url || null,
             colors: agent.branding_settings || null,
@@ -66,7 +73,7 @@ export function useTransactionBranding(transactionId: string | null, applyBrandi
             agentId: agent.id,
           };
 
-          setBranding(brandingData);
+          setLoaded({ id: transactionId!, branding: brandingData });
 
           // Apply branding to CSS variables if requested
           if (applyBranding && brandingData.colors) {
@@ -83,7 +90,7 @@ export function useTransactionBranding(transactionId: string | null, applyBrandi
             }
           }
         }
-      } catch (err) {
+      } catch {
         // ignore branding load errors
       }
     }
@@ -104,6 +111,6 @@ export function useTransactionBranding(transactionId: string | null, applyBrandi
     };
   }, [transactionId, applyBranding]);
 
-  return branding;
+  return transactionId && loaded?.id === transactionId ? loaded.branding : null;
 }
 

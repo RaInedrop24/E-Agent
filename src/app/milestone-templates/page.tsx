@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
-import { useLanguage } from '@/contexts/LanguageContext';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -22,7 +21,6 @@ interface MilestoneTemplate {
 
 export default function MilestoneTemplatesPage() {
   const { user, profile } = useAuth();
-  const { t } = useLanguage();
   const router = useRouter();
   const [templates, setTemplates] = useState<MilestoneTemplate[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,8 +50,8 @@ export default function MilestoneTemplatesPage() {
       if (rpcError) throw rpcError;
 
       setTemplates(data || []);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading(false);
     }
@@ -82,8 +80,8 @@ export default function MilestoneTemplatesPage() {
 
       // Success - refresh the list
       await fetchTemplates();
-    } catch (err: any) {
-      alert(`Failed to delete template: ${err.message}`);
+    } catch (err) {
+      alert(`Failed to delete template: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setDeletingId(null);
     }
@@ -134,8 +132,8 @@ export default function MilestoneTemplatesPage() {
               <div className="space-y-2">
                 <p className="text-lg font-medium">No templates yet</p>
                 <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                  Create your first template by clicking "Create New Template" above,
-                  or save milestones from any transaction's milestones page.
+                  Create your first template by clicking &quot;Create New Template&quot; above,
+                  or save milestones from any transaction&apos;s milestones page.
                 </p>
               </div>
             </div>

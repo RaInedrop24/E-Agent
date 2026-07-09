@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -17,21 +17,25 @@ const getCookieValue = (name: string) => {
   return match ? decodeURIComponent(match.split('=')[1] ?? '') : null;
 };
 
+// The cookie never changes externally during a session, so no subscription
+// is needed — useSyncExternalStore just gives us a hydration-safe read
+// (server snapshot pretends it's acknowledged so the banner never flashes
+// during SSR/hydration).
+const subscribeNoop = () => () => {};
+const getAcknowledged = () => getCookieValue(COOKIE_NAME) === '1';
+const getServerAcknowledged = () => true;
+
 export function CookieBanner() {
   const { t } = useLanguage();
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    const hasAck = getCookieValue(COOKIE_NAME) === '1';
-    setIsVisible(!hasAck);
-  }, []);
+  const hasAck = useSyncExternalStore(subscribeNoop, getAcknowledged, getServerAcknowledged);
+  const [dismissed, setDismissed] = useState(false);
 
   const acknowledge = () => {
     document.cookie = `${COOKIE_NAME}=1; Max-Age=${ONE_YEAR_SECONDS}; Path=/; SameSite=Lax`;
-    setIsVisible(false);
+    setDismissed(true);
   };
 
-  if (!isVisible) return null;
+  if (hasAck || dismissed) return null;
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur">

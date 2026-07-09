@@ -87,7 +87,6 @@ export async function toggleMilestone(
   // We need the user's name for the "Updated by" field.
   const { data: profile } = await supabase.from('profiles').select('full_name').eq('id', user.id).single();
   const updatedByName = profile?.full_name || 'A user';
-  const milestoneTitle = milestone.label_en || milestone.label_it || 'Milestone';
 
   // We intentionally do not await this to return UI response faster,
   // BUT in Server Actions, Vercel/Next might kill the process if we don't await.
@@ -161,9 +160,9 @@ export async function notifyFileUpload(
     });
 
     return { success: true };
-  } catch (error: any) {
+  } catch (error) {
     console.error('[notifyFileUpload] Error:', error);
-    return { error: error.message || 'Failed to send notifications' };
+    return { error: error instanceof Error ? error.message : 'Failed to send notifications' };
   }
 }
 
@@ -219,9 +218,9 @@ export async function notifyNewMessage(
     });
 
     return { success: true };
-  } catch (error: any) {
+  } catch (error) {
     console.error('[notifyNewMessage] Error:', error);
-    return { error: error.message || 'Failed to send notifications' };
+    return { error: error instanceof Error ? error.message : 'Failed to send notifications' };
   }
 }
 
@@ -321,8 +320,8 @@ export async function finalizeTransaction(transactionId: string) {
     });
 
     return { success: true };
-  } catch (error: any) {
+  } catch (error) {
     console.error('[finalizeTransaction] Error:', error);
-    return { error: error.message || 'Failed to finalize transaction' };
+    return { error: error instanceof Error ? error.message : 'Failed to finalize transaction' };
   }
 }

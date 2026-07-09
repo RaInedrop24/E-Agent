@@ -3,7 +3,7 @@
  * Run with: npx playwright test tests/fix-auth.spec.js --headed
  */
 
-const { test, expect } = require('@playwright/test');
+const { test } = require('@playwright/test');
 
 const TEST_USER = {
   email: process.env.TEST_AGENT_EMAIL || 'Eagent_Admin@rainedrop.co.uk',

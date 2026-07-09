@@ -6,8 +6,28 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
+interface AlertProfile {
+  id: string;
+  full_name: string | null;
+  email: string | null;
+  role: string;
+  email_alerts_enabled: boolean;
+  sms_alerts_enabled: boolean;
+  phone_number: string | null;
+}
+
+interface UserAlerts {
+  summary: {
+    total: number;
+    emailAlertsEnabled: number;
+    smsAlertsEnabled: number;
+    withPhoneNumber: number;
+  };
+  profiles: AlertProfile[];
+}
+
 export default function SMSConfigPage() {
-  const [userAlerts, setUserAlerts] = useState<any>(null);
+  const [userAlerts, setUserAlerts] = useState<UserAlerts | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -17,7 +37,7 @@ export default function SMSConfigPage() {
         setUserAlerts(data);
         setLoading(false);
       })
-      .catch(err => {
+      .catch(() => {
         setLoading(false);
       });
   }, []);
@@ -69,7 +89,7 @@ export default function SMSConfigPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {userAlerts.profiles.map((profile: any) => (
+                {userAlerts.profiles.map((profile) => (
                   <div key={profile.id} className="border rounded-lg p-4 space-y-2">
                     <div className="flex justify-between items-start">
                       <div>

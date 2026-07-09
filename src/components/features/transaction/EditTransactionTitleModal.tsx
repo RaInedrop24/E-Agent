@@ -106,8 +106,8 @@ export function EditTransactionTitleModal({ transaction, onSuccess }: EditTransa
 
       setOpen(false);
       if (onSuccess) onSuccess();
-    } catch (err: any) {
-      setError(err.message || t('error.saveFailed'));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('error.saveFailed'));
     } finally {
       setIsSaving(false);
     }

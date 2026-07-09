@@ -34,7 +34,7 @@ export function SendSystemMessageDialog({
   const [result, setResult] = useState<{
     success: boolean;
     message: string;
-    details?: any;
+    details?: { successCount?: number; failureCount?: number };
   } | null>(null);
 
   const resetForm = () => {
@@ -100,10 +100,10 @@ export function SendSystemMessageDialog({
       setTimeout(() => {
         handleClose();
       }, 2000);
-    } catch (error: any) {
+    } catch (error) {
       setResult({
         success: false,
-        message: error.message || 'Failed to send message',
+        message: error instanceof Error ? error.message : 'Failed to send message',
       });
     } finally {
       setSending(false);

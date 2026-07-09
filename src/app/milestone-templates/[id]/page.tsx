@@ -88,8 +88,8 @@ export default function EditTemplatePage({ params }: PageProps) {
 
       setItems(itemsData || []);
       setLoading(false);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
       setLoading(false);
     }
   };
@@ -180,8 +180,8 @@ export default function EditTemplatePage({ params }: PageProps) {
       });
       setItems(updated);
 
-    } catch (err: any) {
-      setTranslationError(err.message || 'Translation failed. Please try again.');
+    } catch (err) {
+      setTranslationError(err instanceof Error ? err.message : 'Translation failed. Please try again.');
     } finally {
       setTranslatingIndex(null);
     }
@@ -243,8 +243,8 @@ export default function EditTemplatePage({ params }: PageProps) {
 
       if (currentItems) {
         const toDelete = currentItems
-          .filter((item: any) => !existingIds.includes(item.id))
-          .map((item: any) => item.id);
+          .filter((item: { id: string }) => !existingIds.includes(item.id))
+          .map((item: { id: string }) => item.id);
 
         if (toDelete.length > 0) {
           await supabase
@@ -295,8 +295,8 @@ export default function EditTemplatePage({ params }: PageProps) {
 
       // Redirect back to templates list
       router.push('/milestone-templates');
-    } catch (err: any) {
-      alert('Failed to save template: ' + err.message);
+    } catch (err) {
+      alert('Failed to save template: ' + (err instanceof Error ? err.message : String(err)));
       setSaving(false);
     }
   };
@@ -388,11 +388,11 @@ export default function EditTemplatePage({ params }: PageProps) {
             <p className="font-semibold">Instructions:</p>
             <ul className="list-disc list-inside space-y-1 text-muted-foreground">
               <li>Drag and drop milestones to reorder them</li>
-              <li>Click "Add Milestone" to create new steps</li>
+              <li>Click &quot;Add Milestone&quot; to create new steps</li>
               <li>Edit milestone labels in different languages</li>
-              <li>Click "Translate" to auto-translate to other languages</li>
+              <li>Click &quot;Translate&quot; to auto-translate to other languages</li>
               <li>Delete unwanted milestones using the trash icon</li>
-              <li>Click "Save Changes" when finished</li>
+              <li>Click &quot;Save Changes&quot; when finished</li>
             </ul>
           </div>
         </CardContent>

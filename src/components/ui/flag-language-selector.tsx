@@ -4,9 +4,10 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { SUPPORTED_LANGUAGES } from '@/lib/constants';
 import { motion } from 'framer-motion';
 import * as flags from 'country-flag-icons/react/3x2';
+import type { FlagComponent } from 'country-flag-icons/react/3x2';
 
 // Map language codes to country codes for flags
-const FLAG_MAP: Record<string, any> = {
+const FLAG_MAP: Record<string, FlagComponent> = {
   'en': flags.GB,
   'it': flags.IT,
   'es': flags.ES,

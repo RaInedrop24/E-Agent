@@ -35,6 +35,15 @@ export function toSupportedLanguage(value: unknown): LanguageCode {
   return isSupportedLanguage(value) ? value : 'en';
 }
 
+// Site
+/**
+ * Canonical public URL of the site. Prefer this over inline
+ * `process.env.NEXT_PUBLIC_SITE_URL || '...'` fallbacks so the fallback
+ * value only lives in one place.
+ */
+export const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepropertygateway.com';
+
 // Auth
 /**
  * Supabase stores the session under `sb-<project-ref>-auth-token`.

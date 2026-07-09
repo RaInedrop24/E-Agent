@@ -89,8 +89,8 @@ export function SaveMilestoneTemplateModal({ milestones, onSuccess }: SaveMilest
       setTemplateName('');
       setDescription('');
       if (onSuccess) onSuccess();
-    } catch (err: any) {
-      setError(err.message || 'Failed to save template');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save template');
     } finally {
       setIsSaving(false);
     }

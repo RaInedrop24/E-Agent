@@ -119,10 +119,10 @@ export async function POST(request: NextRequest) {
       message: `Notification sent to ${recipients.length} ${recipientType}`,
     });
 
-  } catch (error: any) {
+  } catch (error) {
     console.error('System notification API error:', error);
     return NextResponse.json(
-      { error: error.message || 'Internal server error' },
+      { error: (error instanceof Error ? error.message : '') || 'Internal server error' },
       { status: 500 }
     );
   }

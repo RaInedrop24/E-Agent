@@ -93,18 +93,28 @@ export default function BuyersPage() {
 
       if (assocError) throw assocError;
 
-      // Transform data
-      const buyersList = (associations || []).map((a: any) => ({
-        id: (a.profiles as any).id,
-        full_name: (a.profiles as any).full_name,
-        preferred_language: (a.profiles as any).preferred_language,
-        avatar_url: (a.profiles as any).avatar_url,
-        created_at: (a.profiles as any).created_at,
+      // Transform data (the joined profile comes back as a single object for this FK)
+      type AssociationRow = {
+        buyer_id: string;
+        profiles: {
+          id: string;
+          full_name: string | null;
+          preferred_language: string;
+          avatar_url: string | null;
+          created_at: string;
+        };
+      };
+      const buyersList = ((associations || []) as unknown as AssociationRow[]).map((a) => ({
+        id: a.profiles.id,
+        full_name: a.profiles.full_name,
+        preferred_language: a.profiles.preferred_language,
+        avatar_url: a.profiles.avatar_url,
+        created_at: a.profiles.created_at,
       }));
 
       setBuyers(buyersList);
-    } catch (err: any) {
-      setError(err.message || 'Failed to load buyers');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load buyers');
     } finally {
       setLoading(false);
     }
@@ -176,8 +186,8 @@ export default function BuyersPage() {
 
       // Refresh buyers list
       await fetchBuyers();
-    } catch (err: any) {
-      setError(err.message || 'Failed to create buyer');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create buyer');
     } finally {
       setCreating(false);
     }
@@ -213,8 +223,8 @@ export default function BuyersPage() {
       setEditModalOpen(false);
       setEditingBuyer(null);
       await fetchBuyers();
-    } catch (err: any) {
-      setError(err.message || 'Failed to update buyer');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update buyer');
     } finally {
       setUpdating(false);
     }
@@ -241,8 +251,8 @@ export default function BuyersPage() {
       setDeleteModalOpen(false);
       setDeletingBuyer(null);
       await fetchBuyers();
-    } catch (err: any) {
-      setError(err.message || 'Failed to delete buyer');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete buyer');
     } finally {
       setDeleting(false);
     }
@@ -280,8 +290,8 @@ export default function BuyersPage() {
       toast.success(t('buyers.inviteResent'), {
         duration: 5000,
       });
-    } catch (err: any) {
-      setError(err.message || 'Failed to resend invitation');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to resend invitation');
     }
   };
 

@@ -106,8 +106,8 @@ export default function AllAgentsPage() {
       const data = await response.json();
       setAgents(data.agents || []);
       setFilteredAgents(data.agents || []);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading(false);
     }

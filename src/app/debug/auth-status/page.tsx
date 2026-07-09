@@ -3,17 +3,30 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
+interface AuthData {
+  hasSession: boolean;
+  userId: string | null;
+  email: string | null;
+}
+
+interface ProfileData {
+  exists: boolean;
+  profile: {
+    full_name?: string | null;
+    role?: string | null;
+    preferred_language?: string | null;
+  } | null;
+  error: string | null;
+  errorCode: string | null;
+}
 
 export default function AuthStatusPage() {
-  const [authData, setAuthData] = useState<any>(null);
-  const [profileData, setProfileData] = useState<any>(null);
+  const [authData, setAuthData] = useState<AuthData | null>(null);
+  const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    checkAuthStatus();
-  }, []);
 
   const checkAuthStatus = async () => {
     try {
@@ -52,11 +65,16 @@ export default function AuthStatusPage() {
       }
 
       setLoading(false);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- initial data fetch on mount; refactor handled in a separate hooks pass
+    checkAuthStatus();
+  }, []);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -66,7 +84,7 @@ export default function AuthStatusPage() {
   const handleCreateProfile = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase.rpc('create_profile_for_current_user');
+      const { error } = await supabase.rpc('create_profile_for_current_user');
 
       if (error) {
         setError(`Profile creation error: ${error.message}`);
@@ -75,8 +93,8 @@ export default function AuthStatusPage() {
         await checkAuthStatus();
       }
       setLoading(false);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
       setLoading(false);
     }
   };
@@ -208,7 +226,7 @@ export default function AuthStatusPage() {
                 <>
                   <p>❌ Your profile is missing.</p>
                   <p className="text-yellow-700">
-                    This is why you're seeing console errors. Click "Create Profile Now" above to fix it.
+                    This is why you&apos;re seeing console errors. Click &quot;Create Profile Now&quot; above to fix it.
                   </p>
                 </>
               )}

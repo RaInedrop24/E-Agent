@@ -111,6 +111,10 @@ function DashboardContent() {
   const [searchQuery, setSearchQuery] = useState('');
   const [initialized, setInitialized] = useState(false);
 
+  // Paginate the rendered list so dashboards with many transactions stay fast
+  const TRANSACTIONS_PAGE_SIZE = 20;
+  const [visibleCount, setVisibleCount] = useState(TRANSACTIONS_PAGE_SIZE);
+
   // Tour trigger from URL query param
   const [forceTour, setForceTour] = useState(false);
 
@@ -145,10 +149,15 @@ function DashboardContent() {
 
       // Load activity filter preferences
       if (profile.activity_type_filters) {
-        setActivityTypeFilters(profile.activity_type_filters as any);
+        setActivityTypeFilters(profile.activity_type_filters as {
+          milestone: boolean;
+          message: boolean;
+          file: boolean;
+          notification: boolean;
+        });
       }
       if (profile.activity_time_range) {
-        setActivityTimeRange(profile.activity_time_range as any);
+        setActivityTimeRange(profile.activity_time_range as '24h' | '3d' | '7d' | '30d' | 'all');
       }
 
       setInitialized(true);
@@ -197,7 +206,7 @@ function DashboardContent() {
 
         // Don't refresh profile here - it causes infinite loops
         // The profile will be updated on next page load or when explicitly needed
-      } catch (error) {
+      } catch {
         // Silently handle errors during cleanup
         if (isActive) {
           // no-op
@@ -260,7 +269,7 @@ function DashboardContent() {
 
       if (participantError) throw participantError;
 
-      const transactionIds = participantData?.map((p: any) => p.transaction_id) || [];
+      const transactionIds = participantData?.map((p: { transaction_id: string }) => p.transaction_id) || [];
 
       if (transactionIds.length === 0) {
         setTransactions([]);
@@ -317,7 +326,7 @@ function DashboardContent() {
       setTransactions(filteredTransactions);
 
       // Fetch recent activity - milestones completed
-      const { data: milestonesActivity, error: milestonesError } = await supabase
+      const { data: milestonesActivity } = await supabase
         .from('milestones')
         .select(`
           id,
@@ -332,7 +341,7 @@ function DashboardContent() {
         .limit(5);
 
       // Fetch recent messages
-      const { data: messagesActivity, error: messagesError } = await supabase
+      const { data: messagesActivity } = await supabase
         .from('messages')
         .select(`
           id,
@@ -347,7 +356,7 @@ function DashboardContent() {
         .limit(5);
 
       // Fetch recent files
-      const { data: filesActivity, error: filesError } = await supabase
+      const { data: filesActivity } = await supabase
         .from('files')
         .select(`
           id,
@@ -361,7 +370,15 @@ function DashboardContent() {
         .limit(5);
 
       // Fetch recent system notifications via API (which handles translations)
-      let notificationsActivity: any[] = [];
+      type NotificationRow = {
+        id: string;
+        subject: string;
+        message: string;
+        original_subject?: string;
+        original_message?: string;
+        created_at: string;
+      };
+      let notificationsActivity: NotificationRow[] = [];
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
@@ -376,20 +393,45 @@ function DashboardContent() {
             notificationsActivity = (data.notifications || []).slice(0, 5);
           }
         }
-      } catch (error) {
+      } catch {
         // ignore activity fetch errors
       }
 
       // Combine and sort all activity
       const allActivity: ActivityItem[] = [];
 
+      // Joined relations come back as a single object for these FK joins
+      // (cast needed because the client's inferred type disagrees with the runtime shape)
+      type JoinedTransaction = { title: string } | null;
+      type MilestoneActivityRow = {
+        id: string;
+        completed_at: string | null;
+        label_en: string;
+        transaction_id: string;
+        transactions: JoinedTransaction;
+      };
+      type MessageActivityRow = {
+        id: string;
+        created_at: string;
+        transaction_id: string;
+        profiles: { full_name: string | null } | null;
+        transactions: JoinedTransaction;
+      };
+      type FileActivityRow = {
+        id: string;
+        created_at: string;
+        file_name: string;
+        transaction_id: string;
+        transactions: JoinedTransaction;
+      };
+
       if (milestonesActivity) {
-        milestonesActivity.forEach((m: any) => {
+        (milestonesActivity as unknown as MilestoneActivityRow[]).forEach((m) => {
           allActivity.push({
             id: m.id,
             type: 'milestone',
             description: `milestone:${m.label_en}`, // Will be translated in render
-            transaction_title: (m.transactions as any)?.title || 'Unknown',
+            transaction_title: m.transactions?.title || 'Unknown',
             transaction_id: m.transaction_id,
             created_at: m.completed_at || '',
           });
@@ -397,13 +439,13 @@ function DashboardContent() {
       }
 
       if (messagesActivity) {
-        messagesActivity.forEach((m: any) => {
-          const authorName = (m.profiles as any)?.full_name || 'Someone';
+        (messagesActivity as unknown as MessageActivityRow[]).forEach((m) => {
+          const authorName = m.profiles?.full_name || 'Someone';
           allActivity.push({
             id: m.id,
             type: 'message',
             description: `message:${authorName}`, // Will be translated in render
-            transaction_title: (m.transactions as any)?.title || 'Unknown',
+            transaction_title: m.transactions?.title || 'Unknown',
             transaction_id: m.transaction_id,
             created_at: m.created_at,
           });
@@ -411,12 +453,12 @@ function DashboardContent() {
       }
 
       if (filesActivity) {
-        filesActivity.forEach((f: any) => {
+        (filesActivity as unknown as FileActivityRow[]).forEach((f) => {
           allActivity.push({
             id: f.id,
             type: 'file',
             description: `file:${f.file_name}`, // Will be translated in render
-            transaction_title: (f.transactions as any)?.title || 'Unknown',
+            transaction_title: f.transactions?.title || 'Unknown',
             transaction_id: f.transaction_id,
             created_at: f.created_at,
           });
@@ -424,7 +466,7 @@ function DashboardContent() {
       }
 
       if (notificationsActivity && notificationsActivity.length > 0) {
-        notificationsActivity.forEach((n: any) => {
+        notificationsActivity.forEach((n) => {
           allActivity.push({
             id: n.id,
             type: 'notification',
@@ -452,8 +494,8 @@ function DashboardContent() {
       setRecentActivity(allActivity.slice(0, LIMITS.MAX_RECENT_ACTIVITY));
       setLoading(false);
 
-    } catch (error: any) {
-      logger.error('Error fetching dashboard data', { userId: user?.id, error: error.message });
+    } catch (error) {
+      logger.error('Error fetching dashboard data', { userId: user?.id, error: error instanceof Error ? error.message : String(error) });
       setLoading(false);
     }
   }
@@ -469,6 +511,16 @@ function DashboardContent() {
       (transaction.agent_reference && transaction.agent_reference.toLowerCase().includes(query))
     );
   }, [transactions, searchQuery]);
+
+  // Reset pagination whenever the search/filter changes the result set
+  useEffect(() => {
+    setVisibleCount(TRANSACTIONS_PAGE_SIZE);
+  }, [searchQuery, filterActiveOnly, sortBy]);
+
+  const visibleTransactions = useMemo(
+    () => filteredTransactions.slice(0, visibleCount),
+    [filteredTransactions, visibleCount]
+  );
 
   // Filter recent activity based on type and time range
   const filteredActivity = useMemo(() => {
@@ -671,7 +723,7 @@ function DashboardContent() {
                 />
               )
             ) : (
-              filteredTransactions.map((transaction) => {
+              visibleTransactions.map((transaction) => {
                 const progress = calculateProgress(transaction);
                 return (
                   <Link
@@ -705,6 +757,15 @@ function DashboardContent() {
                   </Link>
                 );
               })
+            )}
+            {filteredTransactions.length > visibleCount && (
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => setVisibleCount((c) => c + TRANSACTIONS_PAGE_SIZE)}
+              >
+                {t('dashboard.showMore')} ({filteredTransactions.length - visibleCount})
+              </Button>
             )}
           </CardContent>
         </Card>

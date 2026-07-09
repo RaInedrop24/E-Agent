@@ -15,7 +15,7 @@ export default function TermsPage() {
       <section className="space-y-3">
         <h2 className="text-xl font-semibold">1. Agreement</h2>
         <p>
-          By accessing or using the Estate Agent Portal ("Service"), you agree to these
+          By accessing or using the Estate Agent Portal (&quot;Service&quot;), you agree to these
           Terms of Service. If you do not agree, do not use the Service.
         </p>
       </section>

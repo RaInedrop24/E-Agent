@@ -222,7 +222,7 @@ test.describe('Transaction Template Selector', () => {
     const templateSelect = await page.locator('select#template');
 
     // Check default description
-    let description = await page.locator('text=The standard 5-step milestone process').isVisible();
+    const description = await page.locator('text=The standard 5-step milestone process').isVisible();
     expect(description).toBe(true);
     console.log('✅ Default template description visible');
 
@@ -247,7 +247,7 @@ test.describe('Transaction Template Selector', () => {
 });
 
 // Summary test
-test('Template Selector Summary', async ({ page }) => {
+test('Template Selector Summary', async () => {
   console.log('\n' + '='.repeat(70));
   console.log('📋 TEMPLATE SELECTOR TEST SUMMARY');
   console.log('='.repeat(70));

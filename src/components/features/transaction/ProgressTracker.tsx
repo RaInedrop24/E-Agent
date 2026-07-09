@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { CheckCircle, Circle, Clock } from 'lucide-react';
 import { Milestone } from '@/types';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { UI } from '@/lib/constants';
 
 interface ProgressTrackerProps {

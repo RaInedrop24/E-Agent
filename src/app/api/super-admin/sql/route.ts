@@ -13,18 +13,6 @@ const supabaseAdmin = createClient(
   }
 );
 
-// Maximum execution time (ms)
-const QUERY_TIMEOUT = 30000;
-
-// Read-only query detection (basic security check)
-const READ_ONLY_PATTERNS = [
-  /^\s*SELECT/i,
-  /^\s*SHOW/i,
-  /^\s*DESCRIBE/i,
-  /^\s*EXPLAIN/i,
-  /^\s*WITH.*SELECT/i,
-];
-
 // Use word boundaries \b to match only SQL commands, not column names like "updated_at"
 const WRITE_PATTERNS = [
   /\bINSERT\s+INTO\b/i,
@@ -35,11 +23,6 @@ const WRITE_PATTERNS = [
   /\bCREATE\s+(TABLE|DATABASE|FUNCTION|TRIGGER|INDEX)\b/i,
   /\bTRUNCATE\s+TABLE\b/i,
 ];
-
-function isReadOnlyQuery(query: string): boolean {
-  const trimmed = query.trim();
-  return READ_ONLY_PATTERNS.some(pattern => pattern.test(trimmed));
-}
 
 function containsWriteOperations(query: string): boolean {
   return WRITE_PATTERNS.some(pattern => pattern.test(query));
@@ -116,11 +99,11 @@ export async function POST(request: NextRequest) {
       query: query.substring(0, 200) + (query.length > 200 ? '...' : ''),
     });
 
-  } catch (error: any) {
+  } catch (error) {
     console.error('[SQL Editor] Error:', error);
     return NextResponse.json({
-      error: error.message || 'Failed to execute query',
-      details: error.toString(),
+      error: (error instanceof Error ? error.message : '') || 'Failed to execute query',
+      details: String(error),
     }, { status: 500 });
   }
 }
@@ -170,10 +153,10 @@ export async function GET(request: NextRequest) {
       message: 'SQL Editor ready'
     });
 
-  } catch (error: any) {
+  } catch (error) {
     return NextResponse.json({
       available: false,
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     }, { status: 500 });
   }
 }

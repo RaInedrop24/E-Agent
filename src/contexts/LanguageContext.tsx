@@ -1,8 +1,9 @@
 'use client';
 
-import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
+import { createContext, useContext, ReactNode, useState, useEffect, useSyncExternalStore } from 'react';
 import { useAuth } from './AuthContext';
-import { t, tVar, TranslationKey } from '@/lib/ui-translations';
+import { t, tVar, loadLanguage, TranslationKey } from '@/lib/translations/client';
+import { isSupportedLanguage } from '@/lib/constants';
 import type { SupportedLanguage } from '@/lib/translation';
 
 interface LanguageContextType {
@@ -14,26 +15,44 @@ interface LanguageContextType {
 
 const LanguageContext = createContext<LanguageContextType | null>(null);
 
+// Hydration-safe read of the anonymous-visitor language preference
+// (used on the landing page before any profile exists)
+const subscribeToStorage = (onChange: () => void) => {
+  window.addEventListener('storage', onChange);
+  return () => window.removeEventListener('storage', onChange);
+};
+const getStoredLanguage = () => localStorage.getItem('preferred_language');
+const getServerStoredLanguage = () => null;
+
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const { profile } = useAuth();
-  const [selectedLanguage, setSelectedLanguage] = useState<SupportedLanguage>('en');
+  // Explicit in-session choice (e.g. landing page language switcher)
+  const [selectedLanguage, setSelectedLanguage] = useState<SupportedLanguage | null>(null);
+  const storedLanguage = useSyncExternalStore(
+    subscribeToStorage,
+    getStoredLanguage,
+    getServerStoredLanguage
+  );
+  // Bumped when a language dictionary finishes loading so consumers re-render
+  // from the English fallback to the real translations
+  const [, setLoadedTick] = useState(0);
 
-  // Initialize language from profile or localStorage
-  useEffect(() => {
-    if (profile?.preferred_language) {
-      setSelectedLanguage(profile.preferred_language as SupportedLanguage);
-    } else {
-      // Check localStorage for language preference (for landing page)
-      const storedLang = localStorage.getItem('preferred_language') as SupportedLanguage | null;
-      if (storedLang && ['en', 'it', 'es', 'fr', 'de'].includes(storedLang)) {
-        setSelectedLanguage(storedLang);
-      }
-    }
-  }, [profile]);
-
-  const language: SupportedLanguage = profile?.preferred_language 
+  // Precedence: profile setting > explicit in-session choice > localStorage > English
+  const language: SupportedLanguage = profile?.preferred_language
     ? (profile.preferred_language as SupportedLanguage)
-    : selectedLanguage;
+    : selectedLanguage ?? (isSupportedLanguage(storedLanguage) ? storedLanguage : 'en');
+
+  // Fetch the dictionary chunk for the active language (no-op for English
+  // and already-loaded languages)
+  useEffect(() => {
+    let cancelled = false;
+    loadLanguage(language).then(() => {
+      if (!cancelled) setLoadedTick((tick) => tick + 1);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [language]);
 
   const handleSetLanguage = (lang: SupportedLanguage) => {
     setSelectedLanguage(lang);
@@ -41,7 +60,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   };
 
   const translate = (key: TranslationKey) => t(key, language);
-  const translateVar = (key: TranslationKey, variables: Record<string, string | number>) => 
+  const translateVar = (key: TranslationKey, variables: Record<string, string | number>) =>
     tVar(key, language, variables);
 
   return (
@@ -58,4 +77,3 @@ export function useLanguage() {
   }
   return context;
 }
-

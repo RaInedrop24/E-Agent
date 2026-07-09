@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import type { User, Session, AuthResponse, AuthChangeEvent } from '@supabase/supabase-js';
+import type { User, Session, AuthChangeEvent } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { AUTH_COOKIE_NAME, AUTH_COOKIE_MAX_AGE } from '@/lib/constants';
 
@@ -92,7 +92,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     if (hasStoredSession) {
       // Get initial session and validate it
-      supabase.auth.getSession().then(async (response: AuthResponse) => {
+      supabase.auth.getSession().then(async (response) => {
         const initialSession = response.data.session;
         const sessionError = response.error;
         
@@ -185,8 +185,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchProfile = async (userId: string) => {
     try {
-      // Check if we have a session
-      const { data: { session } } = await supabase.auth.getSession();
+      // Check if we have a session (result unused; call kept for its side effects)
+      await supabase.auth.getSession();
 
       const { data, error } = await supabase
         .from('profiles')
@@ -204,7 +204,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             } else {
               setProfile(newProfile);
             }
-          } catch (createErr) {
+          } catch {
             setProfile(null);
           }
         } else {
@@ -213,7 +213,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
         setProfile(data);
       }
-    } catch (err) {
+    } catch {
       setProfile(null);
     } finally {
       setLoading(false);
@@ -261,13 +261,8 @@ export function useAuth() {
 // Hook to require authentication
 export function useRequireAuth(redirectTo: string = '/login') {
   const { user, loading } = useAuth();
-  const [shouldRedirect, setShouldRedirect] = useState(false);
-
-  useEffect(() => {
-    if (!loading && !user) {
-      setShouldRedirect(true);
-    }
-  }, [user, loading]);
+  // Derived, not stored: redirect the moment we know there is no user
+  const shouldRedirect = !loading && !user;
 
   return { user, loading, shouldRedirect, redirectTo };
 }
@@ -275,13 +270,7 @@ export function useRequireAuth(redirectTo: string = '/login') {
 // Hook to require specific role
 export function useRequireRole(requiredRole: 'agent' | 'buyer', redirectTo: string = '/dashboard') {
   const { profile, loading } = useAuth();
-  const [shouldRedirect, setShouldRedirect] = useState(false);
-
-  useEffect(() => {
-    if (!loading && profile && profile.role !== requiredRole) {
-      setShouldRedirect(true);
-    }
-  }, [profile, loading, requiredRole]);
+  const shouldRedirect = !loading && !!profile && profile.role !== requiredRole;
 
   return { profile, loading, shouldRedirect, redirectTo };
 }

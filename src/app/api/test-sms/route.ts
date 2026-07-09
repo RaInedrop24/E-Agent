@@ -1,16 +1,28 @@
+/**
+ * Debug endpoint: sends a test SMS via Twilio.
+ * Spends Twilio credit, so it is restricted to super admins.
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 import twilio from 'twilio';
+import { getAuthenticatedUser, isSuperAdmin } from '@/lib/api-auth';
+import { logger } from '@/lib/logger';
 
 export async function POST(request: NextRequest) {
   try {
+    const user = await getAuthenticatedUser(request);
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    if (!(await isSuperAdmin(user.id))) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const { phoneNumber, message } = await request.json();
 
-    console.log('[TEST SMS] Starting SMS test...');
-    console.log('[TEST SMS] Phone Number:', phoneNumber);
-    console.log('[TEST SMS] Message:', message);
-    console.log('[TEST SMS] Twilio SID:', process.env.TWILIO_SID ? 'Present' : 'MISSING');
-    console.log('[TEST SMS] Twilio Secret:', process.env.TWILIO_SECRET ? 'Present' : 'MISSING');
-    console.log('[TEST SMS] Twilio Phone:', process.env.TWILIO_PHONE_NUMBER);
+    if (typeof phoneNumber !== 'string' || phoneNumber.trim().length === 0) {
+      return NextResponse.json({ error: 'phoneNumber is required' }, { status: 400 });
+    }
 
     if (!process.env.TWILIO_SID || !process.env.TWILIO_SECRET) {
       return NextResponse.json(
@@ -22,7 +34,7 @@ export async function POST(request: NextRequest) {
     const twilioClient = twilio(process.env.TWILIO_SID, process.env.TWILIO_SECRET);
     const twilioFrom = process.env.TWILIO_PHONE_NUMBER || 'PROPERTY';
 
-    console.log('[TEST SMS] Attempting to send via Twilio...');
+    logger.debug('[TEST SMS] Sending test SMS', { phoneNumber });
 
     const result = await twilioClient.messages.create({
       body: message || 'Test message from Property Gateway',
@@ -30,8 +42,7 @@ export async function POST(request: NextRequest) {
       to: phoneNumber,
     });
 
-    console.log('[TEST SMS] Success! Message SID:', result.sid);
-    console.log('[TEST SMS] Status:', result.status);
+    logger.info('[TEST SMS] Sent', { sid: result.sid, status: result.status });
 
     return NextResponse.json({
       success: true,
@@ -39,19 +50,16 @@ export async function POST(request: NextRequest) {
       status: result.status,
       message: 'SMS sent successfully',
     });
-  } catch (error: any) {
-    console.error('[TEST SMS] ERROR:', error);
-    console.error('[TEST SMS] Error message:', error.message);
-    console.error('[TEST SMS] Error code:', error.code);
-    console.error('[TEST SMS] Error status:', error.status);
-    console.error('[TEST SMS] Full error:', JSON.stringify(error, null, 2));
+  } catch (error) {
+    const err = error as { message?: string; code?: string; status?: number; moreInfo?: string };
+    logger.exception('[TEST SMS] Error', error instanceof Error ? error : new Error(String(error)));
 
     return NextResponse.json(
       {
-        error: error.message || 'Failed to send SMS',
-        code: error.code,
-        status: error.status,
-        details: error.moreInfo,
+        error: err.message || 'Failed to send SMS',
+        code: err.code,
+        status: err.status,
+        details: err.moreInfo,
       },
       { status: 500 }
     );

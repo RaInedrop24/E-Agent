@@ -61,32 +61,11 @@ export function useSuperAdmin() {
             return;
           }
           
-          // Check if any error property has meaningful content
-          const hasMeaningfulError = errorKeys.some(key => {
-            try {
-              const value = (error as any)[key];
-              // Check if the value is a non-empty string
-              if (typeof value === 'string' && value.trim().length > 0) return true;
-              // Check if the value is a number (even 0 is meaningful for error codes)
-              if (typeof value === 'number') return true;
-              // Check if the value is a boolean
-              if (typeof value === 'boolean') return true;
-              // Check if the value is a non-empty object/array
-              if (value && typeof value === 'object') {
-                if (Array.isArray(value) && value.length > 0) return true;
-                if (Object.keys(value).length > 0) return true;
-              }
-              return false;
-            } catch {
-              return false;
-            }
-          });
-          
           setIsSuperAdmin(false);
         } else {
           setIsSuperAdmin(data === true);
         }
-      } catch (error) {
+      } catch {
         setIsSuperAdmin(false);
       } finally {
         setLoading(false);

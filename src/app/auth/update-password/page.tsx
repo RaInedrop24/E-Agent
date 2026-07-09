@@ -41,8 +41,8 @@ function UpdatePasswordContent() {
         setIsForced(force === 'true');
 
         setCheckingSession(false);
-      } catch (err: any) {
-        setError(err.message || 'Failed to verify session');
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to verify session');
         setCheckingSession(false);
       }
     }
@@ -92,8 +92,8 @@ function UpdatePasswordContent() {
 
       // Redirect to dashboard - they're already logged in
       router.push('/dashboard?password-updated=true');
-    } catch (err: any) {
-      setError(err.message || 'Failed to update password');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update password');
       setLoading(false);
     }
   };

@@ -10,7 +10,7 @@ import * as React from 'react';
 import twilio from 'twilio';
 import { t, tVar, type TranslationKey } from '@/lib/ui-translations';
 import { SupportedLanguage } from '@/lib/translation';
-import { toSupportedLanguage } from '@/lib/constants';
+import { SITE_URL, toSupportedLanguage } from '@/lib/constants';
 import { logger } from '@/lib/logger';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -160,8 +160,7 @@ export async function sendNotifications(payload: NotificationPayload) {
       return;
     }
 
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://thepropertygateway.com';
-    const transactionUrl = `${siteUrl}/transaction/${transactionId}`;
+    const transactionUrl = `${SITE_URL}/transaction/${transactionId}`;
     const emailFrom = 'Updates <Updates@mail.thepropertygateway.com>';
 
     // 5. Filter out the trigger user and missing profiles
@@ -195,7 +194,7 @@ export async function sendNotifications(payload: NotificationPayload) {
         notifyParticipant(profile, {
           payload,
           branding,
-          siteUrl,
+          siteUrl: SITE_URL,
           transactionUrl,
           emailFrom,
           recipientEmail: emails.get(profile.id),

@@ -86,7 +86,7 @@ export class SupabaseManagementAPI {
    * NOTE: This endpoint is NOT available in the public Management API v1
    * Metrics are only available through the Supabase Dashboard UI
    */
-  async getUsageStats(startDate?: string, endDate?: string): Promise<any> {
+  async getUsageStats(): Promise<UsageStats | null> {
     // These endpoints don't exist in public API
     return null;
   }

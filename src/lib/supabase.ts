@@ -26,7 +26,7 @@ export const supabase =
         autoRefreshToken: true,
       },
     })
-    : (undefined as any);
+    : (undefined as unknown as ReturnType<typeof createSupabaseClient>);
 
 export function createClient() {
   return supabase;

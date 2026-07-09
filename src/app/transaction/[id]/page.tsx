@@ -12,7 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Check, Clock, Users, FileText, MessageCircle, Trash2, Mail } from 'lucide-react';
+import { ArrowLeft, Check, Users, FileText, MessageCircle, Trash2, Mail } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
 // Lazy load components that are only visible in specific tabs
@@ -39,7 +39,7 @@ export default function TransactionDetailPage({ params }: PageProps) {
   const { t, tVar, language } = useLanguage();
 
   // Apply transaction-specific agent branding (for multi-agent buyer support)
-  const agentBranding = useTransactionBranding(transactionId);
+  useTransactionBranding(transactionId);
 
   // Use custom hook for transaction data management
   const {
@@ -92,10 +92,11 @@ export default function TransactionDetailPage({ params }: PageProps) {
 
       // Refresh transaction data
       await refetch();
-    } catch (err: any) {
-      logger.error('Error updating milestone', { transactionId, milestoneId, error: err.message });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      logger.error('Error updating milestone', { transactionId, milestoneId, error: message });
       toast.error(t('transaction.milestoneUpdateFailed'), {
-        description: err.message
+        description: message
       });
     }
   };
@@ -116,10 +117,11 @@ export default function TransactionDetailPage({ params }: PageProps) {
       setShowFinalizeDialog(false);
       await refetch(); // Refresh to show 'completed' status
 
-    } catch (err: any) {
-      logger.error('Error finalizing transaction', { transactionId: transaction.id, error: err.message });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      logger.error('Error finalizing transaction', { transactionId: transaction.id, error: message });
       toast.error(t('transaction.finalizeFailed'), {
-        description: err.message
+        description: message
       });
     } finally {
       setFinalizing(false);
@@ -153,10 +155,11 @@ export default function TransactionDetailPage({ params }: PageProps) {
       toast.success(t('transaction.emailSentSuccess'), {
         description: tVar('transaction.emailSentDescription', { email: user.email || '' })
       });
-    } catch (err: any) {
-      logger.error('Error emailing progress', { transactionId, error: err.message });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      logger.error('Error emailing progress', { transactionId, error: message });
       toast.error(t('transaction.emailFailed'), {
-        description: err.message
+        description: message
       });
     } finally {
       setEmailing(false);
@@ -175,7 +178,9 @@ export default function TransactionDetailPage({ params }: PageProps) {
         .eq('transaction_id', transaction.id);
 
       if (files && files.length > 0) {
-        const filePaths = files.map((f: any) => f.storage_path).filter(Boolean);
+        const filePaths = files
+          .map((f: { storage_path: string | null }) => f.storage_path)
+          .filter((p): p is string => Boolean(p));
         if (filePaths.length > 0) {
           await supabase.storage.from('transaction_files').remove(filePaths);
         }
@@ -210,10 +215,11 @@ export default function TransactionDetailPage({ params }: PageProps) {
       }
 
       router.push('/dashboard');
-    } catch (err: any) {
-      logger.error('Error deleting transaction', { transactionId: transaction.id, error: err.message });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      logger.error('Error deleting transaction', { transactionId: transaction.id, error: message });
       toast.error(t('transaction.deleteFailed'), {
-        description: err.message || 'Unknown error'
+        description: message
       });
       setDeleting(false);
       setShowDeleteDialog(false);
@@ -256,7 +262,7 @@ export default function TransactionDetailPage({ params }: PageProps) {
   const currentMilestone = milestones.filter((m) => m.completed).length;
   
   // Get milestone label in user's preferred language
-  const getMilestoneLabel = (m: any) => {
+  const getMilestoneLabel = (m: (typeof milestones)[number]) => {
     const langKey = `label_${language}` as keyof typeof m;
     return (m[langKey] as string) || m.label_en || m.label_it || 'Milestone';
   };

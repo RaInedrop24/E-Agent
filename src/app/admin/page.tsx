@@ -105,11 +105,11 @@ export default function AdminDashboardPage() {
         status: user ? 'Authenticated session loaded' : 'No authenticated session',
         error: null,
       });
-    } catch (err: any) {
+    } catch (err) {
       setDebugState((prev) => ({
         ...prev,
         status: 'Failed to load debug info',
-        error: err?.message ?? 'Unknown error',
+        error: err instanceof Error ? err.message : 'Unknown error',
       }));
     } finally {
       setLoading(false);

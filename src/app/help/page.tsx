@@ -11,7 +11,7 @@
  * - Step-by-step instructions with screenshots
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -27,7 +27,6 @@ import {
   ListChecks,
   Eye,
   ExternalLink,
-  CheckCircle2,
   ArrowRight
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';

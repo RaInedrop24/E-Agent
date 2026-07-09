@@ -171,13 +171,23 @@ export function useTransactionData(transactionId: string): UseTransactionDataRet
         }
       }
 
-      const agentProfile = txData.profiles as any;
+      // Shape matches the profiles join in the .select() above
+      const agentProfile = txData.profiles as unknown as {
+        full_name: string | null;
+        branding_logo_url: string | null;
+        branding_settings: {
+          primary?: string;
+          secondary?: string;
+          background?: string;
+          text?: string;
+        } | null;
+      } | null;
       const transactionData: Transaction = {
         ...txData,
         creator_name: agentProfile?.full_name || 'Unknown',
         agent_branding: {
           logo: agentProfile?.branding_logo_url,
-          colors: agentProfile?.branding_settings
+          colors: agentProfile?.branding_settings ?? undefined
         }
       };
 
@@ -186,7 +196,8 @@ export function useTransactionData(transactionId: string): UseTransactionDataRet
       // Apply branding
       if (transactionData.agent_branding) {
         const { logo, colors } = transactionData.agent_branding;
-        setBranding(logo || null, colors as any || null);
+        // BrandingContext expects fully-populated colors; stored settings may omit fields
+        setBranding(logo || null, (colors as Parameters<typeof setBranding>[1]) || null);
       }
 
       // Fetch milestones
@@ -200,7 +211,7 @@ export function useTransactionData(transactionId: string): UseTransactionDataRet
       setMilestones(milestonesData || []);
 
       // Fetch participants
-      let participantsData: any[] = [];
+      let participantsData: Participant[] = [];
       const { data: rpcData, error: participantsError } = await supabase
         .rpc('get_transaction_participants', {
           p_transaction_id: transactionId
@@ -225,7 +236,15 @@ export function useTransactionData(transactionId: string): UseTransactionDataRet
           throw new Error(`Failed to fetch participants: ${fallbackError.message}`);
         }
 
-        participantsData = (fallbackData || []).map((p: any) => ({
+        // Supabase infers the profiles join as an array, but this many-to-one
+        // relation returns a single object at runtime
+        participantsData = ((fallbackData || []) as unknown as Array<{
+          id: string;
+          profile_id: string;
+          participant_role: string;
+          invited_at: string;
+          profiles: { full_name: string | null } | null;
+        }>).map((p) => ({
           id: p.id,
           profile_id: p.profile_id,
           participant_role: p.participant_role,
@@ -261,7 +280,9 @@ export function useTransactionData(transactionId: string): UseTransactionDataRet
       if (messagesError) throw messagesError;
 
       setMessages(
-        (messagesData || []).map((m: any) => ({
+        // Supabase infers the profiles join as an array, but this many-to-one
+        // relation returns a single object at runtime
+        ((messagesData || []) as unknown as Array<Omit<Message, 'author_name'> & { profiles: { full_name: string | null } | null }>).map((m) => ({
           ...m,
           author_name: m.profiles?.full_name || 'Unknown',
         }))
@@ -280,9 +301,10 @@ export function useTransactionData(transactionId: string): UseTransactionDataRet
       }
 
       setLoading(false);
-    } catch (err: any) {
-      logger.error('Failed to load transaction data', { transactionId, error: err.message });
-      setError(err.message || 'Failed to load transaction');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      logger.error('Failed to load transaction data', { transactionId, error: message });
+      setError(message || 'Failed to load transaction');
       setLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

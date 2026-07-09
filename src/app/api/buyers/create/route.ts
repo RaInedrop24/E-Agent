@@ -353,10 +353,10 @@ export async function POST(request: NextRequest) {
         : `Buyer created successfully. Default password: ${defaultPassword}. (Email failed to send - please share credentials manually)`,
     });
 
-  } catch (error: any) {
+  } catch (error) {
     console.error('Unexpected error in create buyer API:', error);
     return NextResponse.json(
-      { error: error.message || 'Internal server error' },
+      { error: (error instanceof Error ? error.message : '') || 'Internal server error' },
       { status: 500 }
     );
   }

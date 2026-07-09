@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
       (buyersData || []).map(async (buyer) => {
         try {
           // Get email from auth.users
-          const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUserById(buyer.id);
+          const { data: userData } = await supabaseAdmin.auth.admin.getUserById(buyer.id);
 
           // Get transaction count for this buyer
           const { count: txCount } = await supabaseAdmin
@@ -104,10 +104,10 @@ export async function GET(request: NextRequest) {
       buyers: buyersWithDetails,
       timestamp: new Date().toISOString(),
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('[Buyers API] Error:', error);
     return NextResponse.json(
-      { error: error.message },
+      { error: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }

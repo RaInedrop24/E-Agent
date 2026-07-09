@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -34,15 +34,15 @@ export default function MFASetupPage() {
 
       if (error) throw error;
 
-      if (data.factors && data.factors.length > 0) {
+      if (data.all && data.all.length > 0) {
         // MFA already set up
         setStep('complete');
       } else {
         // Need to set up MFA
         setStep('enroll');
       }
-    } catch (err: any) {
-      setError(err.message || 'Failed to check MFA status');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to check MFA status');
       setStep('enroll');
     } finally {
       setLoading(false);
@@ -65,8 +65,8 @@ export default function MFASetupPage() {
       setQrCodeUrl(qrCode);
       setFactorId(data.id);
       setStep('verify');
-    } catch (err: any) {
-      setError(err.message || 'Failed to enroll MFA');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to enroll MFA');
     } finally {
       setLoading(false);
     }
@@ -81,7 +81,7 @@ export default function MFASetupPage() {
         throw new Error('No factor ID available');
       }
 
-      const { data, error } = await supabase.auth.mfa.challengeAndVerify({
+      const { error } = await supabase.auth.mfa.challengeAndVerify({
         factorId,
         code: verificationCode,
       });
@@ -89,8 +89,8 @@ export default function MFASetupPage() {
       if (error) throw error;
 
       setStep('complete');
-    } catch (err: any) {
-      setError(err.message || 'Invalid verification code');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Invalid verification code');
     } finally {
       setLoading(false);
     }
@@ -162,7 +162,7 @@ export default function MFASetupPage() {
             <div className="space-y-4">
               <div className="text-sm text-muted-foreground space-y-2">
                 <p>To secure your super admin account, you must enable two-factor authentication.</p>
-                <p className="font-semibold">You'll need:</p>
+                <p className="font-semibold">You&apos;ll need:</p>
                 <ul className="list-disc list-inside ml-2">
                   <li>An authenticator app (Google Authenticator, Authy, 1Password, etc.)</li>
                   <li>Your mobile device</li>

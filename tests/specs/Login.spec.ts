@@ -9,7 +9,7 @@ test.describe('Login Feature', () => {
     await loginPage.goto();
   });
 
-  test('should render login form correctly', async ({ page }) => {
+  test('should render login form correctly', async () => {
     await expect(loginPage.heading).toBeVisible();
     await expect(loginPage.emailInput).toBeVisible();
     await expect(loginPage.passwordInput).toBeVisible();
@@ -17,7 +17,7 @@ test.describe('Login Feature', () => {
     await expect(loginPage.registerLink).toBeVisible();
   });
 
-  test('should show error with invalid credentials', async ({ page }) => {
+  test('should show error with invalid credentials', async () => {
     // We can't easily mock Supabase client directly in E2E without network interception or mocking the module.
     // For this test, we assume the backend (or mock) rejects invalid creds.
     // Given we don't have a running backend guaranteed, we might rely on the client-side error handling if we can trigger it.

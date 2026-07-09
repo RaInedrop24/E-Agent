@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 import { Bell, Check, CheckCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -41,7 +42,7 @@ export function NotificationBell() {
 
   useEffect(() => {
     let isMounted = true;
-    let channel: any = null;
+    let channel: RealtimeChannel | null = null;
 
     const fetchNotifications = async () => {
       try {
@@ -72,9 +73,9 @@ export function NotificationBell() {
           setNotifications(filteredNotifications);
           setUnreadCount(data.unreadCount || 0);
         }
-      } catch (error: any) {
+      } catch (error) {
         if (isMounted) {
-          logger.error('Error fetching notifications', { error: error.message });
+          logger.error('Error fetching notifications', { error: error instanceof Error ? error.message : String(error) });
         }
       } finally {
         if (isMounted) {
@@ -162,8 +163,8 @@ export function NotificationBell() {
         );
         setUnreadCount(prev => Math.max(0, prev - 1));
       }
-    } catch (error: any) {
-      logger.error('Error marking notification as read', { notificationId, error: error.message });
+    } catch (error) {
+      logger.error('Error marking notification as read', { notificationId, error: error instanceof Error ? error.message : String(error) });
     }
   };
 
@@ -190,8 +191,8 @@ export function NotificationBell() {
         );
         setUnreadCount(0);
       }
-    } catch (error: any) {
-      logger.error('Error marking all notifications as read', { error: error.message });
+    } catch (error) {
+      logger.error('Error marking all notifications as read', { error: error instanceof Error ? error.message : String(error) });
     }
   };
 
@@ -309,8 +310,8 @@ export function NotificationBell() {
         notification={selectedNotification ? {
           subject: selectedNotification.subject,
           message: selectedNotification.message,
-          original_subject: (selectedNotification as any).original_subject,
-          original_message: (selectedNotification as any).original_message,
+          original_subject: selectedNotification.original_subject,
+          original_message: selectedNotification.original_message,
           created_at: selectedNotification.created_at,
         } : null}
       />

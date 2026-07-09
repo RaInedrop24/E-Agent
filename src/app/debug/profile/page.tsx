@@ -1,18 +1,21 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import type { User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-export default function DebugProfilePage() {
-  const [authUser, setAuthUser] = useState<any>(null);
-  const [profile, setProfile] = useState<any>(null);
-  const [error, setError] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+interface DebugError {
+  step: string;
+  error: unknown;
+  hint?: string;
+}
 
-  useEffect(() => {
-    checkProfile();
-  }, []);
+export default function DebugProfilePage() {
+  const [authUser, setAuthUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<Record<string, unknown> | null>(null);
+  const [error, setError] = useState<DebugError | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const checkProfile = async () => {
     try {
@@ -47,11 +50,16 @@ export default function DebugProfilePage() {
       }
 
       setLoading(false);
-    } catch (err: any) {
+    } catch (err) {
       setError({ step: 'exception', error: err });
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- initial data fetch on mount; refactor handled in a separate hooks pass
+    checkProfile();
+  }, []);
 
   const createProfile = async () => {
     if (!authUser) return;
@@ -93,7 +101,7 @@ export default function DebugProfilePage() {
         setError(null);
       }
       setLoading(false);
-    } catch (err: any) {
+    } catch (err) {
       setError({ step: 'create_profile_exception', error: err });
       setLoading(false);
     }

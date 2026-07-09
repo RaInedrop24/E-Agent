@@ -71,9 +71,22 @@ export async function GET(request: NextRequest) {
       throw templatesError;
     }
 
-    // Deduplicate by template name - keep the most recent one for each name
-    const uniqueTemplates = new Map<string, any>();
-    (templatesData || []).forEach((template: any) => {
+    // Row shape matches the .select() string above
+    interface TemplateRow {
+      id: string;
+      agent_id: string;
+      template_name: string;
+      description: string | null;
+      created_at: string;
+      updated_at: string;
+      profiles: { id: string; full_name: string | null } | null;
+    }
+
+    // Deduplicate by template name - keep the most recent one for each name.
+    // Supabase infers the profiles join as an array, but this many-to-one
+    // relation returns a single object at runtime.
+    const uniqueTemplates = new Map<string, TemplateRow>();
+    ((templatesData || []) as unknown as TemplateRow[]).forEach((template) => {
       const existingTemplate = uniqueTemplates.get(template.template_name);
       if (!existingTemplate || new Date(template.created_at) > new Date(existingTemplate.created_at)) {
         uniqueTemplates.set(template.template_name, template);
@@ -84,7 +97,7 @@ export async function GET(request: NextRequest) {
 
     // For each template, get milestone count and usage count
     const templatesWithDetails = await Promise.all(
-      deduplicatedTemplates.map(async (template: any) => {
+      deduplicatedTemplates.map(async (template) => {
         try {
           // Get milestones for this template (including Polish)
           const { data: milestonesData, count: milestoneCount } = await supabaseAdmin
@@ -130,10 +143,10 @@ export async function GET(request: NextRequest) {
       templates: templatesWithDetails,
       timestamp: new Date().toISOString(),
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('[Templates API] Error:', error);
     return NextResponse.json(
-      { error: error.message },
+      { error: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }

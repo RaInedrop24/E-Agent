@@ -349,8 +349,10 @@ export function OnboardingTour({ forceRun = false, onComplete }: OnboardingTourP
   // Check if user needs onboarding
   useEffect(() => {
     if (forceRun) {
-      setRunTour(true);
-      return;
+      // Deferred so the tour targets exist in the DOM before Joyride starts
+      // (also keeps setState out of the synchronous effect body)
+      const timer = setTimeout(() => setRunTour(true), 0);
+      return () => clearTimeout(timer);
     }
 
     // Show tour to logged-in users (agents or buyers) who haven't completed it

@@ -4,7 +4,6 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -85,7 +84,23 @@ export function TransactionFilesPanel({
 
       if (fetchError) throw fetchError;
 
-      const mapped: FileRow[] = (data || []).map((f: any) => ({
+      // Row shape returned by the files select above. Supabase infers
+      // to-one FK joins as arrays without generated DB types, but at
+      // runtime these joins return single objects.
+      type FileQueryRow = {
+        id: string;
+        file_name: string;
+        mime_type: string | null;
+        file_size: number | null;
+        storage_path: string;
+        milestone_id: string | null;
+        created_at: string;
+        milestones: { label_en: string | null; label_it: string | null } | null;
+        profiles: { full_name: string | null } | null;
+      };
+
+      const rows = (data ?? []) as unknown as FileQueryRow[];
+      const mapped: FileRow[] = rows.map((f) => ({
         id: f.id,
         file_name: f.file_name,
         mime_type: f.mime_type,
@@ -101,8 +116,8 @@ export function TransactionFilesPanel({
       }));
 
       setFiles(mapped);
-    } catch (err: any) {
-      setError(err.message || 'Failed to load files');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load files');
     } finally {
       setLoading(false);
     }
@@ -158,8 +173,8 @@ export function TransactionFilesPanel({
       setSelectedFile(null);
       setSelectedMilestone(null);
       await fetchFiles();
-    } catch (err: any) {
-      setError(err.message || 'Upload failed');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Upload failed');
     } finally {
       setUploading(false);
     }
@@ -191,7 +206,7 @@ export function TransactionFilesPanel({
     try {
       const url = await fetchSignedUrl(file.storage_path);
       window.open(url, '_blank');
-    } catch (err: any) {
+    } catch {
       setError(t('files.downloadFailed'));
     }
   };

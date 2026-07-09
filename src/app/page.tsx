@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle, MessageSquare, Globe, Shield, Settings, Users, Link as LinkIcon, Languages, Palette, ArrowRight } from 'lucide-react';
+import { CheckCircle, MessageSquare, Globe, Shield, Settings, Users, Link as LinkIcon, Languages, Palette } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { FlagLanguageSelector } from '@/components/ui/flag-language-selector';

@@ -61,8 +61,8 @@ export function ApplyMilestoneTemplateModal({ transactionId, onSuccess }: ApplyM
       if (rpcError) throw rpcError;
 
       setTemplates(data || []);
-    } catch (err: any) {
-      setError('Failed to load templates: ' + err.message);
+    } catch (err) {
+      setError('Failed to load templates: ' + (err instanceof Error ? err.message : String(err)));
     } finally {
       setIsLoadingTemplates(false);
     }
@@ -105,8 +105,8 @@ export function ApplyMilestoneTemplateModal({ transactionId, onSuccess }: ApplyM
       setOpen(false);
       setSelectedTemplateId('');
       if (onSuccess) onSuccess();
-    } catch (err: any) {
-      setError(err.message || 'Failed to apply template');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to apply template');
     } finally {
       setIsApplying(false);
     }

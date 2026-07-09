@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { SystemAnnouncementEmail } from '@/components/emails/SystemAnnouncementEmail';
 import { translateText, SupportedLanguage } from '@/lib/translation';
+import { SITE_URL } from '@/lib/constants';
 import * as React from 'react';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -106,7 +107,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No valid email addresses found' }, { status: 404 });
     }
 
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://thepropertygateway.com';
+    const siteUrl = SITE_URL;
     const emailFrom = 'System Notifications <system@mail.thepropertygateway.com>';
 
     // Send emails with rate limiting (Resend free tier: 2 emails per second)
@@ -158,9 +159,9 @@ export async function POST(request: NextRequest) {
 
           console.log(`[System Email] Sent to ${recipient.email} (${recipient.name}) in ${recipientLanguage}`);
           return { success: true, email: recipient.email };
-        } catch (sendError: any) {
+        } catch (sendError) {
           console.error(`[System Email] Failed to send to ${recipient.email}:`, sendError);
-          return { success: false, email: recipient.email, error: sendError.message };
+          return { success: false, email: recipient.email, error: sendError instanceof Error ? sendError.message : String(sendError) };
         }
       });
 
@@ -213,10 +214,10 @@ export async function POST(request: NextRequest) {
       message: `Successfully sent ${successCount} of ${recipientEmails.length} emails`,
     });
 
-  } catch (error: any) {
+  } catch (error) {
     console.error('System email API error:', error);
     return NextResponse.json(
-      { error: error.message || 'Internal server error' },
+      { error: (error instanceof Error ? error.message : '') || 'Internal server error' },
       { status: 500 }
     );
   }

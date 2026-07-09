@@ -8,7 +8,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { formatRelativeTime } from '@/lib/date-utils';
-import { useLanguage } from '@/contexts/LanguageContext';
 
 interface NotificationModalProps {
   open: boolean;
@@ -23,8 +22,6 @@ interface NotificationModalProps {
 }
 
 export function NotificationModal({ open, onOpenChange, notification }: NotificationModalProps) {
-  const { t } = useLanguage();
-
   if (!notification) return null;
 
   const hasOriginal = notification.original_subject && notification.original_message;

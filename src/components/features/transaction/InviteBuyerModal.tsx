@@ -16,7 +16,6 @@ import {
 import { Label } from '@/components/ui/label';
 import { Combobox } from '@/components/ui/combobox';
 import { Loader2, UserPlus } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 
 interface Buyer {
   id: string;
@@ -37,7 +36,6 @@ export function InviteBuyerModal({ transactionId, onSuccess }: InviteBuyerModalP
   const [loadingBuyers, setLoadingBuyers] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const router = useRouter();
   const supabase = createClient();
 
   useEffect(() => {
@@ -72,13 +70,21 @@ export function InviteBuyerModal({ transactionId, onSuccess }: InviteBuyerModalP
 
       if (fetchError) throw fetchError;
 
-      const buyersList = (associations || []).map((a: any) => ({
-        id: (a.profiles as any).id,
-        full_name: (a.profiles as any).full_name || 'Unknown Buyer',
+      type AssociationRow = {
+        buyer_id: string;
+        profiles: { id: string; full_name: string | null };
+      };
+
+      // Supabase infers to-one FK joins as arrays without generated DB
+      // types, but at runtime this join returns a single object
+      const rows = (associations ?? []) as unknown as AssociationRow[];
+      const buyersList = rows.map((a) => ({
+        id: a.profiles.id,
+        full_name: a.profiles.full_name || 'Unknown Buyer',
       }));
 
       setBuyers(buyersList);
-    } catch (err: any) {
+    } catch {
       setError('Failed to load buyers. Please try again.');
     } finally {
       setLoadingBuyers(false);
@@ -126,8 +132,8 @@ export function InviteBuyerModal({ transactionId, onSuccess }: InviteBuyerModalP
         setSuccess(null);
       }, 1500);
 
-    } catch (err: any) {
-      setError(err.message || 'Failed to invite buyer');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to invite buyer');
     } finally {
       setIsLoading(false);
     }

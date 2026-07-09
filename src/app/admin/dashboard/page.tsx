@@ -12,17 +12,11 @@ import {
   Activity,
   Database,
   HardDrive,
-  Wifi,
   UserCheck,
   TrendingUp,
   Settings,
-  TestTube,
-  MessageSquare,
-  FolderOpen,
   CheckCircle2,
-  Circle,
   Loader2,
-  ArrowRight,
   ExternalLink,
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
@@ -48,7 +42,7 @@ interface Metrics {
   topAgents: Array<{
     agentId: string;
     count: number;
-    agent: any;
+    agent: { full_name?: string | null } | null;
   }>;
   activityTrends: Array<{
     date: string;
@@ -92,8 +86,8 @@ export default function SuperAdminDashboard() {
       if (!response.ok) throw new Error('Failed to fetch metrics');
       const data = await response.json();
       setMetrics(data);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading(false);
     }
@@ -350,7 +344,7 @@ export default function SuperAdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {activityTrends.map((day, index) => {
+              {activityTrends.map((day) => {
                 const maxCount = Math.max(...activityTrends.map(d => d.count), 1);
                 const percentage = (day.count / maxCount) * 100;
                 return (
@@ -451,6 +445,22 @@ export default function SuperAdminDashboard() {
                 <div>
                   <p className="font-medium">Admin Tools</p>
                   <p className="text-xs text-muted-foreground">Debug & test</p>
+                </div>
+              </div>
+            </CardContent>
+          </Link>
+        </Card>
+
+        <Card className="hover:border-rose-300 transition-colors cursor-pointer">
+          <Link href="/admin/deletion-requests">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-rose-100 rounded-lg">
+                  <Users className="h-6 w-6 text-rose-600" />
+                </div>
+                <div>
+                  <p className="font-medium">Deletion Requests</p>
+                  <p className="text-xs text-muted-foreground">GDPR erasure queue</p>
                 </div>
               </div>
             </CardContent>

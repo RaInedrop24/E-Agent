@@ -83,7 +83,7 @@ export default function MilestonePage({ params }: PageProps) {
       const isCreator = txData.created_by === user?.id;
 
       if (!isCreator && !isSuperAdmin) {
-        const { data: participantCheck, error: participantError } = await supabase
+        const { data: participantCheck } = await supabase
           .from('transaction_participants')
           .select('id')
           .eq('transaction_id', transactionId)
@@ -111,8 +111,8 @@ export default function MilestonePage({ params }: PageProps) {
 
       setMilestones(milestonesData || []);
       setLoading(false);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
       setLoading(false);
     }
   };
@@ -205,8 +205,8 @@ export default function MilestonePage({ params }: PageProps) {
       });
       setMilestones(updated);
 
-    } catch (err: any) {
-      setTranslationError(err.message || 'Translation failed. Please try again.');
+    } catch (err) {
+      setTranslationError(err instanceof Error ? err.message : 'Translation failed. Please try again.');
     } finally {
       setTranslatingIndex(null);
     }
@@ -256,8 +256,8 @@ export default function MilestonePage({ params }: PageProps) {
 
       if (currentMilestones) {
         const toDelete = currentMilestones
-          .filter((m: any) => !existingIds.includes(m.id))
-          .map((m: any) => m.id);
+          .filter((m: { id: string }) => !existingIds.includes(m.id))
+          .map((m: { id: string }) => m.id);
 
         if (toDelete.length > 0) {
           await supabase
@@ -306,8 +306,8 @@ export default function MilestonePage({ params }: PageProps) {
 
       // Redirect back to transaction
       router.push(`/transaction/${transactionId}`);
-    } catch (err: any) {
-      alert('Failed to save milestones: ' + err.message);
+    } catch (err) {
+      alert('Failed to save milestones: ' + (err instanceof Error ? err.message : String(err)));
       setSaving(false);
     }
   };
@@ -387,11 +387,11 @@ export default function MilestonePage({ params }: PageProps) {
             <p className="font-semibold">Instructions:</p>
             <ul className="list-disc list-inside space-y-1 text-muted-foreground">
               <li>Drag and drop milestones to reorder them</li>
-              <li>Click "Add Milestone" to create new steps</li>
+              <li>Click &quot;Add Milestone&quot; to create new steps</li>
               <li>Edit milestone labels in different languages</li>
-              <li>Click "Translate" to auto-translate to other languages</li>
+              <li>Click &quot;Translate&quot; to auto-translate to other languages</li>
               <li>Delete unwanted milestones using the trash icon</li>
-              <li>Click "Save Changes" when finished</li>
+              <li>Click &quot;Save Changes&quot; when finished</li>
             </ul>
           </div>
         </CardContent>

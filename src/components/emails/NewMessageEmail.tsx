@@ -75,7 +75,7 @@ export const NewMessageEmail = ({
             </Text>
 
             <div style={messageBox}>
-               <Text style={messageText}>"{messagePreview}"</Text>
+               <Text style={messageText}>&quot;{messagePreview}&quot;</Text>
             </div>
 
             <Hr style={hr} />

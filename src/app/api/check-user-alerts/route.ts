@@ -1,19 +1,24 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+/**
+ * Debug endpoint: lists all users' alert settings.
+ * Reads cross-tenant data, so it is restricted to super admins.
+ */
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  }
-);
+import { NextRequest, NextResponse } from 'next/server';
+import { getAuthenticatedUser, getSupabaseAdmin, isSuperAdmin } from '@/lib/api-auth';
+import { logger } from '@/lib/logger';
 
 export async function GET(request: NextRequest) {
   try {
+    const user = await getAuthenticatedUser(request);
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    if (!(await isSuperAdmin(user.id))) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    const supabaseAdmin = getSupabaseAdmin();
+
     // Get all users with their alert settings
     const { data: profiles, error } = await supabaseAdmin
       .from('profiles')
@@ -42,10 +47,10 @@ export async function GET(request: NextRequest) {
         withPhoneNumber: profilesWithEmails.filter(p => p.phone_number).length,
       },
     });
-  } catch (error: any) {
-    console.error('[Check User Alerts] Error:', error);
+  } catch (error) {
+    logger.exception('[Check User Alerts] Error', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
-      { error: error.message },
+      { error: error instanceof Error ? error.message : 'Lookup failed' },
       { status: 500 }
     );
   }

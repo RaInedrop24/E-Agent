@@ -6,14 +6,30 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
+interface DiagnosticsInfo {
+  timestamp: string;
+  user: { id?: string; email?: string } | null;
+  profile: {
+    id?: string;
+    role?: string;
+    is_super_admin?: boolean;
+    full_name?: string | null;
+  } | null;
+  profileFromDb: unknown;
+  rpcResult: unknown;
+  columnExists: boolean | null;
+  functionExists: boolean | null;
+  errors: string[];
+}
+
 export default function SuperAdminDebugPage() {
   const { user, profile } = useAuth();
-  const [debugInfo, setDebugInfo] = useState<any>({});
+  const [debugInfo, setDebugInfo] = useState<Partial<DiagnosticsInfo>>({});
   const [loading, setLoading] = useState(false);
 
   const runDiagnostics = async () => {
     setLoading(true);
-    const info: any = {
+    const info: DiagnosticsInfo = {
       timestamp: new Date().toISOString(),
       user: null,
       profile: null,
@@ -68,14 +84,14 @@ export default function SuperAdminDebugPage() {
         } else {
           info.rpcResult = rpcData;
         }
-      } catch (rpcException: any) {
-        info.errors.push(`RPC exception: ${rpcException.message}`);
+      } catch (rpcException) {
+        info.errors.push(`RPC exception: ${rpcException instanceof Error ? rpcException.message : String(rpcException)}`);
         info.rpcResult = null;
       }
 
       // 5. Check if column exists (this will fail if column doesn't exist)
       try {
-        const { data, error } = await supabase
+        const { error } = await supabase
           .from('profiles')
           .select('is_super_admin')
           .limit(1);
@@ -86,26 +102,26 @@ export default function SuperAdminDebugPage() {
         } else {
           info.columnExists = true;
         }
-      } catch (e: any) {
-        info.errors.push(`Column check exception: ${e.message}`);
+      } catch (e) {
+        info.errors.push(`Column check exception: ${e instanceof Error ? e.message : String(e)}`);
         info.columnExists = false;
       }
 
       // 6. Try to check if function exists (indirect check)
       try {
-        const { data, error } = await supabase.rpc('current_user_is_super_admin');
+        const { error } = await supabase.rpc('current_user_is_super_admin');
         if (error && error.code === '42883') {
           info.functionExists = false;
           info.errors.push('RPC function does not exist (42883)');
         } else {
           info.functionExists = true;
         }
-      } catch (e: any) {
-        info.errors.push(`Function check exception: ${e.message}`);
+      } catch (e) {
+        info.errors.push(`Function check exception: ${e instanceof Error ? e.message : String(e)}`);
       }
 
-    } catch (error: any) {
-      info.errors.push(`General error: ${error.message}`);
+    } catch (error) {
+      info.errors.push(`General error: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       setLoading(false);
     }
@@ -211,7 +227,7 @@ export default function SuperAdminDebugPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-gray-600">
-            If the column or function doesn't exist, run these migrations in your Supabase SQL Editor:
+            If the column or function doesn&apos;t exist, run these migrations in your Supabase SQL Editor:
           </p>
           
           <div>

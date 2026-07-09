@@ -63,7 +63,7 @@ export default function CreateTransactionPage() {
 
       setTemplates(data || []);
       setLoadingTemplates(false);
-    } catch (err: any) {
+    } catch {
       // Don't show error to user - templates are optional
       setLoadingTemplates(false);
     }
@@ -88,15 +88,20 @@ export default function CreateTransactionPage() {
 
       if (error) throw error;
 
-      const buyersList = (associations || []).map((a: any) => ({
-        id: (a.profiles as any).id,
-        full_name: (a.profiles as any).full_name || 'Unknown Buyer',
-        email: (a.profiles as any).id, // Store ID as placeholder
+      // The joined profile comes back as a single object for this FK
+      type AssociationRow = {
+        buyer_id: string;
+        profiles: { id: string; full_name: string | null };
+      };
+      const buyersList = ((associations || []) as unknown as AssociationRow[]).map((a) => ({
+        id: a.profiles.id,
+        full_name: a.profiles.full_name || 'Unknown Buyer',
+        email: a.profiles.id, // Store ID as placeholder
       }));
 
       setBuyers(buyersList);
       setLoadingBuyers(false);
-    } catch (err: any) {
+    } catch {
       setError(t('error.loadBuyersFailed'));
       setLoadingBuyers(false);
     }
@@ -156,7 +161,8 @@ export default function CreateTransactionPage() {
               const data = await response.json();
               return { lang: targetLang, text: data.translatedText };
             }
-          } catch (err) {
+          } catch {
+            // Ignore individual translation failures
           }
           return null;
         });
@@ -168,7 +174,7 @@ export default function CreateTransactionPage() {
           }
         });
         
-      } catch (translationError) {
+      } catch {
         // Continue without translations - not critical
       }
 
@@ -249,8 +255,8 @@ export default function CreateTransactionPage() {
 
       // Redirect to the new transaction
       router.push(`/transaction/${transaction.id}`);
-    } catch (err: any) {
-      setError(err.message || t('error.createTransactionFailed'));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('error.createTransactionFailed'));
       setLoading(false);
     }
   };

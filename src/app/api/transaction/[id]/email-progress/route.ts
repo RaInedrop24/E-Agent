@@ -5,6 +5,7 @@ import { TransactionProgressEmail } from '@/components/emails/TransactionProgres
 import * as React from 'react';
 import { t, tVar, type TranslationKey } from '@/lib/ui-translations';
 import { SupportedLanguage, translateText } from '@/lib/translation';
+import { SITE_URL } from '@/lib/constants';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -71,8 +72,12 @@ export async function POST(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // Extract branding
-    const agentProfile = tx.profiles as any;
+    // Extract branding; shape matches the profiles join in the .select() above
+    const agentProfile = tx.profiles as {
+      full_name: string | null;
+      branding_logo_url: string | null;
+      branding_settings: { primary?: string } | null;
+    } | null;
     const brandLogoUrl = agentProfile?.branding_logo_url;
     // branding_settings might be null or json
     const brandSettings = agentProfile?.branding_settings; 
@@ -171,7 +176,7 @@ export async function POST(
         }
 
         return {
-          author: (m.profiles as any)?.full_name || 'Unknown',
+          author: (m.profiles as { full_name?: string | null } | null)?.full_name || 'Unknown',
           content: translatedContent,
           createdAt: m.created_at,
         };
@@ -179,7 +184,7 @@ export async function POST(
     );
 
     // Prepare email data with translations
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://thepropertygateway.com';
+    const siteUrl = SITE_URL;
     const transactionUrl = `${siteUrl}/transaction/${transactionId}`;
 
     const emailProps = {
@@ -230,9 +235,9 @@ export async function POST(
 
     return NextResponse.json({ success: true, id: emailData?.id });
 
-  } catch (error: any) {
+  } catch (error) {
     console.error('Email API Error:', error);
-    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: (error instanceof Error ? error.message : '') || 'Internal server error' }, { status: 500 });
   }
 }
 

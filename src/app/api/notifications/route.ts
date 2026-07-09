@@ -54,8 +54,19 @@ export async function GET(request: NextRequest) {
 
     // Translate notifications if user's preferred language is not English
     const userLanguage = (profile.preferred_language as SupportedLanguage) || 'en';
+    // Fields used from the user_notifications_with_details view row
+    interface NotificationRow {
+      id: string;
+      subject: string;
+      message: string;
+      translated_subject: string | null;
+      translated_message: string | null;
+      translation_language: string | null;
+      [key: string]: unknown;
+    }
+
     const translatedNotifications = await Promise.all(
-      (notifications || []).map(async (notification: any) => {
+      (notifications || []).map(async (notification: NotificationRow) => {
         // If user's language is English, return original
         if (userLanguage === 'en') {
           return notification;
@@ -121,10 +132,10 @@ export async function GET(request: NextRequest) {
       unreadCount: unreadCount || 0,
     });
 
-  } catch (error: any) {
+  } catch (error) {
     console.error('Notifications API error:', error);
     return NextResponse.json(
-      { error: error.message || 'Internal server error' },
+      { error: (error instanceof Error ? error.message : '') || 'Internal server error' },
       { status: 500 }
     );
   }

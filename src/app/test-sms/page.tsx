@@ -10,7 +10,7 @@ export default function TestSMSPage() {
   const [phoneNumber, setPhoneNumber] = useState('+44');
   const [message, setMessage] = useState('Test message from Property Gateway');
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<Record<string, unknown> | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const handleTest = async () => {
@@ -32,8 +32,8 @@ export default function TestSMSPage() {
       } else {
         setError(JSON.stringify(data, null, 2));
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading(false);
     }
@@ -109,7 +109,7 @@ export default function TestSMSPage() {
         </CardHeader>
         <CardContent className="space-y-2 text-sm">
           <p>1. Enter your phone number with country code (e.g., +447427132147)</p>
-          <p>2. Click "Send Test SMS"</p>
+          <p>2. Click &quot;Send Test SMS&quot;</p>
           <p>3. Check this page for results AND check your terminal/command prompt for detailed logs</p>
           <p className="font-semibold mt-4">
             Common Issues:
@@ -118,7 +118,7 @@ export default function TestSMSPage() {
             <li>Twilio trial accounts can only send to verified numbers</li>
             <li>Phone number must include country code with + prefix</li>
             <li>Check that TWILIO_SID, TWILIO_SECRET, and TWILIO_PHONE_NUMBER are set in .env.local</li>
-            <li>The "from" number must be a valid Twilio number you own</li>
+            <li>The &quot;from&quot; number must be a valid Twilio number you own</li>
           </ul>
         </CardContent>
       </Card>

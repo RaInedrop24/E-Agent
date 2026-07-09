@@ -273,10 +273,10 @@ export async function POST(request: NextRequest) {
       }
       
       html = await response.text();
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error fetching website:', error);
       return NextResponse.json(
-        { error: `Failed to fetch website: ${error.message}` },
+        { error: `Failed to fetch website: ${error instanceof Error ? error.message : String(error)}` },
         { status: 500 }
       );
     }
@@ -338,7 +338,7 @@ export async function POST(request: NextRequest) {
             colorWeights[`source_${colorIndex++}`] = 1; // External CSS has lower weight
           });
         }
-      } catch (error) {
+      } catch {
         // Silently fail for individual CSS files
         console.warn(`Failed to fetch CSS file: ${cssUrl}`);
       }
@@ -383,10 +383,10 @@ export async function POST(request: NextRequest) {
       uniqueColorsCount: weightedColors.length,
     });
     
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error analyzing website colors:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to analyze website colors' },
+      { error: (error instanceof Error ? error.message : '') || 'Failed to analyze website colors' },
       { status: 500 }
     );
   }
